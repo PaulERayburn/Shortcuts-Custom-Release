@@ -1,0 +1,124 @@
+============================================
+SHORTCUTS POPUP - SETUP INSTRUCTIONS
+============================================
+
+FILES CREATED:
+  %USERPROFILE%\Shortcuts-Custom\
+    popup.ahk       - AutoHotkey script (the launcher)
+    popup.html      - The popup interface
+    shortcuts.json  - Your shortcuts data (edit to customize)
+    config.json     - Configuration (not currently used by AHK)
+
+============================================
+STEP 1: INSTALL AUTOHOTKEY V2
+============================================
+
+Option A - Using winget (PowerShell):
+  winget install AutoHotkey.AutoHotkey
+
+Option B - Manual download:
+  1. Go to: https://www.autohotkey.com/
+  2. Download AutoHotkey v2
+  3. Run installer, select "v2" when prompted
+
+Verify installation:
+  AutoHotkey64.exe --version
+
+============================================
+STEP 2: RUN THE SCRIPT
+============================================
+
+Double-click:
+  %USERPROFILE%\Shortcuts-Custom\popup.ahk
+
+Or from PowerShell:
+  Start-Process "%USERPROFILE%\Shortcuts-Custom\popup.ahk"
+
+You'll see a tooltip: "Shortcuts Popup ready!"
+
+============================================
+STEP 3: USE IT
+============================================
+
+Default hotkey: CapsLock + /
+  - Press CapsLock, keep holding, press /
+  - Popup appears
+  - Press Esc to close (returns focus to previous window)
+  - Press hotkey again to toggle off
+
+Inside the popup:
+  - Click any shortcut to copy it to clipboard
+  - Use search box to filter (Ctrl+F focuses it)
+  - Click tabs to filter by category
+  - Click "+ Add" to add new shortcuts
+  - Click "Edit" to enable edit mode
+
+============================================
+STEP 4: CHANGE THE HOTKEY (OPTIONAL)
+============================================
+
+If CapsLock+/ doesn't work for you:
+
+1. Open popup.ahk in a text editor
+2. Find this line near the top:
+   HOTKEY := "CapsLock & /"
+3. Change it to one of these:
+   HOTKEY := "^!s"       ; Ctrl + Alt + S
+   HOTKEY := "^+/"       ; Ctrl + Shift + /
+   HOTKEY := "F12"       ; F12 key
+   HOTKEY := "#/"        ; Win + / (if Win key works)
+   HOTKEY := "^`"        ; Ctrl + backtick
+4. Save the file
+5. Right-click tray icon > Reload Script
+
+============================================
+STEP 5: START ON LOGIN (OPTIONAL)
+============================================
+
+Method A - Startup Folder:
+1. Press Win+R
+2. Type: shell:startup
+3. Press Enter
+4. Create a shortcut to popup.ahk in this folder:
+   - Right-click > New > Shortcut
+   - Location: %USERPROFILE%\Shortcuts-Custom\popup.ahk
+   - Name: Shortcuts Popup
+
+Method B - Task Scheduler (PowerShell Admin):
+
+$action = New-ScheduledTaskAction -Execute "%USERPROFILE%\Shortcuts-Custom\popup.ahk"
+$trigger = New-ScheduledTaskTrigger -AtLogon
+$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Limited
+Register-ScheduledTask -TaskName "ShortcutsPopup" -Action $action -Trigger $trigger -Principal $principal
+
+============================================
+DATA PERSISTENCE
+============================================
+
+Your shortcuts are saved in two places:
+1. shortcuts.json - The original file (edit manually for bulk changes)
+2. Browser localStorage - Changes made in the UI
+
+If you add shortcuts in the popup, they persist via localStorage.
+To backup or transfer: Click Edit > export your data, or copy shortcuts.json
+
+============================================
+TROUBLESHOOTING
+============================================
+
+Popup doesn't open:
+  - Make sure Edge is installed (it uses Edge in app mode)
+  - Try running: msedge.exe --app="%USERPROFILE%\Shortcuts-Custom\popup.html"
+  - Check if AHK is running (look for green H icon in system tray)
+
+Hotkey doesn't work:
+  - Another app might be capturing it
+  - Try a different hotkey (see Step 4)
+  - Run AHK as administrator if needed
+
+Changes not saving:
+  - Changes save to browser localStorage
+  - If you clear browser data, you may lose changes
+  - Keep shortcuts.json as your master backup
+
+============================================

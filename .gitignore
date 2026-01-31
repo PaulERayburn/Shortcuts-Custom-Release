@@ -1,0 +1,17 @@
+# Claude Code
+.claude/
+
+# OS files
+Thumbs.db
+desktop.ini
+
+# Editor backups
+*.bak
+*.tmp
+*~
+
+# AHK compiled binaries
+*.exe
+
+# Null file artifact
+nul

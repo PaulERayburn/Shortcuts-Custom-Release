@@ -1,0 +1,250 @@
+{
+  "categories": [
+    {
+      "id": "claude-wsl",
+      "name": "Claude WSL",
+      "color": "#f97316"
+    },
+    {
+      "id": "claude-powershell",
+      "name": "Claude PowerShell",
+      "color": "#3b82f6"
+    },
+    {
+      "id": "tmux",
+      "name": "tmux",
+      "color": "#22c55e"
+    },
+    {
+      "id": "windows",
+      "name": "Windows",
+      "color": "#a855f7"
+    }
+  ],
+  "shortcuts": [
+    {
+      "id": 1,
+      "category": "claude-wsl",
+      "keys": "cvalr4",
+      "description": "Start/attach CValR 4.0 session",
+      "notes": "Smart alias - attaches if exists, creates if not"
+    },
+    {
+      "id": 2,
+      "category": "claude-wsl",
+      "keys": "cvalh",
+      "description": "Start/attach CVal Harmonizer session",
+      "notes": ""
+    },
+    {
+      "id": 3,
+      "category": "claude-wsl",
+      "keys": "qcad",
+      "description": "Start/attach QCAD session",
+      "notes": ""
+    },
+    {
+      "id": 4,
+      "category": "claude-wsl",
+      "keys": "reso-harmonizer",
+      "description": "Start/attach RESO Harmonizer session",
+      "notes": ""
+    },
+    {
+      "id": 5,
+      "category": "claude-wsl",
+      "keys": "tc",
+      "description": "Start/attach generic Claude session",
+      "notes": ""
+    },
+    {
+      "id": 6,
+      "category": "claude-wsl",
+      "keys": "tl",
+      "description": "List all tmux sessions",
+      "notes": "tmux ls"
+    },
+    {
+      "id": 7,
+      "category": "claude-wsl",
+      "keys": "tk",
+      "description": "Kill claude session",
+      "notes": ""
+    },
+    {
+      "id": 8,
+      "category": "claude-wsl",
+      "keys": "repos",
+      "description": "cd to GitRepos and list",
+      "notes": ""
+    },
+    {
+      "id": 9,
+      "category": "claude-wsl",
+      "keys": "/clear",
+      "description": "Clear conversation history",
+      "notes": "Claude command"
+    },
+    {
+      "id": 10,
+      "category": "claude-wsl",
+      "keys": "/compact",
+      "description": "Compact conversation to save tokens",
+      "notes": "Claude command"
+    },
+    {
+      "id": 11,
+      "category": "claude-wsl",
+      "keys": "/help",
+      "description": "Show Claude help",
+      "notes": "Claude command"
+    },
+    {
+      "id": 12,
+      "category": "claude-wsl",
+      "keys": "/exit",
+      "description": "Exit Claude (back to bash)",
+      "notes": "Claude command"
+    },
+    {
+      "id": 13,
+      "category": "claude-wsl",
+      "keys": "Shift+Tab",
+      "description": "Toggle plan mode",
+      "notes": "Inside Claude"
+    },
+    {
+      "id": 14,
+      "category": "claude-wsl",
+      "keys": "!command",
+      "description": "Run bash command from Claude",
+      "notes": "e.g., !tmux ls"
+    },
+    {
+      "id": 15,
+      "category": "claude-wsl",
+      "keys": "Ctrl+W",
+      "description": "Delete word backward",
+      "notes": "Line editing"
+    },
+    {
+      "id": 16,
+      "category": "claude-wsl",
+      "keys": "Ctrl+U",
+      "description": "Delete to start of line",
+      "notes": "Line editing"
+    },
+    {
+      "id": 17,
+      "category": "claude-wsl",
+      "keys": "Ctrl+K",
+      "description": "Delete to end of line",
+      "notes": "Line editing"
+    },
+    {
+      "id": 18,
+      "category": "tmux",
+      "keys": "Ctrl+B d",
+      "description": "Detach (leave session running)",
+      "notes": ""
+    },
+    {
+      "id": 19,
+      "category": "tmux",
+      "keys": "Ctrl+B s",
+      "description": "Session picker (switch sessions)",
+      "notes": "Best way to switch projects"
+    },
+    {
+      "id": 20,
+      "category": "tmux",
+      "keys": "Ctrl+B [",
+      "description": "Enter scroll/copy mode",
+      "notes": "q to exit"
+    },
+    {
+      "id": 21,
+      "category": "tmux",
+      "keys": "Ctrl+B c",
+      "description": "Create new window",
+      "notes": ""
+    },
+    {
+      "id": 22,
+      "category": "tmux",
+      "keys": "Ctrl+B n",
+      "description": "Next window",
+      "notes": ""
+    },
+    {
+      "id": 23,
+      "category": "tmux",
+      "keys": "Ctrl+B p",
+      "description": "Previous window",
+      "notes": ""
+    },
+    {
+      "id": 24,
+      "category": "claude-powershell",
+      "keys": "wsl hostname -I",
+      "description": "Get WSL IP address",
+      "notes": "For port forwarding"
+    },
+    {
+      "id": 25,
+      "category": "claude-powershell",
+      "keys": "wsl --version",
+      "description": "Check WSL version",
+      "notes": ""
+    },
+    {
+      "id": 26,
+      "category": "claude-powershell",
+      "keys": "wsl --shutdown",
+      "description": "Shutdown WSL completely",
+      "notes": "Use to reset networking"
+    },
+    {
+      "id": 27,
+      "category": "claude-powershell",
+      "keys": "wsl",
+      "description": "Enter WSL (Ubuntu)",
+      "notes": ""
+    },
+    {
+      "id": 28,
+      "category": "windows",
+      "keys": "Alt+Tab",
+      "description": "Switch windows",
+      "notes": ""
+    },
+    {
+      "id": 29,
+      "category": "windows",
+      "keys": "Ctrl+Shift+Esc",
+      "description": "Open Task Manager",
+      "notes": ""
+    },
+    {
+      "id": 30,
+      "category": "windows",
+      "keys": "Win+V",
+      "description": "Clipboard history",
+      "notes": ""
+    },
+    {
+      "id": 31,
+      "category": "windows",
+      "keys": "Win+Shift+S",
+      "description": "Screenshot snip",
+      "notes": ""
+    },
+    {
+      "id": 32,
+      "category": "windows",
+      "keys": "Ctrl+Shift+V",
+      "description": "Paste as plain text",
+      "notes": "In many apps"
+    }
+  ]
+}

@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shortcuts-Custom</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-size: 13px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 12px;
+      user-select: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #333;
+    }
+
+    .header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.8; }
+
+    .btn-add {
+      background: #22c55e;
+      color: #fff;
+    }
+
+    .btn-edit {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .btn-cancel {
+      background: #666;
+      color: #fff;
+    }
+
+    .btn-delete {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-export {
+      background: #8b5cf6;
+      color: #fff;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      background: #333;
+      color: #999;
+      transition: all 0.2s;
+    }
+
+    .tab:hover { color: #fff; }
+
+    .tab.active {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #2d2d2d;
+      color: #d4d4d4;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: #666;
+    }
+
+    .shortcuts-list {
+      max-height: calc(100vh - 180px);
+      overflow-y: auto;
+    }
+
+    .shortcut-row {
+      margin-bottom: 4px;
+    }
+
+    .shortcut-item {
+      display: grid;
+      grid-template-columns: 28px 140px 1fr auto auto auto;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 4px;
+      background: #2d2d2d;
+      align-items: center;
+      transition: background 0.2s;
+    }
+
+    .shortcut-item:hover {
+      background: #3d3d3d;
+    }
+
+    .shortcut-item.copied {
+      background: #22c55e33;
+    }
+
+    .btn-copy {
+      padding: 4px 10px;
+      font-size: 11px;
+      background: #22c55e;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-copy:hover { opacity: 0.8; }
+
+    .btn-notes {
+      padding: 4px 10px;
+      font-size: 11px;
+      background: #eab308;
+      color: #000;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .btn-notes:hover { opacity: 0.8; }
+
+    .btn-notes.has-notes {
+      background: #eab308;
+    }
+
+    .btn-notes.no-notes {
+      background: #555;
+      color: #ccc;
+      font-weight: normal;
+    }
+
+    .notes-panel {
+      background: #252525;
+      border: 1px solid #444;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      padding: 8px 10px;
+      margin-top: -4px;
+    }
+
+    .notes-textarea {
+      width: 100%;
+      min-height: 60px;
+      padding: 8px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-size: 12px;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      resize: vertical;
+      user-select: text;
+    }
+
+    .notes-textarea:focus {
+      outline: none;
+      border-color: #eab308;
+    }
+
+    .notes-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 6px;
+      gap: 6px;
+    }
+
+    .notes-bar .btn {
+      padding: 3px 10px;
+      font-size: 11px;
+    }
+
+    .shortcut-keys {
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      color: #fff;
+      background: #444;
+      padding: 3px 8px;
+      border-radius: 3px;
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .shortcut-desc {
+      color: #d4d4d4;
+    }
+
+    .shortcut-notes {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .shortcut-category {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #fff;
+    }
+
+    .category-header {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
+      padding: 8px 0 4px 0;
+      margin-top: 8px;
+      border-bottom: 1px solid #333;
+    }
+
+    .category-header:first-child {
+      margin-top: 0;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: #2d2d2d;
+      padding: 20px;
+      border-radius: 8px;
+      width: 400px;
+      max-width: 90%;
+    }
+
+    .modal h2 {
+      font-size: 16px;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-size: 13px;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #22c55e;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 200;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .edit-mode .edit-actions {
+      display: flex;
+    }
+
+    .edit-mode .btn-copy,
+    .edit-mode .btn-notes {
+      display: none;
+    }
+
+    .edit-actions {
+      display: none;
+      gap: 4px;
+    }
+
+    .edit-mode .edit-actions {
+      display: flex;
+    }
+
+    .edit-btn {
+      padding: 3px 8px;
+      font-size: 11px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .edit-btn.edit { background: #3b82f6; color: #fff; }
+    .edit-btn.delete { background: #ef4444; color: #fff; }
+
+    .fav-star {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 6px;
+      color: #666;
+      transition: color 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .fav-star:hover {
+      color: #ca8a04;
+      transform: scale(1.2);
+    }
+
+    .fav-star.active {
+      color: #eab308;
+    }
+
+    .tab-fav {
+      background: #333;
+      color: #999;
+    }
+
+    .tab-fav.active {
+      background: #eab308 !important;
+      color: #000 !important;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .cat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 4px;
+      background: #1e1e1e;
+      margin-bottom: 4px;
+    }
+    .cat-swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .cat-name { flex: 1; color: #d4d4d4; font-size: 13px; }
+    .cat-count { font-size: 11px; color: #666; margin-right: 4px; }
+    .cat-item .edit-btn { padding: 2px 8px; font-size: 10px; }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #1e1e1e; }
+    ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Shortcuts</h1>
+    <div class="header-buttons">
+      <button class="btn btn-add" onclick="openAddModal()">+ Add</button>
+      <button class="btn btn-edit" id="editModeBtn" onclick="toggleEditMode()">Edit</button>
+      <button class="btn btn-edit" onclick="openCategoryModal()" title="Manage Categories" style="background:#8b5cf6">Categories</button>
+    </div>
+  </div>
+
+  <input type="text" class="search-box" placeholder="Search shortcuts..." id="searchBox" onkeyup="filterShortcuts()">
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="shortcuts-list" id="shortcutsList"></div>
+
+  <div class="hint">Esc to close | Ctrl+F to search</div>
+  <div style="font-size:10px;color:#444;text-align:center;margin-top:4px;">Created by PaulR & Claude Code</div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2 id="modalTitle">Add Shortcut</h2>
+      <form id="shortcutForm" onsubmit="saveShortcut(event)">
+        <input type="hidden" id="editId">
+        <div class="form-group">
+          <label>Category</label>
+          <select id="formCategory" required></select>
+        </div>
+        <div class="form-group">
+          <label>Keys / Command</label>
+          <input type="text" id="formKeys" placeholder="e.g., Ctrl+B d" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="formDesc" placeholder="What does it do?" required>
+        </div>
+        <div class="form-group">
+          <label>Notes (optional)</label>
+          <textarea id="formNotes" placeholder="Additional info..."></textarea>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+          <button type="button" class="btn btn-delete" id="deleteBtn" onclick="deleteShortcut()" style="display:none">Delete</button>
+          <button type="submit" class="btn btn-add">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Category Management Modal -->
+  <div class="modal-overlay" id="categoryModalOverlay">
+    <div class="modal" style="max-height:80vh;overflow-y:auto">
+      <h2>Manage Categories</h2>
+      <div id="categoryList"></div>
+      <div style="margin-top:16px;border-top:1px solid #444;padding-top:12px">
+        <h3 style="font-size:13px;color:#fff;margin-bottom:8px" id="catFormTitle">Add Category</h3>
+        <input type="hidden" id="editCatId">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="catName" placeholder="Category name" required>
+        </div>
+        <div class="form-group">
+          <label>Color</label>
+          <input type="color" id="catColor" value="#3b82f6" style="height:36px;cursor:pointer">
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn btn-cancel" onclick="closeCategoryModal()">Close</button>
+          <button type="button" class="btn btn-cancel" id="catCancelEditBtn" onclick="cancelCatEdit()" style="display:none">Cancel Edit</button>
+          <button type="button" class="btn btn-add" onclick="saveCategoryForm()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+  <script>
+    // ============================================
+    // DEFAULT DATA - Edit this to change defaults
+    // ============================================
+    const DEFAULT_DATA = {
+      "categories": [
+        { "id": "claude-wsl", "name": "Claude WSL", "color": "#f97316" },
+        { "id": "claude-powershell", "name": "Claude PowerShell", "color": "#3b82f6" },
+        { "id": "tmux", "name": "tmux", "color": "#22c55e" },
+        { "id": "windows", "name": "Windows", "color": "#a855f7" }
+      ],
+      "shortcuts": [
+        { "id": 1, "category": "claude-wsl", "keys": "cvalr4", "description": "Start/attach CValR 4.0 session", "notes": "Smart alias - attaches if exists, creates if not" },
+        { "id": 2, "category": "claude-wsl", "keys": "cvalh", "description": "Start/attach CVal Harmonizer session", "notes": "" },
+        { "id": 3, "category": "claude-wsl", "keys": "qcad", "description": "Start/attach QCAD session", "notes": "" },
+        { "id": 4, "category": "claude-wsl", "keys": "reso-harmonizer", "description": "Start/attach RESO Harmonizer session", "notes": "" },
+        { "id": 5, "category": "claude-wsl", "keys": "tc", "description": "Start/attach generic Claude session", "notes": "" },
+        { "id": 6, "category": "claude-wsl", "keys": "tl", "description": "List all tmux sessions", "notes": "tmux ls" },
+        { "id": 7, "category": "claude-wsl", "keys": "tk", "description": "Kill claude session", "notes": "" },
+        { "id": 8, "category": "claude-wsl", "keys": "repos", "description": "cd to GitRepos and list", "notes": "" },
+        { "id": 15, "category": "claude-wsl", "keys": "Ctrl+W", "description": "Delete word backward", "notes": "Line editing" },
+        { "id": 16, "category": "claude-wsl", "keys": "Ctrl+U", "description": "Delete to start of line", "notes": "Line editing" },
+        { "id": 17, "category": "claude-wsl", "keys": "Ctrl+K", "description": "Delete to end of line", "notes": "Line editing" },
+        { "id": 18, "category": "tmux", "keys": "Ctrl+B d", "description": "Detach (leave session running)", "notes": "" },
+        { "id": 19, "category": "tmux", "keys": "Ctrl+B s", "description": "Session picker (switch sessions)", "notes": "Best way to switch projects" },
+        { "id": 20, "category": "tmux", "keys": "Ctrl+B [", "description": "Enter scroll/copy mode", "notes": "q to exit" },
+        { "id": 21, "category": "tmux", "keys": "Ctrl+B c", "description": "Create new window", "notes": "" },
+        { "id": 22, "category": "tmux", "keys": "Ctrl+B n", "description": "Next window", "notes": "" },
+        { "id": 23, "category": "tmux", "keys": "Ctrl+B p", "description": "Previous window", "notes": "" },
+        { "id": 24, "category": "claude-powershell", "keys": "wsl hostname -I", "description": "Get WSL IP address", "notes": "For port forwarding" },
+        { "id": 25, "category": "claude-powershell", "keys": "wsl --version", "description": "Check WSL version", "notes": "" },
+        { "id": 26, "category": "claude-powershell", "keys": "wsl --shutdown", "description": "Shutdown WSL completely", "notes": "Use to reset networking" },
+        { "id": 27, "category": "claude-powershell", "keys": "wsl", "description": "Enter WSL (Ubuntu)", "notes": "" },
+        { "id": 28, "category": "windows", "keys": "Alt+Tab", "description": "Switch windows", "notes": "" },
+        { "id": 29, "category": "windows", "keys": "Ctrl+Shift+Esc", "description": "Open Task Manager", "notes": "" },
+        { "id": 30, "category": "windows", "keys": "Win+V", "description": "Clipboard history", "notes": "" },
+        { "id": 31, "category": "windows", "keys": "Win+Shift+S", "description": "Screenshot snip", "notes": "" },
+        { "id": 32, "category": "windows", "keys": "Ctrl+Shift+V", "description": "Paste as plain text", "notes": "In many apps" },
+        { "id": 33, "category": "windows", "keys": "CapsLock + \"", "description": "Fix keyboard (re-scan devices)", "notes": "Runs as admin - fixes Win+H voice typing side effects" },
+        { "id": 50, "category": "claude-powershell", "keys": "Ctrl+C", "description": "Cancel/interrupt current operation", "notes": "Stops Claude mid-response" },
+        { "id": 51, "category": "claude-powershell", "keys": "Ctrl+D", "description": "Exit Claude Code", "notes": "Quick exit, same as /exit" },
+        { "id": 52, "category": "claude-powershell", "keys": "Ctrl+R", "description": "Open history search", "notes": "Search previous prompts" },
+        { "id": 53, "category": "claude-powershell", "keys": "Ctrl+T", "description": "Toggle task list", "notes": "Show/hide todos" },
+        { "id": 54, "category": "claude-powershell", "keys": "Ctrl+O", "description": "Toggle verbose transcript", "notes": "See full tool output" },
+        { "id": 55, "category": "claude-powershell", "keys": "Ctrl+G", "description": "Open in external editor", "notes": "Edit prompt in $EDITOR" },
+        { "id": 56, "category": "claude-powershell", "keys": "Ctrl+S", "description": "Stash prompt", "notes": "Save current input for later" },
+        { "id": 57, "category": "claude-powershell", "keys": "Ctrl+V / Alt+V", "description": "Paste image", "notes": "Ctrl+V or Alt+V on Windows" },
+        { "id": 58, "category": "claude-powershell", "keys": "Alt+T", "description": "Toggle thinking mode", "notes": "Enable/disable extended thinking" },
+        { "id": 59, "category": "claude-powershell", "keys": "Shift+Tab", "description": "Cycle permission modes", "notes": "Normal > auto-accept > plan mode" },
+        { "id": 60, "category": "claude-powershell", "keys": "Esc Esc", "description": "Open rewind menu", "notes": "Double-tap Esc to undo changes" },
+        { "id": 61, "category": "claude-powershell", "keys": "\\ + Enter", "description": "Insert newline", "notes": "Backslash then Return for multi-line input" },
+        { "id": 62, "category": "claude-powershell", "keys": "!", "description": "Bash mode", "notes": "Prefix to run shell commands inside Claude" },
+        { "id": 63, "category": "claude-powershell", "keys": "/", "description": "Commands menu", "notes": "Prefix for slash commands" },
+        { "id": 64, "category": "claude-powershell", "keys": "@", "description": "File path mention", "notes": "Autocomplete file/directory paths" },
+        { "id": 65, "category": "claude-powershell", "keys": "&", "description": "Background task", "notes": "Prefix to run task in background" },
+        { "id": 70, "category": "claude-powershell", "keys": "/help", "description": "Show available commands", "notes": "" },
+        { "id": 71, "category": "claude-powershell", "keys": "/compact", "description": "Compact conversation context", "notes": "Use when context gets large" },
+        { "id": 72, "category": "claude-powershell", "keys": "/context", "description": "View context usage", "notes": "See how much context is used" },
+        { "id": 73, "category": "claude-powershell", "keys": "/model", "description": "View or switch models", "notes": "Change between Opus/Sonnet/Haiku" },
+        { "id": 74, "category": "claude-powershell", "keys": "/resume", "description": "Resume previous session", "notes": "Continue where you left off" },
+        { "id": 75, "category": "claude-powershell", "keys": "/rename", "description": "Rename current session", "notes": "" },
+        { "id": 76, "category": "claude-powershell", "keys": "/rewind", "description": "Rewind to previous state", "notes": "Undo recent changes" },
+        { "id": 77, "category": "claude-powershell", "keys": "/config", "description": "Open settings", "notes": "" },
+        { "id": 78, "category": "claude-powershell", "keys": "/hooks", "description": "Configure hooks", "notes": "Set up automation triggers" },
+        { "id": 79, "category": "claude-powershell", "keys": "/agents", "description": "View/create subagents", "notes": "" },
+        { "id": 80, "category": "claude-powershell", "keys": "/mcp", "description": "Check MCP server status", "notes": "" },
+        { "id": 81, "category": "claude-powershell", "keys": "/vim", "description": "Enable vim mode", "notes": "" },
+        { "id": 82, "category": "claude-powershell", "keys": "/keybindings", "description": "Customize keyboard shortcuts", "notes": "" },
+        { "id": 83, "category": "claude-powershell", "keys": "/doctor", "description": "Diagnose installation issues", "notes": "Run when things aren't working" },
+        { "id": 84, "category": "claude-powershell", "keys": "/init", "description": "Create CLAUDE.md for project", "notes": "Initialize project memory file" },
+        { "id": 85, "category": "claude-powershell", "keys": "/clear", "description": "Clear conversation history", "notes": "Start fresh" },
+        { "id": 86, "category": "claude-powershell", "keys": "/exit", "description": "Exit Claude Code", "notes": "Back to terminal" }
+      ]
+    };
+
+    // ============================================
+    // APP STATE
+    // ============================================
+    let data = { categories: [], shortcuts: [] };
+    let activeCategory = 'all';
+    let editMode = false;
+    let showFavoritesOnly = false;
+
+    // ============================================
+    // DATA MANAGEMENT
+    // ============================================
+
+    function loadData() {
+      // Try to load from localStorage first
+      const saved = localStorage.getItem('shortcuts-popup-data');
+      if (saved) {
+        try {
+          data = JSON.parse(saved);
+          // Merge any new defaults that don't exist yet
+          mergeNewDefaults();
+          console.log('Loaded from localStorage:', data.shortcuts.length, 'shortcuts');
+        } catch (e) {
+          console.error('Failed to parse localStorage, using defaults');
+          data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        }
+      } else {
+        // First run - use defaults
+        data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        saveData();
+        console.log('First run - loaded defaults');
+      }
+
+      renderTabs();
+      renderShortcuts();
+      populateCategorySelect();
+    }
+
+    function mergeNewDefaults() {
+      const existingIds = new Set(data.shortcuts.map(s => s.id));
+      let added = 0;
+      DEFAULT_DATA.shortcuts.forEach(ds => {
+        if (!existingIds.has(ds.id)) {
+          data.shortcuts.push(JSON.parse(JSON.stringify(ds)));
+          added++;
+        }
+      });
+      // Also merge any new categories
+      const existingCats = new Set(data.categories.map(c => c.id));
+      DEFAULT_DATA.categories.forEach(dc => {
+        if (!existingCats.has(dc.id)) {
+          data.categories.push(JSON.parse(JSON.stringify(dc)));
+        }
+      });
+      if (added > 0) {
+        saveData();
+        console.log('Merged ' + added + ' new shortcuts from defaults');
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('shortcuts-popup-data', JSON.stringify(data));
+    }
+
+    function resetToDefaults() {
+      if (confirm('Reset all shortcuts to defaults? This cannot be undone.')) {
+        data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        saveData();
+        renderTabs();
+        renderShortcuts();
+        showToast('Reset to defaults!');
+      }
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'shortcuts-backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Exported!');
+    }
+
+    // ============================================
+    // RENDERING
+    // ============================================
+
+    function renderTabs() {
+      const tabs = document.getElementById('tabs');
+      const favCount = data.shortcuts.filter(s => s.favorite).length;
+      let html = `<button class="tab tab-fav ${showFavoritesOnly ? 'active' : ''}" onclick="toggleFavorites()">\u2605 Favs${favCount ? ' (' + favCount + ')' : ''}</button>`;
+      html += `<button class="tab ${!showFavoritesOnly && activeCategory === 'all' ? 'active' : ''}" onclick="setCategory('all')">All</button>`;
+
+      data.categories.forEach(cat => {
+        const isActive = !showFavoritesOnly && activeCategory === cat.id ? 'active' : '';
+        html += `<button class="tab ${isActive}" style="background: ${isActive ? cat.color : '#333'}" onclick="setCategory('${cat.id}')">${cat.name}</button>`;
+      });
+
+      tabs.innerHTML = html;
+    }
+
+    function setCategory(catId) {
+      activeCategory = catId;
+      showFavoritesOnly = false;
+      renderTabs();
+      renderShortcuts();
+    }
+
+    function toggleFavorites() {
+      showFavoritesOnly = !showFavoritesOnly;
+      if (showFavoritesOnly) activeCategory = 'all';
+      renderTabs();
+      renderShortcuts();
+    }
+
+    function toggleFav(id, event) {
+      event.stopPropagation();
+      const shortcut = data.shortcuts.find(s => s.id === id);
+      if (shortcut) {
+        shortcut.favorite = !shortcut.favorite;
+        saveData();
+        renderShortcuts();
+        renderTabs();
+      }
+    }
+
+    function renderShortcuts() {
+      const list = document.getElementById('shortcutsList');
+      const search = document.getElementById('searchBox').value.toLowerCase();
+
+      let filtered = data.shortcuts.filter(s => {
+        const matchesCategory = activeCategory === 'all' || s.category === activeCategory;
+        const matchesFav = !showFavoritesOnly || s.favorite;
+        const matchesSearch = !search ||
+          s.keys.toLowerCase().includes(search) ||
+          s.description.toLowerCase().includes(search) ||
+          (s.notes && s.notes.toLowerCase().includes(search));
+        return matchesCategory && matchesFav && matchesSearch;
+      });
+
+      let html = '';
+
+      if (activeCategory === 'all') {
+        data.categories.forEach(cat => {
+          const catShortcuts = filtered.filter(s => s.category === cat.id);
+          if (catShortcuts.length > 0) {
+            html += `<div class="category-header" style="color: ${cat.color}">${cat.name}</div>`;
+            catShortcuts.forEach(s => {
+              html += renderShortcutItem(s, cat);
+            });
+          }
+        });
+      } else {
+        const cat = data.categories.find(c => c.id === activeCategory);
+        filtered.forEach(s => {
+          html += renderShortcutItem(s, cat);
+        });
+      }
+
+      list.innerHTML = html || '<div style="text-align:center;color:#666;padding:20px">No shortcuts found</div>';
+    }
+
+    let openNotesId = null;
+
+    function renderShortcutItem(s, cat) {
+      const keysEscaped = escapeHtml(s.keys).replace(/'/g, "\\'");
+      const starClass = s.favorite ? 'active' : '';
+      const notesClass = s.notes ? 'has-notes' : 'no-notes';
+      const isOpen = openNotesId === s.id;
+      const notesEscaped = escapeHtml(s.notes || '').replace(/'/g, "&#39;");
+
+      let html = `<div class="shortcut-row">`;
+      html += `<div class="shortcut-item" data-id="${s.id}">`;
+      html += `<button class="fav-star ${starClass}" onclick="toggleFav(${s.id}, event)" title="Toggle favorite">${s.favorite ? '\u2605' : '\u2606'}</button>`;
+      html += `<span class="shortcut-keys">${escapeHtml(s.keys)}</span>`;
+      html += `<div><div class="shortcut-desc">${escapeHtml(s.description)}</div></div>`;
+      html += `<button class="btn-copy" onclick="copyShortcut(this.closest('.shortcut-item'), '${keysEscaped}')">Copy</button>`;
+      html += `<button class="btn-notes ${notesClass}" onclick="toggleNotes(${s.id})">Notes</button>`;
+      html += `<div class="edit-actions">`;
+      html += `<button class="edit-btn edit" onclick="event.stopPropagation(); openEditModal(${s.id})">Edit</button>`;
+      html += `<button class="edit-btn delete" onclick="event.stopPropagation(); confirmDelete(${s.id})">X</button>`;
+      html += `</div>`;
+      html += `</div>`;
+
+      if (isOpen) {
+        html += `<div class="notes-panel">`;
+        html += `<textarea class="notes-textarea" id="notes-${s.id}" placeholder="Add notes here...">${s.notes || ''}</textarea>`;
+        html += `<div class="notes-bar">`;
+        html += `<button class="btn btn-cancel" onclick="toggleNotes(${s.id})">Close</button>`;
+        html += `<button class="btn btn-add" onclick="saveNotes(${s.id})">Save</button>`;
+        html += `</div></div>`;
+      }
+
+      html += `</div>`;
+      return html;
+    }
+
+    function toggleNotes(id) {
+      if (openNotesId === id) {
+        openNotesId = null;
+      } else {
+        openNotesId = id;
+      }
+      renderShortcuts();
+      if (openNotesId !== null) {
+        const textarea = document.getElementById('notes-' + id);
+        if (textarea) textarea.focus();
+      }
+    }
+
+    function saveNotes(id) {
+      const textarea = document.getElementById('notes-' + id);
+      if (!textarea) return;
+      const shortcut = data.shortcuts.find(s => s.id === id);
+      if (shortcut) {
+        shortcut.notes = textarea.value;
+        saveData();
+        openNotesId = null;
+        renderShortcuts();
+        renderTabs();
+        showToast('Notes saved!');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ============================================
+    // ACTIONS
+    // ============================================
+
+    function copyShortcut(el, text) {
+      if (editMode) return;
+
+      navigator.clipboard.writeText(text).then(() => {
+        el.classList.add('copied');
+        showToast('Copied: ' + text);
+        setTimeout(() => el.classList.remove('copied'), 500);
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    function filterShortcuts() {
+      renderShortcuts();
+    }
+
+    function toggleEditMode() {
+      editMode = !editMode;
+      document.body.classList.toggle('edit-mode', editMode);
+      document.getElementById('editModeBtn').textContent = editMode ? 'Done' : 'Edit';
+    }
+
+    function populateCategorySelect() {
+      const select = document.getElementById('formCategory');
+      select.innerHTML = data.categories.map(c =>
+        `<option value="${c.id}">${c.name}</option>`
+      ).join('') + '<option value="__new__">+ New Category</option>';
+      select.onchange = function() {
+        if (this.value === '__new__') {
+          this.value = data.categories[0]?.id || '';
+          openCategoryModal();
+        }
+      };
+    }
+
+    // ============================================
+    // MODAL
+    // ============================================
+
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = 'Add Shortcut';
+      document.getElementById('editId').value = '';
+      document.getElementById('formKeys').value = '';
+      document.getElementById('formDesc').value = '';
+      document.getElementById('formNotes').value = '';
+      document.getElementById('formCategory').value = activeCategory !== 'all' ? activeCategory : data.categories[0]?.id;
+      document.getElementById('deleteBtn').style.display = 'none';
+      document.getElementById('modalOverlay').classList.add('show');
+      document.getElementById('formKeys').focus();
+    }
+
+    function openEditModal(id) {
+      const shortcut = data.shortcuts.find(s => s.id === id);
+      if (!shortcut) return;
+
+      document.getElementById('modalTitle').textContent = 'Edit Shortcut';
+      document.getElementById('editId').value = id;
+      document.getElementById('formKeys').value = shortcut.keys;
+      document.getElementById('formDesc').value = shortcut.description;
+      document.getElementById('formNotes').value = shortcut.notes || '';
+      document.getElementById('formCategory').value = shortcut.category;
+      document.getElementById('deleteBtn').style.display = 'block';
+      document.getElementById('modalOverlay').classList.add('show');
+      document.getElementById('formKeys').focus();
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('show');
+    }
+
+    function saveShortcut(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('editId').value;
+      const existing = id ? data.shortcuts.find(s => s.id === parseInt(id)) : null;
+      const shortcut = {
+        id: id ? parseInt(id) : Math.max(0, ...data.shortcuts.map(s => s.id)) + 1,
+        category: document.getElementById('formCategory').value,
+        keys: document.getElementById('formKeys').value,
+        description: document.getElementById('formDesc').value,
+        notes: document.getElementById('formNotes').value,
+        favorite: existing ? existing.favorite : false
+      };
+
+      if (id) {
+        const index = data.shortcuts.findIndex(s => s.id === parseInt(id));
+        if (index > -1) data.shortcuts[index] = shortcut;
+      } else {
+        data.shortcuts.push(shortcut);
+      }
+
+      saveData();
+      renderShortcuts();
+      closeModal();
+      showToast(id ? 'Updated!' : 'Added!');
+    }
+
+    function deleteShortcut() {
+      const id = parseInt(document.getElementById('editId').value);
+      data.shortcuts = data.shortcuts.filter(s => s.id !== id);
+      saveData();
+      renderShortcuts();
+      closeModal();
+      showToast('Deleted!');
+    }
+
+    function confirmDelete(id) {
+      if (confirm('Delete this shortcut?')) {
+        data.shortcuts = data.shortcuts.filter(s => s.id !== id);
+        saveData();
+        renderShortcuts();
+        showToast('Deleted!');
+      }
+    }
+
+    // ============================================
+    // CATEGORY MANAGEMENT
+    // ============================================
+
+    function openCategoryModal() {
+      document.getElementById('editCatId').value = '';
+      document.getElementById('catName').value = '';
+      document.getElementById('catColor').value = '#3b82f6';
+      document.getElementById('catFormTitle').textContent = 'Add Category';
+      document.getElementById('catCancelEditBtn').style.display = 'none';
+      renderCategoryList();
+      document.getElementById('categoryModalOverlay').classList.add('show');
+    }
+
+    function closeCategoryModal() {
+      document.getElementById('categoryModalOverlay').classList.remove('show');
+    }
+
+    function renderCategoryList() {
+      const container = document.getElementById('categoryList');
+      let html = '';
+      data.categories.forEach(cat => {
+        const count = data.shortcuts.filter(s => s.category === cat.id).length;
+        html += `<div class="cat-item">
+          <div class="cat-swatch" style="background:${cat.color}"></div>
+          <span class="cat-name">${escapeHtml(cat.name)}</span>
+          <span class="cat-count">${count}</span>
+          <button class="edit-btn edit" onclick="editCategory('${cat.id}')">Edit</button>
+          <button class="edit-btn delete" onclick="deleteCategory('${cat.id}')">Del</button>
+        </div>`;
+      });
+      container.innerHTML = html || '<div style="color:#666;padding:8px">No categories yet.</div>';
+    }
+
+    function slugify(str) {
+      return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    }
+
+    function saveCategoryForm() {
+      const name = document.getElementById('catName').value.trim();
+      const color = document.getElementById('catColor').value;
+      const editId = document.getElementById('editCatId').value;
+
+      if (!name) { showToast('Name is required'); return; }
+
+      if (editId) {
+        // Editing existing
+        const cat = data.categories.find(c => c.id === editId);
+        if (cat) {
+          cat.name = name;
+          cat.color = color;
+        }
+      } else {
+        // Adding new
+        let id = slugify(name);
+        if (data.categories.some(c => c.id === id)) {
+          id = id + '-' + Date.now();
+        }
+        data.categories.push({ id, name, color });
+      }
+
+      saveData();
+      renderCategoryList();
+      renderTabs();
+      renderShortcuts();
+      populateCategorySelect();
+
+      // Reset form
+      document.getElementById('editCatId').value = '';
+      document.getElementById('catName').value = '';
+      document.getElementById('catColor').value = '#3b82f6';
+      document.getElementById('catFormTitle').textContent = 'Add Category';
+      document.getElementById('catCancelEditBtn').style.display = 'none';
+      showToast(editId ? 'Category updated!' : 'Category added!');
+    }
+
+    function editCategory(id) {
+      const cat = data.categories.find(c => c.id === id);
+      if (!cat) return;
+      document.getElementById('editCatId').value = id;
+      document.getElementById('catName').value = cat.name;
+      document.getElementById('catColor').value = cat.color;
+      document.getElementById('catFormTitle').textContent = 'Edit Category';
+      document.getElementById('catCancelEditBtn').style.display = 'inline-block';
+      document.getElementById('catName').focus();
+    }
+
+    function cancelCatEdit() {
+      document.getElementById('editCatId').value = '';
+      document.getElementById('catName').value = '';
+      document.getElementById('catColor').value = '#3b82f6';
+      document.getElementById('catFormTitle').textContent = 'Add Category';
+      document.getElementById('catCancelEditBtn').style.display = 'none';
+    }
+
+    function deleteCategory(id) {
+      const cat = data.categories.find(c => c.id === id);
+      if (!cat) return;
+      const count = data.shortcuts.filter(s => s.category === id).length;
+      const msg = count > 0
+        ? `Delete "${cat.name}"? ${count} shortcut(s) will be reassigned to "${data.categories[0]?.name || 'first category'}".`
+        : `Delete "${cat.name}"?`;
+      if (!confirm(msg)) return;
+
+      // Reassign orphaned shortcuts
+      if (count > 0) {
+        const fallback = data.categories.find(c => c.id !== id)?.id;
+        if (fallback) {
+          data.shortcuts.forEach(s => { if (s.category === id) s.category = fallback; });
+        }
+      }
+
+      data.categories = data.categories.filter(c => c.id !== id);
+      if (activeCategory === id) activeCategory = 'all';
+
+      saveData();
+      renderCategoryList();
+      renderTabs();
+      renderShortcuts();
+      populateCategorySelect();
+      showToast('Category deleted!');
+    }
+
+    // ============================================
+    // KEYBOARD
+    // ============================================
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (document.getElementById('categoryModalOverlay').classList.contains('show')) {
+          closeCategoryModal();
+        } else if (document.getElementById('modalOverlay').classList.contains('show')) {
+          closeModal();
+        } else {
+          window.close();
+        }
+      }
+
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        document.getElementById('searchBox').focus();
+      }
+    });
+
+    // ============================================
+    // INIT
+    // ============================================
+    loadData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "triggerHotkey": "CapsLock & /",
+  "hotkeyDescription": "CapsLock + / (change this if needed)",
+  "popupWidth": 700,
+  "popupHeight": 600
+}
