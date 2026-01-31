@@ -3,7 +3,7 @@ SHORTCUTS POPUP - SETUP INSTRUCTIONS
 ============================================
 
 FILES CREATED:
-  %USERPROFILE%\Shortcuts-Custom\
+  C:\GitRepos\Shortcuts-Custom\
     popup.ahk       - AutoHotkey script (the launcher)
     popup.html      - The popup interface
     shortcuts.json  - Your shortcuts data (edit to customize)
@@ -29,10 +29,10 @@ STEP 2: RUN THE SCRIPT
 ============================================
 
 Double-click:
-  %USERPROFILE%\Shortcuts-Custom\popup.ahk
+  C:\GitRepos\Shortcuts-Custom\popup.ahk
 
 Or from PowerShell:
-  Start-Process "%USERPROFILE%\Shortcuts-Custom\popup.ahk"
+  Start-Process "C:\GitRepos\Shortcuts-Custom\popup.ahk"
 
 You'll see a tooltip: "Shortcuts Popup ready!"
 
@@ -81,12 +81,12 @@ Method A - Startup Folder:
 3. Press Enter
 4. Create a shortcut to popup.ahk in this folder:
    - Right-click > New > Shortcut
-   - Location: %USERPROFILE%\Shortcuts-Custom\popup.ahk
+   - Location: C:\GitRepos\Shortcuts-Custom\popup.ahk
    - Name: Shortcuts Popup
 
 Method B - Task Scheduler (PowerShell Admin):
 
-$action = New-ScheduledTaskAction -Execute "%USERPROFILE%\Shortcuts-Custom\popup.ahk"
+$action = New-ScheduledTaskAction -Execute "C:\GitRepos\Shortcuts-Custom\popup.ahk"
 $trigger = New-ScheduledTaskTrigger -AtLogon
 $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -RunLevel Limited
 Register-ScheduledTask -TaskName "ShortcutsPopup" -Action $action -Trigger $trigger -Principal $principal
@@ -108,7 +108,7 @@ TROUBLESHOOTING
 
 Popup doesn't open:
   - Make sure Edge is installed (it uses Edge in app mode)
-  - Try running: msedge.exe --app="%USERPROFILE%\Shortcuts-Custom\popup.html"
+  - Try running: msedge.exe --app="C:\GitRepos\Shortcuts-Custom\popup.html"
   - Check if AHK is running (look for green H icon in system tray)
 
 Hotkey doesn't work:
