@@ -15,3 +15,6 @@ desktop.ini
 
 # Null file artifact
 nul
+
+# MLS project data (real property info)
+data/
