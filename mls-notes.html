@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MLS Notes</title>
+  <style>
+    :root { font-size: 13px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-size: 1rem;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 12px;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #333;
+      flex-shrink: 0;
+    }
+
+    .header h1 { font-size: 1.23rem; font-weight: 600; color: #fff; }
+
+    .header-buttons { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.923rem;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.8; }
+    .btn-import { background: #3b82f6; color: #fff; }
+    .btn-save { background: #22c55e; color: #fff; }
+    .btn-export { background: #8b5cf6; color: #fff; }
+    .btn-clear { background: #ef4444; color: #fff; }
+    .btn-cancel { background: #666; color: #fff; }
+    .btn-primary { background: #3b82f6; color: #fff; }
+
+    .search-nav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .search-box {
+      flex: 1;
+      padding: 7px 10px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #2d2d2d;
+      color: #d4d4d4;
+      font-size: 1rem;
+    }
+    .search-box:focus { outline: none; border-color: #666; }
+
+    .nav-btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.923rem;
+      background: #444;
+      color: #fff;
+    }
+    .nav-btn:hover { background: #555; }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; }
+
+    .nav-counter { font-size: 0.923rem; color: #999; min-width: 60px; text-align: center; }
+
+    .main-area {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .list-dropdown {
+      flex-shrink: 0;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .list-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      color: #d4d4d4;
+      font-size: 1rem;
+    }
+    .list-toggle:hover { background: #2d2d2d; }
+    .list-toggle .toggle-arrow { color: #666; font-size: 0.769rem; margin-right: 4px; transition: transform 0.2s; }
+    .list-toggle .toggle-arrow.open { transform: rotate(90deg); }
+    .list-toggle .toggle-mls { color: #fff; font-family: Consolas, monospace; font-weight: 600; }
+    .list-toggle .toggle-addr { color: #888; font-size: 0.923rem; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .list-toggle .toggle-stats { font-size: 0.846rem; color: #22c55e; }
+
+    .list-panel {
+      max-height: 220px;
+      overflow-y: auto;
+      border: 1px solid #333;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      background: #252525;
+      display: none;
+    }
+    .list-panel.open { display: block; }
+
+    .list-item {
+      display: grid;
+      grid-template-columns: 28px 90px 1fr 36px 56px 16px;
+      gap: 4px;
+      padding: 5px 8px;
+      align-items: center;
+      cursor: pointer;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 0.923rem;
+    }
+    .list-item:hover { background: #333; }
+    .list-item.active { background: #3b82f633; border-left: 3px solid #3b82f6; }
+    .list-item .rank { color: #666; font-size: 0.846rem; text-align: center; }
+    .list-item .mls { color: #fff; font-family: Consolas, monospace; font-size: 0.923rem; }
+    .list-item .addr { color: #999; font-size: 0.846rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .list-item .cq { font-size: 0.769rem; font-family: Consolas, monospace; text-align: center; }
+    .list-item .cq.set { color: #22c55e; }
+    .list-item .cq.unset { color: #555; }
+    .list-item .status-dot { width: 8px; height: 8px; border-radius: 50%; justify-self: center; }
+    .list-item .status-dot.has-data { background: #22c55e; }
+    .list-item .status-dot.no-data { background: #555; }
+    .list-item.has-data-row .mls { color: #fff; }
+    .list-item.no-data-row .mls { color: #888; }
+
+    .form-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background: #252525;
+    }
+
+    .form-panel.empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #555;
+      font-size: 1.077rem;
+    }
+
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 0.846rem; color: #999; margin-bottom: 3px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-size: 1rem;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+    .form-group textarea { resize: vertical; min-height: 60px; font-family: 'Segoe UI', Tahoma, sans-serif; user-select: text; }
+
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+
+    .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 5px; font-size: 0.923rem; cursor: pointer;
+    }
+    .checkbox-item input { width: auto; margin: 0; cursor: pointer; }
+
+    .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; padding-top: 10px; border-top: 1px solid #333; }
+
+    .footer {
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      margin-top: 10px;
+      border-top: 1px solid #333;
+      font-size: 0.769rem;
+      color: #555;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal {
+      background: #2d2d2d;
+      padding: 20px;
+      border-radius: 8px;
+      width: 450px;
+      max-width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal h2 { font-size: 1.23rem; margin-bottom: 12px; color: #fff; }
+    .modal textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 8px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: Consolas, monospace;
+      font-size: 1rem;
+      resize: vertical;
+      user-select: text;
+    }
+    .modal textarea:focus { outline: none; border-color: #3b82f6; }
+    .modal-buttons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+    .modal p { font-size: 0.923rem; color: #999; margin-bottom: 8px; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #22c55e;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 0.923rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 200;
+    }
+    .toast.show { opacity: 1; }
+
+    .field-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 8px; background: #1e1e1e; border-radius: 4px; margin-bottom: 4px;
+    }
+    .field-item .field-label { flex: 1; color: #d4d4d4; font-size: 1rem; }
+    .field-item .field-del {
+      padding: 2px 8px; font-size: 0.846rem; background: #ef4444; color: #fff;
+      border: none; border-radius: 3px; cursor: pointer;
+    }
+    .field-item .field-del:hover { opacity: 0.8; }
+
+    .remarks-section { margin-bottom: 10px; }
+    .remarks-toggle {
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+      padding: 6px 8px; background: #1e1e1e; border: 1px solid #444; border-radius: 4px;
+      color: #d4d4d4; font-size: 0.923rem; user-select: none;
+    }
+    .remarks-toggle:hover { border-color: #666; }
+    .remarks-toggle .r-arrow { color: #666; font-size: 0.769rem; transition: transform 0.2s; }
+    .remarks-toggle .r-arrow.open { transform: rotate(90deg); }
+    .remarks-toggle .r-count { color: #f97316; margin-left: auto; font-size: 0.846rem; }
+    .remarks-zoom { display: flex; gap: 2px; margin-left: 6px; }
+    .remarks-zoom button {
+      padding: 1px 6px; border: 1px solid #555; border-radius: 3px; background: #333;
+      color: #ccc; font-size: 0.769rem; cursor: pointer; line-height: 1;
+    }
+    .remarks-zoom button:hover { background: #444; }
+    .remarks-body { display: none; padding: 8px; border: 1px solid #444; border-top: none; border-radius: 0 0 4px 4px; background: #1e1e1e; }
+    .remarks-body.open { display: block; }
+    .remarks-text {
+      width: 100%; min-height: 40px; max-height: 200px; overflow-y: auto;
+      padding: 6px 8px; border: 1px solid #333; border-radius: 4px; background: #2d2d2d;
+      color: #999; font-size: 0.923rem; font-family: 'Segoe UI', Tahoma, sans-serif;
+      user-select: text; white-space: pre-wrap; word-wrap: break-word; line-height: 1.4;
+    }
+    .remarks-text .kw-hl { background: #f97316; color: #000; border-radius: 2px; padding: 0 2px; }
+    .remarks-body .remark-label { font-size: 0.846rem; color: #888; margin: 6px 0 3px 0; }
+    .remarks-body .remark-label:first-child { margin-top: 0; }
+    .remark-flags-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-top: 6px; }
+    .remark-flags-grid label { display: flex; align-items: center; gap: 4px; font-size: 0.846rem; color: #d4d4d4; cursor: pointer; }
+    .remark-flags-grid input { width: auto; margin: 0; cursor: pointer; }
+
+    /* Remarks Modal */
+    .remarks-modal {
+      background: #2d2d2d;
+      padding: 20px;
+      border-radius: 8px;
+      width: 900px;
+      max-width: 95%;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .remarks-modal-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #444;
+    }
+    .remarks-modal-header h2 { font-size: 1.15rem; color: #fff; flex: 1; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .remarks-modal-header .rm-nav-btn {
+      padding: 4px 10px; border: 1px solid #555; border-radius: 4px; background: #333;
+      color: #ccc; font-size: 0.85rem; cursor: pointer;
+    }
+    .remarks-modal-header .rm-nav-btn:hover { background: #444; }
+    .remarks-modal-header .rm-close {
+      padding: 4px 10px; border: none; border-radius: 4px; background: #ef4444;
+      color: #fff; font-size: 0.85rem; cursor: pointer;
+    }
+    .remarks-modal-header .rm-close:hover { opacity: 0.8; }
+    .remarks-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .remarks-col h3 { font-size: 0.9rem; color: #888; margin-bottom: 6px; }
+    .remarks-col .remarks-text {
+      max-height: none;
+      overflow-y: visible;
+    }
+    .remarks-modal .remark-flags-grid { margin-bottom: 14px; }
+    .remarks-modal .rm-section-label { font-size: 0.85rem; color: #888; margin-bottom: 6px; }
+    .remarks-modal textarea {
+      width: 100%; min-height: 80px; padding: 6px 8px;
+      border: 1px solid #444; border-radius: 4px; background: #1e1e1e;
+      color: #d4d4d4; font-size: 1rem; font-family: 'Segoe UI', Tahoma, sans-serif;
+      resize: vertical; user-select: text;
+    }
+    .remarks-modal textarea:focus { outline: none; border-color: #3b82f6; }
+    .remarks-modal-footer {
+      display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px;
+      padding-top: 10px; border-top: 1px solid #444;
+    }
+    @media (max-width: 700px) {
+      .remarks-columns { grid-template-columns: 1fr; }
+    }
+
+    .remarks-btn-row {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 10px;
+    }
+    .remarks-btn-row .btn-remarks {
+      flex: 1; padding: 7px 12px; border: 1px solid #444; border-radius: 4px;
+      background: #1e1e1e; color: #d4d4d4; font-size: 0.923rem; cursor: pointer;
+      text-align: left;
+    }
+    .remarks-btn-row .btn-remarks:hover { border-color: #666; }
+    .remarks-btn-row .flag-badge {
+      background: #f97316; color: #000; font-size: 0.77rem; padding: 1px 6px;
+      border-radius: 8px; margin-left: 6px; font-weight: 600;
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #1e1e1e; }
+    ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>MLS Notes</h1>
+    <div class="header-buttons">
+      <button class="btn btn-import" onclick="openImportModal()">Import MLS#s</button>
+      <button class="btn" style="background:#f97316;color:#fff" onclick="triggerCSVLoad()">Load CSV</button>
+      <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="onCSVFileSelected(event)">
+      <button class="btn btn-save" onclick="saveToDisk()">Save to Disk</button>
+      <button class="btn" style="background:#06b6d4;color:#fff" onclick="copyMlsList()">Copy MLS#s</button>
+      <button class="btn btn-export" onclick="exportCSV()">Export CSV</button>
+      <button class="btn" style="background:#f59e0b;color:#000" onclick="openFieldsModal()">Fields</button>
+      <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
+    </div>
+  </div>
+
+  <div class="project-bar" style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-shrink:0;">
+    <select id="projectSelect" onchange="onProjectSwitch(this.value)" style="flex:1;padding:5px 8px;border:1px solid #444;border-radius:4px;background:#2d2d2d;color:#d4d4d4;font-size:1rem;">
+    </select>
+    <button class="btn btn-primary" onclick="promptNewProject()" style="white-space:nowrap">+ New Project</button>
+  </div>
+
+  <div class="search-nav">
+    <input type="text" class="search-box" id="searchBox" placeholder="Search MLS# or address..." oninput="onSearch()">
+    <button class="nav-btn" id="prevBtn" onclick="navPrev()">&larr; Prev</button>
+    <span class="nav-counter" id="navCounter">0 of 0</span>
+    <button class="nav-btn" id="nextBtn" onclick="navNext()">Next &rarr;</button>
+  </div>
+
+  <div class="main-area">
+    <div class="list-dropdown">
+      <div class="list-toggle" id="listToggle" onclick="toggleListPanel()">
+        <span class="toggle-arrow" id="toggleArrow">&#9654;</span>
+        <span class="toggle-mls" id="toggleMls">—</span>
+        <span class="toggle-addr" id="toggleAddr">Import MLS#s to begin</span>
+        <span class="toggle-stats" id="toggleStats"></span>
+      </div>
+      <div class="list-panel" id="listPanel"></div>
+    </div>
+    <div class="form-panel empty" id="formPanel">Import MLS#s or select an entry</div>
+  </div>
+
+  <div class="footer">
+    <span id="footerPath">C:\GitRepos\Shortcuts-Custom\data\mls-notes.json</span>
+    <span id="footerSaved">Not saved yet</span>
+  </div>
+
+  <!-- Import Modal -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal">
+      <h2>Import MLS Numbers</h2>
+      <p>Paste MLS numbers — one per line, comma-separated, or space-separated.</p>
+      <textarea id="importText" placeholder="2439319&#10;2441205&#10;2438876"></textarea>
+      <div class="modal-buttons">
+        <button class="btn btn-cancel" onclick="closeImportModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="doImport()">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fields Management Modal -->
+  <div class="modal-overlay" id="fieldsModal">
+    <div class="modal">
+      <h2>Custom Fields</h2>
+      <p>Add text fields with auto-suggest from previous entries.</p>
+      <div id="fieldsList" style="margin-bottom:12px"></div>
+      <div style="border-top:1px solid #444;padding-top:12px">
+        <div class="form-group">
+          <label>Field Label</label>
+          <input type="text" id="newFieldLabel" placeholder="e.g. Neighborhood, View Type...">
+        </div>
+        <div class="modal-buttons">
+          <button class="btn btn-cancel" onclick="closeFieldsModal()">Close</button>
+          <button class="btn btn-primary" onclick="addCustomField()">Add Field</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Remarks Modal -->
+  <div class="modal-overlay" id="remarksModal">
+    <div class="remarks-modal">
+      <div class="remarks-modal-header">
+        <button class="rm-nav-btn" onclick="remarksModalNav(-1)">&larr; Prev</button>
+        <button class="rm-nav-btn" onclick="remarksModalNav(1)">Next &rarr;</button>
+        <h2 id="rmTitle">MLS Remarks</h2>
+        <button class="rm-close" onclick="closeRemarksModal(false)">&#10005;</button>
+      </div>
+      <div class="remarks-columns">
+        <div class="remarks-col">
+          <h3>Public Remarks</h3>
+          <div class="remarks-text" id="rmPublic"></div>
+        </div>
+        <div class="remarks-col">
+          <h3>REALTOR&reg; Remarks</h3>
+          <div class="remarks-text" id="rmRealtor"></div>
+        </div>
+      </div>
+      <div class="rm-section-label">Auto-Detected Flags</div>
+      <div class="remark-flags-grid" id="rmFlags"></div>
+      <div class="rm-section-label" style="margin-top:12px">Notes</div>
+      <textarea id="rmNotes" placeholder="Observations, adjustments, etc..."></textarea>
+      <div class="remarks-modal-footer">
+        <button class="btn btn-cancel" onclick="closeRemarksModal(false)">Close</button>
+        <button class="btn btn-save" onclick="closeRemarksModal(true)">Save &amp; Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Saved!</div>
+
+  <script>
+    // ============================================
+    // STATE
+    // ============================================
+    let activeSlug = '';
+    let store = { version: 1, projectName: '', lastModified: '', customFields: [], properties: [] };
+    let currentIndex = -1;
+    let searchFilter = '';
+    let listOpen = false;
+    let remarksZoom = parseInt(localStorage.getItem('mls-notes-remarks-zoom') || '12');
+
+    // ============================================
+    // UUID
+    // ============================================
+    function uuid() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+    }
+
+    // ============================================
+    // PROJECT HELPERS
+    // ============================================
+    function slugify(name) {
+      return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    }
+
+    function storageKey(slug) {
+      return 'mls-notes-' + slug;
+    }
+
+    function loadProjects() {
+      const projects = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('mls-notes-') && key !== 'mls-notes-active-project') {
+          const slug = key.substring('mls-notes-'.length);
+          try {
+            const data = JSON.parse(localStorage.getItem(key));
+            projects.push({ slug, name: data.projectName || slug });
+          } catch (e) {
+            projects.push({ slug, name: slug });
+          }
+        }
+      }
+      return projects;
+    }
+
+    function renderProjectSelect() {
+      const sel = document.getElementById('projectSelect');
+      const projects = loadProjects();
+      sel.innerHTML = '';
+      if (!projects.length) {
+        sel.innerHTML = '<option value="">No projects — click "+ New Project"</option>';
+        return;
+      }
+      projects.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.slug;
+        opt.textContent = p.name;
+        if (p.slug === activeSlug) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function onProjectSwitch(slug) {
+      if (slug === activeSlug) return;
+      saveLocal();
+      activeSlug = slug;
+      localStorage.setItem('mls-notes-active-project', slug);
+      loadProjectStore(slug);
+      currentIndex = store.properties.length ? 0 : -1;
+      renderProjectSelect();
+      render();
+      updateFooter();
+    }
+
+    function promptNewProject() {
+      const name = prompt('Project name:');
+      if (!name || !name.trim()) return;
+      const slug = slugify(name.trim());
+      if (!slug) return;
+      // Save current first
+      if (activeSlug) saveLocal();
+      // Create new
+      activeSlug = slug;
+      store = { version: 1, projectName: name.trim(), lastModified: '', customFields: [], properties: [] };
+      currentIndex = -1;
+      saveLocal();
+      localStorage.setItem('mls-notes-active-project', slug);
+      renderProjectSelect();
+      render();
+      updateFooter();
+      showToast('Created project: ' + name.trim());
+    }
+
+    function loadProjectStore(slug) {
+      const raw = localStorage.getItem(storageKey(slug));
+      if (raw) {
+        try { store = JSON.parse(raw); } catch (e) { console.error(e); }
+      } else {
+        store = { version: 1, projectName: slug, lastModified: '', customFields: [], properties: [] };
+      }
+      if (!store.customFields) store.customFields = [];
+      if (!store.projectName) store.projectName = slug;
+    }
+
+    function updateFooter() {
+      const filename = activeSlug ? 'data\\mls-notes-' + activeSlug + '.json' : 'data\\mls-notes.json';
+      document.getElementById('footerPath').textContent = 'C:\\GitRepos\\Shortcuts-Custom\\' + filename;
+    }
+
+    // ============================================
+    // DATA
+    // ============================================
+    function loadData() {
+      // Determine active project
+      activeSlug = localStorage.getItem('mls-notes-active-project') || '';
+
+      // Migrate old single-store data if needed
+      const oldData = localStorage.getItem('mls-notes-data');
+      if (oldData && !activeSlug) {
+        try {
+          const parsed = JSON.parse(oldData);
+          if (parsed.properties && parsed.properties.length) {
+            const name = parsed.projectName || 'Default';
+            const slug = slugify(name);
+            parsed.projectName = name;
+            activeSlug = slug;
+            localStorage.setItem(storageKey(slug), JSON.stringify(parsed));
+            localStorage.setItem('mls-notes-active-project', slug);
+            localStorage.removeItem('mls-notes-data');
+          }
+        } catch (e) {}
+      }
+
+      if (activeSlug) {
+        loadProjectStore(activeSlug);
+      }
+
+      renderProjectSelect();
+      updateFooter();
+      tryLoadFromClipboard();
+    }
+
+    async function tryLoadFromClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && text.includes('"version"') && text.includes('"properties"')) {
+          const parsed = JSON.parse(text);
+          if (parsed.version && parsed.properties) {
+            // Determine which project this belongs to
+            if (parsed.projectName) {
+              const slug = slugify(parsed.projectName);
+              if (slug !== activeSlug) {
+                // Switch to that project
+                if (activeSlug) saveLocal();
+                activeSlug = slug;
+                localStorage.setItem('mls-notes-active-project', slug);
+              }
+            }
+            mergeData(parsed);
+            renderProjectSelect();
+            updateFooter();
+            showToast('Loaded from disk');
+          }
+        }
+      } catch (e) { /* clipboard not available or not JSON */ }
+      if (!activeSlug) {
+        // No project yet — create a default one if there are none
+        const projects = loadProjects();
+        if (!projects.length) {
+          // Don't auto-create, just show empty state
+        } else {
+          activeSlug = projects[0].slug;
+          localStorage.setItem('mls-notes-active-project', activeSlug);
+          loadProjectStore(activeSlug);
+          renderProjectSelect();
+          updateFooter();
+        }
+      }
+      if (store.properties.length && currentIndex < 0) currentIndex = 0;
+      render();
+    }
+
+    function mergeData(incoming) {
+      if (!store.properties.length) {
+        store = incoming;
+        saveLocal();
+        return;
+      }
+      const existing = new Map(store.properties.map(p => [p.mls, p]));
+      incoming.properties.forEach(p => {
+        if (existing.has(p.mls)) {
+          const ex = existing.get(p.mls);
+          if (p.modified > ex.modified) {
+            Object.assign(ex, p);
+          }
+        } else {
+          store.properties.push(p);
+        }
+      });
+      store.properties.sort((a, b) => a.sortOrder - b.sortOrder);
+      saveLocal();
+    }
+
+    function saveLocal() {
+      if (!activeSlug) return;
+      store.lastModified = new Date().toISOString();
+      localStorage.setItem(storageKey(activeSlug), JSON.stringify(store));
+    }
+
+    // ============================================
+    // IMPORT (with re-import reorder)
+    // ============================================
+    function openImportModal() {
+      document.getElementById('importModal').classList.add('show');
+      document.getElementById('importText').value = '';
+      document.getElementById('importText').focus();
+    }
+
+    function closeImportModal() {
+      document.getElementById('importModal').classList.remove('show');
+    }
+
+    function doImport() {
+      const raw = document.getElementById('importText').value.trim();
+      if (!raw) return;
+
+      if (!activeSlug) {
+        // Auto-create a default project
+        activeSlug = 'default';
+        store = { version: 1, projectName: 'Default', lastModified: '', customFields: store.customFields || [], properties: [] };
+        localStorage.setItem('mls-notes-active-project', activeSlug);
+        renderProjectSelect();
+        updateFooter();
+      }
+
+      const nums = raw.split(/[\n,\s]+/).map(s => s.trim()).filter(s => s && /^[A-Za-z0-9-]+$/.test(s));
+      if (!nums.length) { showToast('No valid MLS numbers found'); return; }
+
+      // Build map of existing entries
+      const existingMap = new Map(store.properties.map(p => [p.mls, p]));
+      const newProperties = [];
+      const importedSet = new Set();
+      let added = 0;
+      let reordered = 0;
+
+      // Walk import list in order
+      nums.forEach((mls, i) => {
+        if (importedSet.has(mls)) return; // skip duplicate in paste
+        importedSet.add(mls);
+        if (existingMap.has(mls)) {
+          const entry = existingMap.get(mls);
+          entry.sortOrder = i;
+          newProperties.push(entry);
+          reordered++;
+        } else {
+          newProperties.push({
+            id: uuid(),
+            mls: mls,
+            sortOrder: i,
+            address: '',
+            condition: '',
+            quality: '',
+            renovations: { kitchen: false, bath: false, roof: false, windows: false, flooring: false, hvac: false, other: '' },
+            flags: { atypicalMotivation: false, concessions: false, dataDiscrepancy: false },
+            notes: '',
+            reviewed: false,
+            created: new Date().toISOString(),
+            modified: new Date().toISOString()
+          });
+          added++;
+        }
+      });
+
+      // Append existing entries NOT in the import list at the end
+      let nextOrder = newProperties.length;
+      const unlisted = [];
+      store.properties.forEach(p => {
+        if (!importedSet.has(p.mls)) {
+          p.sortOrder = nextOrder++;
+          unlisted.push(p);
+        }
+      });
+
+      store.properties = newProperties.concat(unlisted);
+      currentIndex = 0;
+      saveLocal();
+      closeImportModal();
+
+      // Build toast message
+      const parts = [];
+      if (reordered > 0) parts.push('Reordered ' + reordered + ' existing');
+      if (added > 0) parts.push('added ' + added + ' new');
+      if (unlisted.length > 0) parts.push(unlisted.length + ' unlisted kept at end');
+      if (parts.length) {
+        showToast(parts.join(' + ') + ' entries');
+      } else {
+        showToast('No changes');
+      }
+      renderProjectSelect();
+      render();
+    }
+
+    // ============================================
+    // SAVE TO DISK
+    // ============================================
+    async function saveToDisk() {
+      if (!activeSlug) { showToast('Create a project first'); return; }
+      // Auto-save current entry so no form edits are lost
+      if (currentIndex >= 0) saveEntry();
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(store, null, 2));
+        const scriptPath = getScriptDir() + '\\scripts\\save-mls-notes.ps1';
+        document.title = 'RUN::' + scriptPath;
+        setTimeout(() => { document.title = 'MLS Notes'; }, 300);
+        document.getElementById('footerSaved').textContent = 'Saved: ' + new Date().toLocaleTimeString();
+        showToast('Saved to disk');
+      } catch (e) {
+        showToast('Save failed: ' + e.message);
+      }
+    }
+
+    function getScriptDir() {
+      return 'C:\\GitRepos\\Shortcuts-Custom';
+    }
+
+    // ============================================
+    // STATUS CHECK (hasData)
+    // ============================================
+    function hasData(p) {
+      if (p.address) return true;
+      if (p.yearBuilt) return true;
+      if (p.condition) return true;
+      if (p.quality) return true;
+      if (p.style) return true;
+      if (p.basementFinish) return true;
+      if (p.basementGrade) return true;
+      if (p.notes) return true;
+      const r = p.renovations || {};
+      if (r.kitchen || r.bath || r.roof || r.windows || r.flooring || r.hvac || r.other) return true;
+      const f = p.flags || {};
+      if (f.atypicalMotivation || f.concessions || f.dataDiscrepancy) return true;
+      if (p.publicRemarks || p.realtorRemarks) return true;
+      const rf = p.remarkFlags || {};
+      if (Object.values(rf).some(Boolean)) return true;
+      if (p.custom) {
+        for (const k in p.custom) {
+          if (p.custom[k]) return true;
+        }
+      }
+      return false;
+    }
+
+    // ============================================
+    // NAVIGATION
+    // ============================================
+    function getFilteredList() {
+      if (!searchFilter) return store.properties;
+      const q = searchFilter.toLowerCase();
+      return store.properties.filter(p =>
+        p.mls.toLowerCase().includes(q) || p.address.toLowerCase().includes(q)
+      );
+    }
+
+    function navPrev() {
+      const list = getFilteredList();
+      if (!list.length) return;
+      const cur = currentIndex >= 0 ? store.properties[currentIndex] : null;
+      const fi = cur ? list.indexOf(cur) : -1;
+      if (fi > 0) selectByProperty(list[fi - 1]);
+      else if (fi < 0 && list.length) selectByProperty(list[list.length - 1]);
+    }
+
+    function navNext() {
+      const list = getFilteredList();
+      if (!list.length) return;
+      const cur = currentIndex >= 0 ? store.properties[currentIndex] : null;
+      const fi = cur ? list.indexOf(cur) : -1;
+      if (fi < list.length - 1) selectByProperty(list[fi + 1]);
+      else if (fi < 0 && list.length) selectByProperty(list[0]);
+    }
+
+    function selectByProperty(prop) {
+      currentIndex = store.properties.indexOf(prop);
+      render();
+    }
+
+    function selectIndex(i) {
+      currentIndex = i;
+      listOpen = false;
+      render();
+    }
+
+    function toggleListPanel() {
+      listOpen = !listOpen;
+      document.getElementById('listPanel').classList.toggle('open', listOpen);
+      document.getElementById('toggleArrow').classList.toggle('open', listOpen);
+    }
+
+    function onSearch() {
+      searchFilter = document.getElementById('searchBox').value.trim();
+      renderList();
+      updateNav();
+    }
+
+    function updateNav() {
+      const list = getFilteredList();
+      const cur = currentIndex >= 0 ? store.properties[currentIndex] : null;
+      const fi = cur ? list.indexOf(cur) : -1;
+      document.getElementById('navCounter').textContent =
+        list.length ? ((fi >= 0 ? fi + 1 : 0) + ' of ' + list.length) : '0 of 0';
+      document.getElementById('prevBtn').disabled = list.length === 0;
+      document.getElementById('nextBtn').disabled = list.length === 0;
+    }
+
+    // ============================================
+    // RENDER
+    // ============================================
+    function render() {
+      renderList();
+      renderForm();
+      updateNav();
+      updateToggleBar();
+    }
+
+    function updateToggleBar() {
+      const p = currentIndex >= 0 ? store.properties[currentIndex] : null;
+      document.getElementById('toggleMls').textContent = p ? p.mls : '—';
+      document.getElementById('toggleAddr').textContent = p ? (p.address || 'No address') : 'Import MLS#s to begin';
+      const withData = store.properties.filter(p => hasData(p)).length;
+      const withFlags = store.properties.filter(p => p.remarkFlags && Object.values(p.remarkFlags).some(Boolean)).length;
+      let stats = '';
+      if (store.properties.length) {
+        stats = withData + ' with data / ' + store.properties.length + ' total';
+        if (withFlags) stats += ' \u2022 ' + withFlags + ' with keyword flags';
+      }
+      document.getElementById('toggleStats').textContent = stats;
+      document.getElementById('listPanel').classList.toggle('open', listOpen);
+      document.getElementById('toggleArrow').classList.toggle('open', listOpen);
+    }
+
+    function renderList() {
+      const panel = document.getElementById('listPanel');
+      const list = getFilteredList();
+
+      if (!list.length) {
+        panel.innerHTML = '<div style="padding:20px;text-align:center;color:#555">No entries</div>';
+        return;
+      }
+
+      let html = '';
+      list.forEach(p => {
+        const idx = store.properties.indexOf(p);
+        const active = idx === currentIndex ? 'active' : '';
+        const cText = p.condition || '--';
+        const qText = p.quality || '--';
+        const cClass = p.condition ? 'set' : 'unset';
+        const qClass = p.quality ? 'set' : 'unset';
+        const dataFlag = hasData(p);
+        const statusClass = dataFlag ? 'has-data' : 'no-data';
+        const rowClass = dataFlag ? 'has-data-row' : 'no-data-row';
+        html += `<div class="list-item ${active} ${rowClass}" onclick="selectIndex(${idx})">
+          <span class="rank">${p.sortOrder + 1}</span>
+          <span class="mls">${esc(p.mls)}</span>
+          <span class="addr">${esc(p.address) || '—'}</span>
+          <span class="cq ${cClass}">${esc(cText)}</span>
+          <span class="cq ${qClass}">${esc(qText)}</span>
+          <span class="status-dot ${statusClass}"></span>
+        </div>`;
+      });
+      panel.innerHTML = html;
+
+      const activeEl = panel.querySelector('.active');
+      if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
+    }
+
+    function renderForm() {
+      const panel = document.getElementById('formPanel');
+
+      if (currentIndex < 0 || currentIndex >= store.properties.length) {
+        panel.className = 'form-panel empty';
+        panel.innerHTML = 'Import MLS#s or select an entry';
+        return;
+      }
+
+      panel.className = 'form-panel';
+      const p = store.properties[currentIndex];
+      const r = p.renovations || {};
+      const f = p.flags || {};
+
+      const qualities = ['', 'Fair', 'Average', 'AVG-Good', 'Good', 'Good-VG', 'Very Good', 'VG-EXC', 'Excellent'];
+      const styles = ['', '1 Story', '1.5 Story', '2 Story', '2.5 Story', '3 Story', 'Split Level', 'Bi-Level'];
+      const bsmtFinish = ['', 'Unfinished', 'Partial Finish', 'Full Finish'];
+      const bsmtGrade = ['', 'Below Grade', 'Walk-out'];
+
+      panel.innerHTML = `
+        <div class="form-row">
+          <div class="form-group">
+            <label>MLS #</label>
+            <input type="text" id="fMls" value="${esc(p.mls)}" readonly style="background:#333;color:#fff;font-weight:600">
+          </div>
+          <div class="form-group">
+            <label>Address</label>
+            <input type="text" id="fAddress" value="${esc(p.address)}" placeholder="Enter address...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>YB-Actual</label>
+            <input type="text" id="fYearBuilt" value="${esc(p.yearBuilt || '')}" maxlength="4">
+          </div>
+          <div class="form-group">
+            <label>Effective Age</label>
+            <input type="text" id="fCondition" value="${esc(p.condition)}" maxlength="5">
+          </div>
+          <div class="form-group">
+            <label>Quality</label>
+            <select id="fQuality">
+              ${qualities.map(q => `<option value="${q}" ${q === p.quality ? 'selected' : ''}>${q || '--'}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Style</label>
+            <select id="fStyle">
+              ${styles.map(s => `<option value="${s}" ${s === (p.style || '') ? 'selected' : ''}>${s || '--'}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Bsmnt-Finish</label>
+            <select id="fBsmtFinish">
+              ${bsmtFinish.map(s => `<option value="${s}" ${s === (p.basementFinish || '') ? 'selected' : ''}>${s || '--'}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Bsmnt-Grade</label>
+            <select id="fBsmtGrade">
+              ${bsmtGrade.map(s => `<option value="${s}" ${s === (p.basementGrade || '') ? 'selected' : ''}>${s || '--'}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Renovations</label>
+          <div class="checkbox-grid">
+            ${['kitchen', 'bath', 'roof', 'windows', 'flooring', 'hvac'].map(k =>
+              `<label class="checkbox-item"><input type="checkbox" id="reno_${k}" ${r[k] ? 'checked' : ''}> ${k.charAt(0).toUpperCase() + k.slice(1)}</label>`
+            ).join('')}
+          </div>
+          <div class="form-group" style="margin-top:6px">
+            <label>Other Renovations</label>
+            <input type="text" id="renoOther" value="${esc(r.other || '')}" placeholder="Describe other renovations...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Flags</label>
+          <div class="checkbox-grid">
+            <label class="checkbox-item"><input type="checkbox" id="flag_atypical" ${f.atypicalMotivation ? 'checked' : ''}> Atypical Motivation</label>
+            <label class="checkbox-item"><input type="checkbox" id="flag_concessions" ${f.concessions ? 'checked' : ''}> Concessions</label>
+            <label class="checkbox-item"><input type="checkbox" id="flag_discrepancy" ${f.dataDiscrepancy ? 'checked' : ''}> Data Discrepancy</label>
+          </div>
+        </div>
+        ${(p.publicRemarks || p.realtorRemarks) ? (() => {
+          const rf = p.remarkFlags || {};
+          const flagCount = Object.values(rf).filter(Boolean).length;
+          return `<div class="remarks-btn-row">
+            <button class="btn-remarks" onclick="openRemarksModal()">
+              View Remarks${flagCount ? ' <span class="flag-badge">' + flagCount + ' flags</span>' : ''}
+            </button>
+            <span class="remarks-zoom">
+              <button onclick="zoomRemarks(-1)">A&minus;</button>
+              <button onclick="zoomRemarks(1)">A+</button>
+            </span>
+          </div>`;
+        })() : ''}
+        ${store.customFields.map(cf => {
+          const val = (p.custom || {})[cf.id] || '';
+          const suggestions = getFieldSuggestions(cf.id);
+          return `<div class="form-group">
+            <label>${esc(cf.label)}</label>
+            <input type="text" list="dl_${cf.id}" id="cf_${cf.id}" value="${esc(val)}" placeholder="Type to search or add new...">
+            <datalist id="dl_${cf.id}">
+              ${suggestions.map(s => `<option value="${esc(s)}">`).join('')}
+            </datalist>
+          </div>`;
+        }).join('')}
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea id="fNotes" placeholder="Observations, adjustments, etc...">${esc(p.notes)}</textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-clear" onclick="deleteEntry()">Delete Entry</button>
+          <button class="btn btn-save" onclick="saveEntry()">Save Entry</button>
+        </div>
+      `;
+    }
+
+    function saveEntry() {
+      if (currentIndex < 0) return;
+      const p = store.properties[currentIndex];
+
+      p.address = document.getElementById('fAddress').value.trim();
+      p.yearBuilt = document.getElementById('fYearBuilt').value.trim();
+      p.condition = document.getElementById('fCondition').value.trim();
+      p.quality = document.getElementById('fQuality').value;
+      p.style = document.getElementById('fStyle').value;
+      p.basementFinish = document.getElementById('fBsmtFinish').value;
+      p.basementGrade = document.getElementById('fBsmtGrade').value;
+      p.notes = document.getElementById('fNotes').value;
+
+      p.renovations = {
+        kitchen: document.getElementById('reno_kitchen').checked,
+        bath: document.getElementById('reno_bath').checked,
+        roof: document.getElementById('reno_roof').checked,
+        windows: document.getElementById('reno_windows').checked,
+        flooring: document.getElementById('reno_flooring').checked,
+        hvac: document.getElementById('reno_hvac').checked,
+        other: document.getElementById('renoOther').value.trim()
+      };
+
+      p.flags = {
+        atypicalMotivation: document.getElementById('flag_atypical').checked,
+        concessions: document.getElementById('flag_concessions').checked,
+        dataDiscrepancy: document.getElementById('flag_discrepancy').checked
+      };
+
+      // Save remark flags from modal if open
+      if ((p.publicRemarks || p.realtorRemarks) && document.getElementById('remarksModal').classList.contains('show')) {
+        if (!p.remarkFlags) p.remarkFlags = {};
+        document.querySelectorAll('#rmFlags input[data-flag]').forEach(el => {
+          p.remarkFlags[el.dataset.flag] = el.checked;
+        });
+        p.notes = document.getElementById('rmNotes').value;
+      }
+
+      if (!p.custom) p.custom = {};
+      store.customFields.forEach(cf => {
+        const el = document.getElementById('cf_' + cf.id);
+        if (el) p.custom[cf.id] = el.value.trim();
+      });
+
+      p.reviewed = !!(p.condition || p.quality);
+      p.modified = new Date().toISOString();
+
+      saveLocal();
+      renderList();
+      updateToggleBar();
+      updateNav();
+      showToast('Entry saved');
+    }
+
+    function deleteEntry() {
+      if (currentIndex < 0) return;
+      if (!confirm('Delete MLS# ' + store.properties[currentIndex].mls + '?')) return;
+      store.properties.splice(currentIndex, 1);
+      store.properties.forEach((p, i) => p.sortOrder = i);
+      if (currentIndex >= store.properties.length) currentIndex = store.properties.length - 1;
+      saveLocal();
+      render();
+      showToast('Entry deleted');
+    }
+
+    // ============================================
+    // CLEAR ALL
+    // ============================================
+    function clearAll() {
+      if (!store.properties.length) return;
+      if (!confirm('Clear all ' + store.properties.length + ' entries? This cannot be undone.')) return;
+      store.properties = [];
+      currentIndex = -1;
+      saveLocal();
+      render();
+      showToast('All entries cleared');
+    }
+
+    // ============================================
+    // EXPORT CSV
+    // ============================================
+    function exportCSV() {
+      if (!store.properties.length) { showToast('No data to export'); return; }
+
+      const cfHeaders = store.customFields.map(cf => cf.label);
+      const rfHeaders = Object.keys(REMARK_FLAG_LABELS).map(k => REMARK_FLAG_LABELS[k]);
+      const headers = ['Project', 'SortOrder', 'MLS', 'Address', 'YearBuilt', 'EffectiveAge', 'Quality', 'Style', 'BasementFinish', 'BasementGrade',
+        'Kitchen', 'Bath', 'Roof', 'Windows', 'Flooring', 'HVAC', 'OtherReno',
+        'AtypicalMotivation', 'Concessions', 'DataDiscrepancy',
+        ...cfHeaders,
+        'PublicRemarks', 'RealtorRemarks', ...rfHeaders,
+        'Notes', 'Reviewed', 'HasData', 'DateModified'];
+
+      const rfKeys = Object.keys(REMARK_FLAG_LABELS);
+      const rows = store.properties.map(p => {
+        const r = p.renovations || {};
+        const f = p.flags || {};
+        const rf = p.remarkFlags || {};
+        const cfValues = store.customFields.map(cf => (p.custom || {})[cf.id] || '');
+        const rfValues = rfKeys.map(k => rf[k] ? 'Y' : '');
+        return [
+          store.projectName || '', p.sortOrder + 1, p.mls, p.address, p.yearBuilt || '', p.condition, p.quality, p.style || '', p.basementFinish || '', p.basementGrade || '',
+          r.kitchen ? 'Y' : '', r.bath ? 'Y' : '', r.roof ? 'Y' : '',
+          r.windows ? 'Y' : '', r.flooring ? 'Y' : '', r.hvac ? 'Y' : '',
+          r.other || '',
+          f.atypicalMotivation ? 'Y' : '', f.concessions ? 'Y' : '', f.dataDiscrepancy ? 'Y' : '',
+          ...cfValues,
+          p.publicRemarks || '', p.realtorRemarks || '', ...rfValues,
+          p.notes, p.reviewed ? 'Y' : '', hasData(p) ? 'Y' : '', p.modified || ''
+        ].map(v => '"' + String(v).replace(/"/g, '""') + '"');
+      });
+
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mls-notes-' + (activeSlug || 'export') + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('CSV exported');
+    }
+
+    async function copyMlsList() {
+      if (!store.properties.length) { showToast('No entries to copy'); return; }
+      const list = store.properties.map(p => p.mls).join('\n');
+      try {
+        await navigator.clipboard.writeText(list);
+        showToast('Copied ' + store.properties.length + ' MLS#s to clipboard');
+      } catch (e) {
+        showToast('Copy failed: ' + e.message);
+      }
+    }
+
+    // ============================================
+    // HELPERS
+    // ============================================
+    function esc(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1500);
+    }
+
+    // ============================================
+    // CUSTOM FIELDS
+    // ============================================
+    function openFieldsModal() {
+      document.getElementById('fieldsModal').classList.add('show');
+      document.getElementById('newFieldLabel').value = '';
+      renderFieldsList();
+    }
+
+    function closeFieldsModal() {
+      document.getElementById('fieldsModal').classList.remove('show');
+      render();
+    }
+
+    function renderFieldsList() {
+      const container = document.getElementById('fieldsList');
+      if (!store.customFields.length) {
+        container.innerHTML = '<div style="color:#555;padding:8px;font-size:0.923rem">No custom fields yet.</div>';
+        return;
+      }
+      container.innerHTML = store.customFields.map(f =>
+        `<div class="field-item">
+          <span class="field-label">${esc(f.label)}</span>
+          <button class="field-del" onclick="deleteCustomField('${f.id}')">Del</button>
+        </div>`
+      ).join('');
+    }
+
+    function addCustomField() {
+      const label = document.getElementById('newFieldLabel').value.trim();
+      if (!label) { showToast('Enter a field label'); return; }
+      const id = 'cf_' + label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+      if (store.customFields.some(f => f.id === id)) {
+        showToast('Field already exists');
+        return;
+      }
+      store.customFields.push({ id, label });
+      saveLocal();
+      document.getElementById('newFieldLabel').value = '';
+      renderFieldsList();
+      showToast('Field added: ' + label);
+    }
+
+    function deleteCustomField(id) {
+      const f = store.customFields.find(f => f.id === id);
+      if (!f) return;
+      if (!confirm('Delete field "' + f.label + '"? Data in this field will remain in entries but won\'t be shown.')) return;
+      store.customFields = store.customFields.filter(f => f.id !== id);
+      saveLocal();
+      renderFieldsList();
+      showToast('Field deleted');
+    }
+
+    function getFieldSuggestions(fieldId) {
+      const vals = new Set();
+      store.properties.forEach(p => {
+        const v = (p.custom || {})[fieldId];
+        if (v) vals.add(v);
+      });
+      return [...vals].sort();
+    }
+
+    // ============================================
+    // CSV IMPORT + KEYWORD SCANNING
+    // ============================================
+    const REMARK_KEYWORDS = {
+      newRoof:         ['new roof', 'roof replaced', 'reroof', 're-roof', 'recent roof'],
+      newKitchen:      ['new kitchen', 'kitchen reno', 'updated kitchen', 'remodeled kitchen', 'kitchen upgrade'],
+      newBath:         ['new bath', 'updated bath', 'remodeled bath', 'bath reno', 'bathroom upgrade'],
+      newWindows:      ['new windows', 'replaced windows', 'updated windows', 'vinyl windows'],
+      newFlooring:     ['new floor', 'hardwood', 'new carpet', 'laminate', 'lvp', 'vinyl plank'],
+      newHvac:         ['new furnace', 'new hvac', 'heat pump', 'new boiler', 'mini split', 'new ac'],
+      needsRepair:     ['needs repair', 'needs work', 'requires repair', 'deferred maintenance'],
+      handyman:        ['handyman', 'handy man', 'handy-man'],
+      fixer:           ['fixer', 'fixer upper', 'fixer-upper', 'tlc'],
+      asIs:            ['as is', 'as-is', 'sold as is', 'where is'],
+      estateOrBank:    ['estate sale', 'bank owned', 'foreclosure', 'receivership', 'probate'],
+      newConstruction: ['new build', 'new construction', 'newly built', 'brand new', 'built in 202'],
+      remodeled:       ['renovated', 'remodeled', 'updated throughout', 'fully updated', 'recently updated']
+    };
+
+    const REMARK_FLAG_LABELS = {
+      newRoof: 'New Roof', newKitchen: 'New Kitchen', newBath: 'New Bath',
+      newWindows: 'New Windows', newFlooring: 'New Flooring', newHvac: 'New HVAC',
+      needsRepair: 'Needs Repair', handyman: 'Handyman', fixer: 'Fixer',
+      asIs: 'As-Is', estateOrBank: 'Estate/Bank', newConstruction: 'New Construction',
+      remodeled: 'Remodeled'
+    };
+
+    function parseCSV(text) {
+      // Single-pass parser: handles quoted fields with embedded commas, newlines, and "" escapes
+      const rows = [];
+      let fields = [];
+      let current = '';
+      let inQuote = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQuote) {
+          if (ch === '"') {
+            if (i + 1 < text.length && text[i + 1] === '"') {
+              current += '"';
+              i++;
+            } else {
+              inQuote = false;
+            }
+          } else {
+            current += ch;
+          }
+        } else {
+          if (ch === '"') {
+            inQuote = true;
+          } else if (ch === ',') {
+            fields.push(current);
+            current = '';
+          } else if (ch === '\r') {
+            // skip
+          } else if (ch === '\n') {
+            fields.push(current);
+            current = '';
+            rows.push(fields);
+            fields = [];
+          } else {
+            current += ch;
+          }
+        }
+      }
+      // Last row (no trailing newline)
+      if (current || fields.length) {
+        fields.push(current);
+        rows.push(fields);
+      }
+
+      if (rows.length < 2) return [];
+
+      const headers = rows[0];
+      const result = [];
+      for (let i = 1; i < rows.length; i++) {
+        const vals = rows[i];
+        if (vals.length === 1 && !vals[0].trim()) continue; // skip blank lines
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').trim(); });
+        result.push(obj);
+      }
+      return result;
+    }
+
+    const REMARK_EXCLUSIONS = {
+      remodeled: ['recently updated appliances']
+    };
+
+    function scanRemarks(text) {
+      const lower = text.toLowerCase();
+      const flags = {};
+      for (const key in REMARK_KEYWORDS) {
+        flags[key] = REMARK_KEYWORDS[key].some(kw => {
+          if (!lower.includes(kw)) return false;
+          const excl = REMARK_EXCLUSIONS[key];
+          if (excl && excl.some(ex => lower.includes(ex))) {
+            // Check if the keyword appears outside the excluded phrase too
+            let temp = lower;
+            excl.forEach(ex => { temp = temp.split(ex).join(''); });
+            return temp.includes(kw);
+          }
+          return true;
+        });
+      }
+      return flags;
+    }
+
+    function triggerCSVLoad() {
+      document.getElementById('csvFileInput').click();
+    }
+
+    function onCSVFileSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        processCSV(e.target.result);
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function mapStyle(csvStyle) {
+      const s = csvStyle.toLowerCase();
+      // Exact and prefix matches to our dropdown values
+      if (s === 'bungalow' || s === 'rancher' || s === 'rancher with basement' ||
+          s.startsWith('bungalow,') || s.startsWith('rancher,')) return '1 Story';
+      if (s === 'bi-level' || s.startsWith('bi-level,')) return 'Bi-Level';
+      if (s === 'two storey') return '2 Story';
+      if (s === 'multi/split' || s.startsWith('multi/split,') ||
+          s.startsWith('grade level entry, multi')) return 'Split Level';
+      // Everything else (cabin, contemporary, log, a-frame, etc.) — leave blank
+      return '';
+    }
+
+    function processCSV(text) {
+      const rows = parseCSV(text);
+      if (!rows.length) { showToast('No data found in CSV'); return; }
+
+      // Find column names (flexible matching)
+      const sample = rows[0];
+      const colKeys = Object.keys(sample);
+      const findCol = (patterns) => colKeys.find(k => patterns.some(p => k.toLowerCase().includes(p)));
+
+      const mlsCol = findCol(['mls #', 'mls#', 'mls number', 'mls']);
+      const addrCol = findCol(['address']);
+      const pubCol = findCol(['public remark']);
+      const realCol = findCol(['realtor', 'realtorr']);
+      const ybCol = findCol(['year built']);
+      const styleCol = findCol(['architectural style']);
+
+      if (!mlsCol) { showToast('No MLS# column found in CSV'); return; }
+
+      // Build lookup by MLS#
+      const entryMap = new Map(store.properties.map(p => [p.mls, p]));
+      let matched = 0;
+
+      rows.forEach(row => {
+        const mls = (row[mlsCol] || '').trim();
+        if (!mls) return;
+        const p = entryMap.get(mls);
+        if (!p) return;
+        matched++;
+
+        // Fill address if empty
+        if (!p.address && addrCol && row[addrCol]) {
+          p.address = row[addrCol].trim();
+        }
+
+        // Fill year built from CSV (always overwrite)
+        if (ybCol && row[ybCol]) {
+          p.yearBuilt = row[ybCol].trim();
+        }
+
+        // Map architectural style from CSV
+        if (styleCol && row[styleCol]) {
+          const mapped = mapStyle(row[styleCol].trim());
+          if (mapped) p.style = mapped;
+        }
+
+        // Set remarks
+        p.publicRemarks = pubCol ? (row[pubCol] || '').trim() : '';
+        p.realtorRemarks = realCol ? (row[realCol] || '').trim() : '';
+
+        // Scan keywords
+        const combined = (p.publicRemarks + ' ' + p.realtorRemarks);
+        p.remarkFlags = scanRemarks(combined);
+
+        // Cross-set renovations from remark flags
+        if (!p.renovations) p.renovations = {};
+        if (p.remarkFlags.newRoof) p.renovations.roof = true;
+        if (p.remarkFlags.newKitchen) p.renovations.kitchen = true;
+        if (p.remarkFlags.newBath) p.renovations.bath = true;
+        if (p.remarkFlags.newWindows) p.renovations.windows = true;
+        if (p.remarkFlags.newFlooring) p.renovations.flooring = true;
+        if (p.remarkFlags.newHvac) p.renovations.hvac = true;
+
+        p.modified = new Date().toISOString();
+      });
+
+      saveLocal();
+      render();
+      showToast('Matched ' + matched + ' of ' + rows.length + ' CSV rows — addresses filled, remarks scanned');
+    }
+
+    function highlightRemarks(text) {
+      if (!text) return '';
+      // Collect all keywords that matched
+      const allKws = [];
+      for (const key in REMARK_KEYWORDS) {
+        REMARK_KEYWORDS[key].forEach(kw => {
+          if (text.toLowerCase().includes(kw)) allKws.push(kw);
+        });
+      }
+      if (!allKws.length) return esc(text);
+      // Sort longest first so longer phrases match before substrings
+      allKws.sort((a, b) => b.length - a.length);
+      // Build regex
+      const pattern = new RegExp('(' + allKws.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+      // Split and rebuild with highlights
+      const parts = text.split(pattern);
+      return parts.map(part => {
+        if (allKws.some(kw => part.toLowerCase() === kw)) {
+          return '<span class="kw-hl">' + esc(part) + '</span>';
+        }
+        return esc(part);
+      }).join('');
+    }
+
+    // ============================================
+    // REMARKS MODAL
+    // ============================================
+    function openRemarksModal() {
+      if (currentIndex < 0) return;
+      populateRemarksModal();
+      document.getElementById('remarksModal').classList.add('show');
+      document.title = 'SIZE::REMARKS';
+      setTimeout(() => { document.title = 'MLS Notes'; }, 300);
+    }
+
+    function populateRemarksModal() {
+      const p = store.properties[currentIndex];
+      const rf = p.remarkFlags || {};
+      document.getElementById('rmTitle').textContent =
+        'MLS Remarks \u2014 ' + p.mls + '  ' + (p.address || '');
+      document.getElementById('rmPublic').innerHTML = highlightRemarks(p.publicRemarks || '');
+      document.getElementById('rmPublic').style.fontSize = remarksZoom + 'px';
+      document.getElementById('rmRealtor').innerHTML = highlightRemarks(p.realtorRemarks || '');
+      document.getElementById('rmRealtor').style.fontSize = remarksZoom + 'px';
+      document.getElementById('rmFlags').innerHTML = Object.keys(REMARK_FLAG_LABELS).map(k =>
+        `<label><input type="checkbox" data-flag="${k}" ${rf[k] ? 'checked' : ''}> ${REMARK_FLAG_LABELS[k]}</label>`
+      ).join('');
+      document.getElementById('rmNotes').value = p.notes || '';
+    }
+
+    function closeRemarksModal(save) {
+      if (save && currentIndex >= 0) {
+        const p = store.properties[currentIndex];
+        if (!p.remarkFlags) p.remarkFlags = {};
+        document.querySelectorAll('#rmFlags input[data-flag]').forEach(el => {
+          p.remarkFlags[el.dataset.flag] = el.checked;
+        });
+        p.notes = document.getElementById('rmNotes').value;
+        p.modified = new Date().toISOString();
+        saveLocal();
+        renderForm();
+        renderList();
+        updateToggleBar();
+        showToast('Remarks saved');
+      }
+      document.getElementById('remarksModal').classList.remove('show');
+      document.title = 'SIZE::COMPACT';
+      setTimeout(() => { document.title = 'MLS Notes'; }, 300);
+    }
+
+    function remarksModalNav(delta) {
+      if (currentIndex < 0) return;
+      // Save current modal state before navigating
+      const p = store.properties[currentIndex];
+      if (!p.remarkFlags) p.remarkFlags = {};
+      document.querySelectorAll('#rmFlags input[data-flag]').forEach(el => {
+        p.remarkFlags[el.dataset.flag] = el.checked;
+      });
+      p.notes = document.getElementById('rmNotes').value;
+      p.modified = new Date().toISOString();
+      saveLocal();
+
+      const list = getFilteredList();
+      const cur = store.properties[currentIndex];
+      const fi = list.indexOf(cur);
+      const next = fi + delta;
+      if (next < 0 || next >= list.length) return;
+      currentIndex = store.properties.indexOf(list[next]);
+      renderForm();
+      renderList();
+      updateToggleBar();
+      updateNav();
+      populateRemarksModal();
+    }
+
+    function zoomRemarks(delta) {
+      remarksZoom = Math.max(8, Math.min(24, remarksZoom + delta));
+      localStorage.setItem('mls-notes-remarks-zoom', remarksZoom);
+      document.querySelectorAll('.remarks-text').forEach(el => {
+        el.style.fontSize = remarksZoom + 'px';
+      });
+    }
+
+    // ============================================
+    // KEYBOARD
+    // ============================================
+    document.addEventListener('keydown', e => {
+      if (document.getElementById('importModal').classList.contains('show')) {
+        if (e.key === 'Escape') closeImportModal();
+        return;
+      }
+      if (document.getElementById('fieldsModal').classList.contains('show')) {
+        if (e.key === 'Escape') closeFieldsModal();
+        return;
+      }
+      if (document.getElementById('remarksModal').classList.contains('show')) {
+        if (e.key === 'Escape') closeRemarksModal(false);
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        window.close();
+        return;
+      }
+
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        saveEntry();
+        return;
+      }
+
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        document.getElementById('searchBox').focus();
+        return;
+      }
+
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      if (e.key === 'ArrowUp' || (e.altKey && e.key === 'ArrowLeft')) {
+        e.preventDefault();
+        navPrev();
+      } else if (e.key === 'ArrowDown' || (e.altKey && e.key === 'ArrowRight')) {
+        e.preventDefault();
+        navNext();
+      }
+    });
+
+    // ============================================
+    // INIT
+    // ============================================
+    loadData();
+  </script>
+</body>
+</html>

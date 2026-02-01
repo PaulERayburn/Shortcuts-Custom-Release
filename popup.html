@@ -154,6 +154,20 @@
 
     .btn-copy:hover { opacity: 0.8; }
 
+    .btn-run {
+      padding: 4px 10px;
+      font-size: 11px;
+      background: #10b981;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .btn-run:hover { opacity: 0.8; }
+
     .btn-notes {
       padding: 4px 10px;
       font-size: 11px;
@@ -351,6 +365,7 @@
     }
 
     .edit-mode .btn-copy,
+    .edit-mode .btn-run,
     .edit-mode .btn-notes {
       display: none;
     }
@@ -466,8 +481,12 @@
           <label>Category</label>
           <select id="formCategory" required></select>
         </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="formActionRun" onchange="toggleActionRun()">
+          <label for="formActionRun" style="margin:0;cursor:pointer">Runnable script</label>
+        </div>
         <div class="form-group">
-          <label>Keys / Command</label>
+          <label id="formKeysLabel">Keys / Command</label>
           <input type="text" id="formKeys" placeholder="e.g., Ctrl+B d" required>
         </div>
         <div class="form-group">
@@ -523,7 +542,8 @@
         { "id": "claude-wsl", "name": "Claude WSL", "color": "#f97316" },
         { "id": "claude-powershell", "name": "Claude PowerShell", "color": "#3b82f6" },
         { "id": "tmux", "name": "tmux", "color": "#22c55e" },
-        { "id": "windows", "name": "Windows", "color": "#a855f7" }
+        { "id": "windows", "name": "Windows", "color": "#a855f7" },
+        { "id": "scripts", "name": "Scripts", "color": "#10b981" }
       ],
       "shortcuts": [
         { "id": 1, "category": "claude-wsl", "keys": "cvalr4", "description": "Start/attach CValR 4.0 session", "notes": "Smart alias - attaches if exists, creates if not" },
@@ -766,7 +786,11 @@
       html += `<button class="fav-star ${starClass}" onclick="toggleFav(${s.id}, event)" title="Toggle favorite">${s.favorite ? '\u2605' : '\u2606'}</button>`;
       html += `<span class="shortcut-keys">${escapeHtml(s.keys)}</span>`;
       html += `<div><div class="shortcut-desc">${escapeHtml(s.description)}</div></div>`;
-      html += `<button class="btn-copy" onclick="copyShortcut(this.closest('.shortcut-item'), '${keysEscaped}')">Copy</button>`;
+      if (s.action === 'run') {
+        html += `<button class="btn-run" onclick="runScript(${s.id}, event)">Run</button>`;
+      } else {
+        html += `<button class="btn-copy" onclick="copyShortcut(this.closest('.shortcut-item'), '${keysEscaped}')">Copy</button>`;
+      }
       html += `<button class="btn-notes ${notesClass}" onclick="toggleNotes(${s.id})">Notes</button>`;
       html += `<div class="edit-actions">`;
       html += `<button class="edit-btn edit" onclick="event.stopPropagation(); openEditModal(${s.id})">Edit</button>`;
@@ -840,6 +864,30 @@
       setTimeout(() => toast.classList.remove('show'), 1500);
     }
 
+    function runScript(id, event) {
+      event.stopPropagation();
+      if (editMode) return;
+      const shortcut = data.shortcuts.find(s => s.id === id);
+      if (!shortcut) return;
+      const name = shortcut.keys.split('\\').pop();
+      if (!confirm('Run "' + name + '"?')) return;
+      document.title = 'RUN::' + shortcut.keys;
+      showToast('Launching: ' + name);
+    }
+
+    function toggleActionRun() {
+      const checked = document.getElementById('formActionRun').checked;
+      const label = document.getElementById('formKeysLabel');
+      const input = document.getElementById('formKeys');
+      if (checked) {
+        label.textContent = 'Script Path';
+        input.placeholder = 'e.g., C:\\Scripts\\my-script.bat';
+      } else {
+        label.textContent = 'Keys / Command';
+        input.placeholder = 'e.g., Ctrl+B d';
+      }
+    }
+
     function filterShortcuts() {
       renderShortcuts();
     }
@@ -874,6 +922,8 @@
       document.getElementById('formDesc').value = '';
       document.getElementById('formNotes').value = '';
       document.getElementById('formCategory').value = activeCategory !== 'all' ? activeCategory : data.categories[0]?.id;
+      document.getElementById('formActionRun').checked = false;
+      toggleActionRun();
       document.getElementById('deleteBtn').style.display = 'none';
       document.getElementById('modalOverlay').classList.add('show');
       document.getElementById('formKeys').focus();
@@ -889,6 +939,8 @@
       document.getElementById('formDesc').value = shortcut.description;
       document.getElementById('formNotes').value = shortcut.notes || '';
       document.getElementById('formCategory').value = shortcut.category;
+      document.getElementById('formActionRun').checked = shortcut.action === 'run';
+      toggleActionRun();
       document.getElementById('deleteBtn').style.display = 'block';
       document.getElementById('modalOverlay').classList.add('show');
       document.getElementById('formKeys').focus();
@@ -903,6 +955,7 @@
 
       const id = document.getElementById('editId').value;
       const existing = id ? data.shortcuts.find(s => s.id === parseInt(id)) : null;
+      const isRunnable = document.getElementById('formActionRun').checked;
       const shortcut = {
         id: id ? parseInt(id) : Math.max(0, ...data.shortcuts.map(s => s.id)) + 1,
         category: document.getElementById('formCategory').value,
@@ -911,6 +964,9 @@
         notes: document.getElementById('formNotes').value,
         favorite: existing ? existing.favorite : false
       };
+      if (isRunnable) {
+        shortcut.action = 'run';
+      }
 
       if (id) {
         const index = data.shortcuts.findIndex(s => s.id === parseInt(id));
