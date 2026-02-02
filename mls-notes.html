@@ -262,6 +262,11 @@
       opacity: 0;
       transition: opacity 0.3s;
       z-index: 200;
+      max-width: 80%;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .toast.show { opacity: 1; }
 
@@ -384,12 +389,155 @@
     ::-webkit-scrollbar-track { background: #1e1e1e; }
     ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    /* Dictation pulse */
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+      50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+    }
+    .btn-mic { padding: 5px 10px; border: 1px solid #444; border-radius: 4px; background: #1e1e1e; color: #d4d4d4; cursor: pointer; font-size: 1rem; }
+    .btn-mic:hover { border-color: #666; }
+    .btn-mic.recording { background: #ef4444; color: #fff; border-color: #ef4444; animation: pulse-red 1.2s infinite; }
+    .btn-analyze { padding: 5px 10px; border: 1px solid #444; border-radius: 4px; background: #1e1e1e; color: #d4d4d4; cursor: pointer; font-size: 0.923rem; }
+    .btn-analyze:hover { border-color: #666; }
+    .btn-analyze:disabled { opacity: 0.4; cursor: default; }
+
+    /* Site comments row */
+    .site-comments-row { display: flex; gap: 6px; align-items: flex-start; }
+    .site-comments-row textarea { flex: 1; min-height: 80px; }
+    .site-comments-buttons { display: flex; flex-direction: column; gap: 4px; }
+
+    /* Analysis panel */
+    .analysis-panel { border: 1px solid #444; border-radius: 4px; padding: 10px; margin-bottom: 10px; background: #1e1e1e; user-select: text; }
+    .analysis-panel h4 { font-size: 0.923rem; color: #3b82f6; margin-bottom: 8px; }
+    .analysis-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid #2a2a2a; font-size: 0.923rem; }
+    .analysis-row:last-child { border-bottom: none; }
+    .analysis-row .a-label { color: #999; min-width: 100px; }
+    .analysis-row .a-value { flex: 1; color: #d4d4d4; }
+    .analysis-row .a-btn { padding: 2px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 0.846rem; }
+    .a-btn-accept { background: #22c55e; color: #fff; }
+    .a-btn-reject { background: #666; color: #fff; }
+    .a-btn-dict { background: #8b5cf6; color: #fff; }
+    .a-btn-copy { background: #3b82f6; color: #fff; }
+    .a-btn-accept:hover, .a-btn-reject:hover, .a-btn-dict:hover, .a-btn-copy:hover { opacity: 0.8; }
+    .analysis-suggestion { padding: 6px; margin: 4px 0; background: #252525; border-radius: 4px; font-size: 0.846rem; }
+    .analysis-suggestion .orig { color: #ef4444; text-decoration: line-through; }
+    .analysis-suggestion .improved { color: #22c55e; }
+    .analysis-concerns { color: #f97316; font-size: 0.846rem; padding: 4px 0; }
+
+    /* Settings modal tabs */
+    .settings-tabs { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 1px solid #444; }
+    .settings-tab { padding: 8px 16px; border: none; background: none; color: #888; cursor: pointer; font-size: 0.923rem; border-bottom: 2px solid transparent; }
+    .settings-tab:hover { color: #d4d4d4; }
+    .settings-tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+    .settings-tab-content { display: none; }
+    .settings-tab-content.active { display: block; }
+    .replacement-row { display: flex; gap: 6px; align-items: center; padding: 4px 0; border-bottom: 1px solid #2a2a2a; font-size: 0.923rem; }
+    .replacement-row .r-pattern { flex: 1; color: #ef4444; }
+    .replacement-row .r-arrow-sep { color: #666; }
+    .replacement-row .r-replacement { flex: 1; color: #22c55e; }
+    .btn-api-header { padding: 4px 8px; border: 1px solid #555; border-radius: 4px; background: #333; color: #aaa; cursor: pointer; font-size: 0.846rem; }
+    .btn-api-header:hover { background: #444; color: #d4d4d4; }
+
+    /* Subject property */
+    .list-item.subject-row { background: #22c55e11; border-left: 3px solid #f59e0b; }
+    .list-item.subject-row .mls { color: #f59e0b; }
+    .subject-badge { background: #f59e0b; color: #000; font-size: 0.7rem; padding: 1px 5px; border-radius: 8px; font-weight: 700; margin-left: 4px; }
+    .btn-subject { padding: 5px 12px; border: 1px solid #f59e0b; border-radius: 4px; background: #1e1e1e; color: #f59e0b; cursor: pointer; font-size: 0.846rem; font-weight: 600; }
+    .btn-subject:hover { background: #f59e0b22; }
+    .btn-subject.is-subject { background: #f59e0b; color: #000; border-color: #f59e0b; }
+
+    /* Form section headers */
+    .form-section-header { font-size: 0.923rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 0 4px 0; margin: 10px 0 6px 0; border-bottom: 1px solid #333; }
+
+    /* Subject summary bar */
+    .subject-bar { background: #f59e0b11; border: 1px solid #f59e0b44; border-radius: 4px; padding: 8px 10px; margin-bottom: 10px; font-size: 0.846rem; }
+    .subject-bar .sb-title { color: #f59e0b; font-weight: 600; margin-bottom: 4px; }
+    .subject-bar .sb-fields { display: flex; flex-wrap: wrap; gap: 6px 14px; color: #999; }
+    .subject-bar .sb-fields span { color: #d4d4d4; }
+
+    /* Comparison section */
+    .comparison-section { border: 1px solid #f59e0b44; border-radius: 4px; padding: 10px; margin-bottom: 10px; background: #f59e0b08; }
+    .comparison-section h4 { color: #f59e0b; font-size: 0.923rem; margin-bottom: 8px; }
+    .comparison-table { width: 100%; font-size: 0.846rem; border-collapse: collapse; margin-bottom: 8px; }
+    .comparison-table th { text-align: left; color: #999; padding: 3px 6px; border-bottom: 1px solid #333; font-weight: 400; }
+    .comparison-table td { padding: 3px 6px; border-bottom: 1px solid #2a2a2a; color: #d4d4d4; }
+    .comparison-table .col-label { color: #999; width: 110px; }
+    .comparison-table .col-subject { background: #f59e0b08; }
+    .comparison-table .col-comp { background: #3b82f608; }
+    .dir-superior { color: #22c55e; font-weight: 600; }
+    .dir-inferior { color: #ef4444; font-weight: 600; }
+    .dir-similar { color: #888; }
+
+    /* Photos section */
+    .photos-section { margin-bottom: 10px; }
+    .photos-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .photos-header label { font-size: 0.846rem; color: #999; }
+    .photos-badge { background: #3b82f6; color: #fff; font-size: 0.77rem; padding: 1px 6px; border-radius: 8px; font-weight: 600; }
+    .photos-actions { margin-left: auto; display: flex; gap: 4px; }
+    .photos-actions .btn-photo { padding: 3px 10px; border: 1px solid #444; border-radius: 4px; background: #1e1e1e; color: #d4d4d4; cursor: pointer; font-size: 0.846rem; }
+    .photos-actions .btn-photo:hover { border-color: #666; }
+    .photo-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+    .photo-thumb { position: relative; width: 80px; height: 80px; border-radius: 4px; overflow: hidden; cursor: pointer; border: 1px solid #444; }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-thumb .photo-del { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: rgba(239,68,68,0.9); color: #fff; border: none; cursor: pointer; font-size: 0.7rem; line-height: 18px; text-align: center; display: none; }
+    .photo-thumb:hover .photo-del { display: block; }
+    .photo-caption { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.7rem; padding: 1px 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+
+    /* Lightbox */
+    .lightbox-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 300; flex-direction: column; align-items: center; justify-content: center; }
+    .lightbox-overlay.show { display: flex; }
+    .lightbox-header { display: flex; align-items: center; gap: 8px; padding: 10px; width: 100%; max-width: 90vw; }
+    .lightbox-header .lb-nav { padding: 6px 14px; border: 1px solid #555; border-radius: 4px; background: #333; color: #ccc; cursor: pointer; font-size: 1rem; }
+    .lightbox-header .lb-nav:hover { background: #444; }
+    .lightbox-header .lb-nav:disabled { opacity: 0.3; cursor: default; }
+    .lightbox-header .lb-counter { color: #999; font-size: 0.923rem; flex: 1; text-align: center; }
+    .lightbox-header .lb-del { padding: 6px 12px; border: none; border-radius: 4px; background: #ef4444; color: #fff; cursor: pointer; font-size: 0.923rem; }
+    .lightbox-header .lb-close { padding: 6px 12px; border: none; border-radius: 4px; background: #666; color: #fff; cursor: pointer; font-size: 0.923rem; }
+    .lightbox-img { max-width: 90vw; max-height: 70vh; object-fit: contain; border-radius: 4px; }
+    .lightbox-caption { margin-top: 8px; width: 90vw; max-width: 500px; }
+    .lightbox-caption input { width: 100%; padding: 6px 8px; border: 1px solid #444; border-radius: 4px; background: #2d2d2d; color: #d4d4d4; font-size: 0.923rem; text-align: center; }
+    .lightbox-caption input:focus { outline: none; border-color: #3b82f6; }
+
+    /* Vision analysis panel */
+    .vision-panel { border: 1px solid #444; border-radius: 4px; padding: 10px; margin-bottom: 10px; background: #1e1e1e; user-select: text; }
+    .vision-panel h4 { font-size: 0.923rem; color: #8b5cf6; margin-bottom: 8px; }
+    .vision-row { padding: 4px 0; border-bottom: 1px solid #2a2a2a; font-size: 0.923rem; }
+    .vision-row:last-child { border-bottom: none; }
+    .vision-row .v-label { color: #999; font-weight: 600; margin-bottom: 2px; }
+    .vision-row .v-value { color: #d4d4d4; }
+    .vision-row .v-list { color: #d4d4d4; padding-left: 16px; margin: 2px 0; }
+    .vision-row .v-list li { margin-bottom: 2px; }
+    .vision-conflicts { background: #f9731633; border: 1px solid #f97316; border-radius: 4px; padding: 8px; margin-top: 6px; }
+    .vision-conflicts .v-label { color: #f97316; }
+
+    /* Correction chat */
+    .correction-chat { margin-top: 8px; border-top: 1px solid #333; padding-top: 8px; }
+    .correction-history { max-height: 150px; overflow-y: auto; margin-bottom: 6px; }
+    .correction-msg { padding: 4px 8px; margin-bottom: 4px; border-radius: 4px; font-size: 0.846rem; }
+    .correction-msg.user { background: #3b82f622; border-left: 2px solid #3b82f6; color: #d4d4d4; }
+    .correction-msg.ai { background: #22c55e11; border-left: 2px solid #22c55e; color: #999; }
+    .correction-input-row { display: flex; gap: 4px; }
+    .correction-input-row input { flex: 1; padding: 5px 8px; border: 1px solid #444; border-radius: 4px; background: #2d2d2d; color: #d4d4d4; font-size: 0.846rem; }
+    .correction-input-row input:focus { outline: none; border-color: #3b82f6; }
+    .correction-input-row button { padding: 5px 12px; border: none; border-radius: 4px; background: #3b82f6; color: #fff; cursor: pointer; font-size: 0.846rem; white-space: nowrap; }
+    .correction-input-row button:hover { opacity: 0.8; }
+    .correction-input-row button:disabled { opacity: 0.4; cursor: default; }
+    .photo-chat-msg { padding: 6px 8px; margin-bottom: 4px; border-radius: 4px; font-size: 0.846rem; white-space: pre-wrap; word-wrap: break-word; user-select: text; }
+    .photo-chat-msg.user { background: #3b82f622; border-left: 2px solid #3b82f6; color: #d4d4d4; }
+    .photo-chat-msg.ai { background: #22c55e11; border-left: 2px solid #22c55e; color: #d4d4d4; }
+    .photo-chat-actions { display: flex; gap: 4px; margin-top: 6px; justify-content: flex-end; }
+    .photo-chat-actions button { padding: 4px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.846rem; }
+    .btn-apply-analysis { background: #22c55e; color: #fff; font-weight: 600; }
+    .btn-apply-analysis:hover { opacity: 0.8; }
+    .btn-apply-analysis:disabled { opacity: 0.4; cursor: default; }
   </style>
 </head>
 <body>
   <div class="header">
     <h1>MLS Notes</h1>
     <div class="header-buttons">
+      <button class="btn-subject" onclick="addSubjectProperty()" style="font-size:0.923rem;padding:5px 12px">★ Subject</button>
       <button class="btn btn-import" onclick="openImportModal()">Import MLS#s</button>
       <button class="btn" style="background:#f97316;color:#fff" onclick="triggerCSVLoad()">Load CSV</button>
       <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="onCSVFileSelected(event)">
@@ -397,6 +545,7 @@
       <button class="btn" style="background:#06b6d4;color:#fff" onclick="copyMlsList()">Copy MLS#s</button>
       <button class="btn btn-export" onclick="exportCSV()">Export CSV</button>
       <button class="btn" style="background:#f59e0b;color:#000" onclick="openFieldsModal()">Fields</button>
+      <button class="btn-api-header" onclick="openSettingsModal()">&#9881; API</button>
       <button class="btn btn-clear" onclick="clearAll()">Clear All</button>
     </div>
   </div>
@@ -494,6 +643,91 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal" style="width:550px">
+      <h2>Settings</h2>
+      <div class="settings-tabs">
+        <button class="settings-tab active" onclick="switchSettingsTab('api')">API Key</button>
+        <button class="settings-tab" onclick="switchSettingsTab('language')">Language</button>
+        <button class="settings-tab" onclick="switchSettingsTab('guidance')">AI Guidance</button>
+      </div>
+      <div class="settings-tab-content active" id="settingsTab-api">
+        <div class="form-group">
+          <label>OpenAI API Key</label>
+          <input type="password" id="settingsApiKey" placeholder="sk-..." style="font-family:Consolas,monospace">
+        </div>
+        <p style="font-size:0.846rem;color:#666">Stored locally in your browser. Never sent anywhere except OpenAI.</p>
+        <div class="form-group" style="margin-top:12px">
+          <label>AI Model</label>
+          <select id="settingsModel" style="font-size:0.923rem;padding:6px 8px;background:#1e1e1e;color:#eee;border:1px solid #555;border-radius:3px">
+            <option value="gpt-5.2">GPT-5.2 (newest flagship)</option>
+            <option value="gpt-5-mini">GPT-5 Mini</option>
+            <option value="gpt-5-nano">GPT-5 Nano (fastest reasoning)</option>
+            <option value="gpt-4.1">GPT-4.1</option>
+            <option value="gpt-4.1-mini">GPT-4.1 Mini</option>
+            <option value="gpt-4.1-nano">GPT-4.1 Nano (fastest/cheapest)</option>
+            <option value="gpt-4o">GPT-4o</option>
+            <option value="gpt-4o-mini">GPT-4o Mini</option>
+          </select>
+          <p style="font-size:0.77rem;color:#666;margin-top:4px">Used for vision analysis and photo chat. Lighter tasks (text parsing, MLS summary) auto-use the mini variant.</p>
+        </div>
+        <div style="margin-top:12px;border-top:1px solid #444;padding-top:12px">
+          <label style="font-size:0.846rem;color:#999;display:block;margin-bottom:4px">Microphone Test</label>
+          <button class="btn btn-primary" onclick="testMic()">Test Mic</button>
+          <span id="testMicStatus" style="font-size:0.846rem;color:#666;margin-left:8px"></span>
+          <p id="testMicResult" style="font-size:0.923rem;color:#d4d4d4;margin-top:6px;min-height:20px"></p>
+        </div>
+      </div>
+      <div class="settings-tab-content" id="settingsTab-language">
+        <div class="form-group">
+          <label>Filler Words (comma-separated)</label>
+          <textarea id="settingsFillers" style="min-height:60px;font-size:0.923rem"></textarea>
+        </div>
+        <div class="form-group" style="margin-top:12px">
+          <label>Replacements</label>
+          <div id="replacementsList"></div>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <input type="text" id="newReplacementPattern" placeholder="spoken phrase..." style="flex:1">
+            <input type="text" id="newReplacementValue" placeholder="professional wording..." style="flex:1">
+            <button class="btn btn-primary" onclick="addReplacement()" style="white-space:nowrap">Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-tab-content" id="settingsTab-guidance">
+        <div class="form-group">
+          <label>Site Analysis Guidance</label>
+          <textarea id="settingsSiteGuidance" style="min-height:120px;font-size:0.846rem;white-space:pre-wrap" placeholder="Add custom guidance for site/land photo analysis (slope standards, local rules, etc.)..."></textarea>
+          <p style="font-size:0.77rem;color:#666;margin-top:4px">Appended to the site vision prompt on every analysis. Paste reference tables, rules, or notes.</p>
+        </div>
+        <div class="form-group" style="margin-top:12px">
+          <label>Building Analysis Guidance</label>
+          <textarea id="settingsBuildingGuidance" style="min-height:120px;font-size:0.846rem;white-space:pre-wrap" placeholder="Add custom guidance for building/improvement photo analysis..."></textarea>
+          <p style="font-size:0.77rem;color:#666;margin-top:4px">Appended to the building vision prompt on every analysis.</p>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn btn-cancel" onclick="closeSettingsModal()">Close</button>
+        <button class="btn btn-save" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div class="lightbox-overlay" id="lightboxModal">
+    <div class="lightbox-header">
+      <button class="lb-nav" id="lbPrev" onclick="lightboxNav(-1)">&larr;</button>
+      <span class="lb-counter" id="lbCounter">1 of 1</span>
+      <button class="lb-nav" id="lbNext" onclick="lightboxNav(1)">&rarr;</button>
+      <button class="lb-del" onclick="lightboxDelete()">Delete</button>
+      <button class="lb-close" onclick="closeLightbox()">Close</button>
+    </div>
+    <img class="lightbox-img" id="lbImage" src="">
+    <div class="lightbox-caption">
+      <input type="text" id="lbCaption" placeholder="Add caption..." onchange="lightboxSaveCaption()">
+    </div>
+  </div>
+
   <div class="toast" id="toast">Saved!</div>
 
   <script>
@@ -506,6 +740,28 @@
     let searchFilter = '';
     let listOpen = false;
     let remarksZoom = parseInt(localStorage.getItem('mls-notes-remarks-zoom') || '12');
+    let recognition = null;
+    let isRecording = false;
+    let isPaused = false;
+    let comparisonResult = null;
+    let dictationTarget = 'fSiteComments'; // which textarea mic feeds into
+    let analysisResult = null;
+    let buildingAnalysisResult = null;
+
+    // Language DB
+    function getLanguageDB() {
+      const raw = localStorage.getItem('mls-notes-language-db');
+      if (raw) try { return JSON.parse(raw); } catch(e) {}
+      const defaults = {
+        fillers: ['um', 'uh', 'like', 'you know', 'so', 'basically', 'right', 'I mean', 'kind of', 'sort of'],
+        replacements: []
+      };
+      localStorage.setItem('mls-notes-language-db', JSON.stringify(defaults));
+      return defaults;
+    }
+    function saveLanguageDB(db) {
+      localStorage.setItem('mls-notes-language-db', JSON.stringify(db));
+    }
 
     // ============================================
     // UUID
@@ -532,7 +788,8 @@
       const projects = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key.startsWith('mls-notes-') && key !== 'mls-notes-active-project') {
+        const SYSTEM_KEYS = ['mls-notes-active-project', 'mls-notes-openai-key', 'mls-notes-language-db', 'mls-notes-remarks-zoom'];
+        if (key.startsWith('mls-notes-') && !SYSTEM_KEYS.includes(key)) {
           const slug = key.substring('mls-notes-'.length);
           try {
             const data = JSON.parse(localStorage.getItem(key));
@@ -703,10 +960,19 @@
       saveLocal();
     }
 
+    const SYSTEM_SLUGS = ['active-project', 'openai-key', 'language-db', 'remarks-zoom'];
     function saveLocal() {
       if (!activeSlug) return;
+      if (SYSTEM_SLUGS.includes(activeSlug)) { console.error('Refusing to save project over system key:', activeSlug); return; }
       store.lastModified = new Date().toISOString();
       localStorage.setItem(storageKey(activeSlug), JSON.stringify(store));
+    }
+
+    function saveAnalysisResult(prop, key, value) {
+      if (!prop) return;
+      if (!prop.analysisResults) prop.analysisResults = {};
+      prop.analysisResults[key] = value;
+      saveLocal();
     }
 
     // ============================================
@@ -764,6 +1030,8 @@
             quality: '',
             renovations: { kitchen: false, bath: false, roof: false, windows: false, flooring: false, hvac: false, other: '' },
             flags: { atypicalMotivation: false, concessions: false, dataDiscrepancy: false },
+            siteComments: '',
+            buildingComments: '',
             notes: '',
             reviewed: false,
             created: new Date().toISOString(),
@@ -836,6 +1104,8 @@
       if (p.style) return true;
       if (p.basementFinish) return true;
       if (p.basementGrade) return true;
+      if (p.siteComments) return true;
+      if (p.buildingComments) return true;
       if (p.notes) return true;
       const r = p.renovations || {};
       if (r.kitchen || r.bath || r.roof || r.windows || r.flooring || r.hvac || r.other) return true;
@@ -847,6 +1117,11 @@
       if (p.custom) {
         for (const k in p.custom) {
           if (p.custom[k]) return true;
+        }
+      }
+      if (p.comparisons) {
+        for (const k in p.comparisons) {
+          if (p.comparisons[k].notes || p.comparisons[k].result) return true;
         }
       }
       return false;
@@ -922,6 +1197,21 @@
       renderForm();
       updateNav();
       updateToggleBar();
+      updateSubjectButton();
+    }
+
+    function updateSubjectButton() {
+      const btn = document.querySelector('.header-buttons .btn-subject');
+      if (!btn) return;
+      if (store.subjectMls) {
+        const subj = store.properties.find(x => x.mls === store.subjectMls);
+        const label = subj ? (subj.address || subj.mls) : store.subjectMls;
+        btn.textContent = '★ ' + (label.length > 30 ? label.substring(0, 27) + '...' : label);
+        btn.classList.add('is-subject');
+      } else {
+        btn.textContent = '★ Subject';
+        btn.classList.remove('is-subject');
+      }
     }
 
     function updateToggleBar() {
@@ -960,9 +1250,11 @@
         const dataFlag = hasData(p);
         const statusClass = dataFlag ? 'has-data' : 'no-data';
         const rowClass = dataFlag ? 'has-data-row' : 'no-data-row';
-        html += `<div class="list-item ${active} ${rowClass}" onclick="selectIndex(${idx})">
+        const isSubj = store.subjectMls === p.mls;
+        const subjClass = isSubj ? ' subject-row' : '';
+        html += `<div class="list-item ${active}${subjClass} ${rowClass}" onclick="selectIndex(${idx})">
           <span class="rank">${p.sortOrder + 1}</span>
-          <span class="mls">${esc(p.mls)}</span>
+          <span class="mls">${esc(p.mls)}${isSubj ? '<span class="subject-badge">SUBJ</span>' : ''}</span>
           <span class="addr">${esc(p.address) || '—'}</span>
           <span class="cq ${cClass}">${esc(cText)}</span>
           <span class="cq ${qClass}">${esc(qText)}</span>
@@ -977,6 +1269,31 @@
 
     function renderForm() {
       const panel = document.getElementById('formPanel');
+      // Don't stop mic on entry switch — just pause to avoid re-prompting permission
+      if (isRecording && !isPaused) {
+        isPaused = true;
+        setMicStatus('Paused (switched entry)', '#f97316');
+      }
+      // Reload persisted analysis results (or null if none)
+      if (currentIndex >= 0 && currentIndex < store.properties.length) {
+        const ar = store.properties[currentIndex].analysisResults || {};
+        analysisResult = ar.siteText || null;
+        buildingAnalysisResult = ar.buildingText || null;
+        siteVisionResult = ar.siteVision || null;
+        buildingVisionResult = ar.buildingVision || null;
+        mlsSummaryResult = ar.mlsSummary || null;
+        // Reload comparison result
+        const subjMls = store.subjectMls;
+        const comps = store.properties[currentIndex].comparisons;
+        comparisonResult = (subjMls && comps && comps[subjMls] && comps[subjMls].result) || null;
+      } else {
+        analysisResult = null;
+        buildingAnalysisResult = null;
+        siteVisionResult = null;
+        buildingVisionResult = null;
+        mlsSummaryResult = null;
+        comparisonResult = null;
+      }
 
       if (currentIndex < 0 || currentIndex >= store.properties.length) {
         panel.className = 'form-panel empty';
@@ -994,7 +1311,19 @@
       const bsmtFinish = ['', 'Unfinished', 'Partial Finish', 'Full Finish'];
       const bsmtGrade = ['', 'Below Grade', 'Walk-out'];
 
+      const isSubject = store.subjectMls === p.mls;
+      const subjectProp = store.subjectMls ? store.properties.find(x => x.mls === store.subjectMls) : null;
+      const showComparison = !isSubject && subjectProp;
+
       panel.innerHTML = `
+        ${showComparison ? renderSubjectBar(subjectProp) : ''}
+        ${isSubject ? `
+        <div class="form-group">
+          <label style="color:#f59e0b;font-weight:600;font-size:0.923rem">★ Subject Property</label>
+          <input type="text" id="fAddress" value="${esc(p.address)}" placeholder="Enter address..." style="font-size:1.077rem;font-weight:600">
+          <input type="hidden" id="fMls" value="${esc(p.mls)}">
+        </div>
+        ` : `
         <div class="form-row">
           <div class="form-group">
             <label>MLS #</label>
@@ -1005,6 +1334,37 @@
             <input type="text" id="fAddress" value="${esc(p.address)}" placeholder="Enter address...">
           </div>
         </div>
+        `}
+
+        <div class="form-section-header">Site</div>
+        <div class="form-group">
+          <label>Site Comments</label>
+          <div class="site-comments-row">
+            <textarea id="fSiteComments" placeholder="Dictate or type site observations...">${esc(p.siteComments || '')}</textarea>
+            <div class="site-comments-buttons">
+              <button class="btn-mic" id="btnMicSite" onclick="toggleDictation('fSiteComments')" title="Start/stop mic for site comments">&#127908;</button>
+              <button class="btn-mic" id="btnPauseSite" onclick="togglePause()" title="Pause/resume dictation" style="display:none">&#9208;</button>
+              <button class="btn-analyze" onclick="analyzeComments('site')" title="AI Analyze site comments">&#9881; Analyze</button>
+            </div>
+          </div>
+          <div id="micStatusSite" style="font-size:0.769rem;color:#666;margin-top:2px"></div>
+        </div>
+        <div id="siteAnalysisContainer"></div>
+        <div class="photos-section">
+          <div class="photos-header">
+            <label>Site Photos <span class="photos-badge" id="sitePhotoBadge" style="display:none">0</span></label>
+            <div class="photos-actions">
+              <button class="btn-photo" onclick="pastePhoto('site')">Paste</button>
+              <button class="btn-photo" onclick="document.getElementById('sitePhotoFileInput').click()">Browse</button>
+              <input type="file" id="sitePhotoFileInput" accept="image/*" multiple style="display:none" onchange="onPhotoFilesSelected(event,'site')">
+              <button class="btn-photo" id="btnAnalyzeSitePhotos" onclick="analyzePhotos('site')" disabled style="background:#8b5cf6;color:#fff;border-color:#8b5cf6">Analyze Site Photos</button>
+            </div>
+          </div>
+          <div class="photo-grid" id="sitePhotoGrid"></div>
+        </div>
+        <div id="siteVisionContainer"></div>
+
+        <div class="form-section-header">Building</div>
         <div class="form-row">
           <div class="form-group">
             <label>YB-Actual</label>
@@ -1074,6 +1434,38 @@
             </span>
           </div>`;
         })() : ''}
+        <div class="form-group">
+          <label>Building Comments</label>
+          <div class="site-comments-row">
+            <textarea id="fBuildingComments" placeholder="Dictate or type building observations...">${esc(p.buildingComments || '')}</textarea>
+            <div class="site-comments-buttons">
+              <button class="btn-mic" id="btnMicBuilding" onclick="toggleDictation('fBuildingComments')" title="Start/stop mic for building comments">&#127908;</button>
+              <button class="btn-mic" id="btnPauseBuilding" onclick="togglePause()" title="Pause/resume dictation" style="display:none">&#9208;</button>
+              <button class="btn-analyze" onclick="analyzeComments('building')" title="AI Analyze building comments">&#9881; Analyze</button>
+            </div>
+          </div>
+          <div id="micStatusBuilding" style="font-size:0.769rem;color:#666;margin-top:2px"></div>
+        </div>
+        <div id="buildingAnalysisContainer"></div>
+        <div class="photos-section">
+          <div class="photos-header">
+            <label>Building Photos <span class="photos-badge" id="buildingPhotoBadge" style="display:none">0</span></label>
+            <div class="photos-actions">
+              <button class="btn-photo" onclick="pastePhoto('building')">Paste</button>
+              <button class="btn-photo" onclick="document.getElementById('buildingPhotoFileInput').click()">Browse</button>
+              <input type="file" id="buildingPhotoFileInput" accept="image/*" multiple style="display:none" onchange="onPhotoFilesSelected(event,'building')">
+              <button class="btn-photo" id="btnAnalyzeBuildingPhotos" onclick="analyzePhotos('building')" disabled style="background:#8b5cf6;color:#fff;border-color:#8b5cf6">Analyze Building Photos</button>
+            </div>
+          </div>
+          <div class="photo-grid" id="buildingPhotoGrid"></div>
+        </div>
+        <div id="buildingVisionContainer"></div>
+
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+          <button class="btn-photo" id="btnAnalyzeMLS" onclick="analyzeMLS()" disabled style="background:linear-gradient(135deg,#22c55e,#3b82f6);color:#fff;border:none;padding:6px 16px;font-size:0.923rem;font-weight:600;border-radius:4px;cursor:pointer">Analyze MLS</button>
+        </div>
+        <div id="mlsSummaryContainer"></div>
+        ${showComparison ? renderComparisonSection(p, subjectProp) : ''}
         ${store.customFields.map(cf => {
           const val = (p.custom || {})[cf.id] || '';
           const suggestions = getFieldSuggestions(cf.id);
@@ -1094,6 +1486,23 @@
           <button class="btn btn-save" onclick="saveEntry()">Save Entry</button>
         </div>
       `;
+      refreshAllPhotoGrids();
+
+      // Re-render persisted analysis panels
+      if (analysisResult) renderAnalysisPanel('siteAnalysisContainer', analysisResult, 'Site Analysis');
+      if (buildingAnalysisResult) renderAnalysisPanel('buildingAnalysisContainer', buildingAnalysisResult, 'Building Analysis');
+      if (siteVisionResult) renderVisionPanel('siteVisionContainer', siteVisionResult, 'site');
+      else if (getPhotoChat('site').length) {
+        const c = document.getElementById('siteVisionContainer');
+        if (c) c.innerHTML = '<div class="vision-panel"><h4>Site Photo Chat</h4>' + renderPhotoChatSection('site', 'siteVisionContainer') + '</div>';
+      }
+      if (buildingVisionResult) renderVisionPanel('buildingVisionContainer', buildingVisionResult, 'building');
+      else if (getPhotoChat('building').length) {
+        const c = document.getElementById('buildingVisionContainer');
+        if (c) c.innerHTML = '<div class="vision-panel"><h4>Building Photo Chat</h4>' + renderPhotoChatSection('building', 'buildingVisionContainer') + '</div>';
+      }
+      if (mlsSummaryResult) renderMlsSummaryPanel();
+      if (comparisonResult) renderComparisonPanel();
     }
 
     function saveEntry() {
@@ -1108,6 +1517,10 @@
       p.basementFinish = document.getElementById('fBsmtFinish').value;
       p.basementGrade = document.getElementById('fBsmtGrade').value;
       p.notes = document.getElementById('fNotes').value;
+      const scEl = document.getElementById('fSiteComments');
+      if (scEl) p.siteComments = scEl.value;
+      const bcEl = document.getElementById('fBuildingComments');
+      if (bcEl) p.buildingComments = bcEl.value;
 
       p.renovations = {
         kitchen: document.getElementById('reno_kitchen').checked,
@@ -1134,6 +1547,14 @@
         p.notes = document.getElementById('rmNotes').value;
       }
 
+      // Save comparison notes if visible
+      const compNotesEl = document.getElementById('fComparisonNotes');
+      if (compNotesEl && store.subjectMls && store.subjectMls !== p.mls) {
+        if (!p.comparisons) p.comparisons = {};
+        if (!p.comparisons[store.subjectMls]) p.comparisons[store.subjectMls] = {};
+        p.comparisons[store.subjectMls].notes = compNotesEl.value;
+      }
+
       if (!p.custom) p.custom = {};
       store.customFields.forEach(cf => {
         const el = document.getElementById('cf_' + cf.id);
@@ -1145,6 +1566,7 @@
 
       saveLocal();
       renderList();
+      renderForm();
       updateToggleBar();
       updateNav();
       showToast('Entry saved');
@@ -1187,7 +1609,7 @@
         'AtypicalMotivation', 'Concessions', 'DataDiscrepancy',
         ...cfHeaders,
         'PublicRemarks', 'RealtorRemarks', ...rfHeaders,
-        'Notes', 'Reviewed', 'HasData', 'DateModified'];
+        'SiteComments', 'BuildingComments', 'Notes', 'Reviewed', 'HasData', 'DateModified'];
 
       const rfKeys = Object.keys(REMARK_FLAG_LABELS);
       const rows = store.properties.map(p => {
@@ -1204,7 +1626,7 @@
           f.atypicalMotivation ? 'Y' : '', f.concessions ? 'Y' : '', f.dataDiscrepancy ? 'Y' : '',
           ...cfValues,
           p.publicRemarks || '', p.realtorRemarks || '', ...rfValues,
-          p.notes, p.reviewed ? 'Y' : '', hasData(p) ? 'Y' : '', p.modified || ''
+          p.siteComments || '', p.buildingComments || '', p.notes, p.reviewed ? 'Y' : '', hasData(p) ? 'Y' : '', p.modified || ''
         ].map(v => '"' + String(v).replace(/"/g, '""') + '"');
       });
 
@@ -1616,9 +2038,1922 @@
     }
 
     // ============================================
+    // DICTATION (Web Speech API) — target-aware
+    // ============================================
+    function getDictationSuffix() {
+      if (dictationTarget === 'fBuildingComments') return 'Building';
+      if (dictationTarget === 'fComparisonNotes') return 'Comparison';
+      return 'Site';
+    }
+
+    function toggleDictation(target) {
+      if (isRecording && dictationTarget === target) {
+        stopDictation();
+      } else if (isRecording && dictationTarget !== target) {
+        // Switch target: stop old, start new
+        stopDictation();
+        dictationTarget = target;
+        startDictation();
+      } else {
+        dictationTarget = target;
+        startDictation();
+      }
+    }
+
+    function setMicStatus(msg, color) {
+      const suffix = getDictationSuffix();
+      const el = document.getElementById('micStatus' + suffix);
+      if (el) { el.textContent = msg; el.style.color = color || '#666'; }
+    }
+
+    function clearAllMicStatus() {
+      ['Site', 'Building', 'Comparison'].forEach(s => {
+        const el = document.getElementById('micStatus' + s);
+        if (el) { el.textContent = ''; }
+      });
+    }
+
+    function startDictation() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) { showToast('Speech recognition not supported'); return; }
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      recognition.onresult = (event) => {
+        if (isPaused) return;
+        const ta = document.getElementById(dictationTarget);
+        if (!ta) return;
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            let text = event.results[i][0].transcript.trim();
+            text = cleanDictation(text);
+            if (text) {
+              ta.value = ta.value ? ta.value + ' ' + text : text;
+              setMicStatus('Listening... (heard: "' + text.substring(0, 40) + '")', '#22c55e');
+            }
+          }
+        }
+      };
+      recognition.onend = () => {
+        // Don't auto-restart — each start() triggers a permission prompt.
+        // With continuous:true it should stay open. If it ends, just stop cleanly.
+        if (isRecording) {
+          isRecording = false;
+          isPaused = false;
+          ['Site', 'Building', 'Comparison'].forEach(s => {
+            const b = document.getElementById('btnMic' + s);
+            if (b) b.classList.remove('recording');
+            const pa = document.getElementById('btnPause' + s);
+            if (pa) { pa.style.display = 'none'; pa.classList.remove('recording'); }
+          });
+          setMicStatus('Mic session ended. Click mic to restart.', '#f97316');
+        }
+      };
+      recognition.onerror = (e) => {
+        if (e.error === 'no-speech') {
+          setMicStatus('No speech detected — still listening...', '#f97316');
+          return;
+        }
+        if (e.error === 'aborted') return;
+        setMicStatus('Mic error: ' + e.error, '#ef4444');
+      };
+
+      const suffix = getDictationSuffix();
+      try {
+        recognition.start();
+        isRecording = true;
+        isPaused = false;
+        // Clear other section's mic UI
+        clearAllMicStatus();
+        ['Site', 'Building', 'Comparison'].forEach(s => {
+          const btn = document.getElementById('btnMic' + s);
+          const pause = document.getElementById('btnPause' + s);
+          if (s === suffix) {
+            if (btn) btn.classList.add('recording');
+            if (pause) pause.style.display = '';
+          } else {
+            if (btn) btn.classList.remove('recording');
+            if (pause) { pause.style.display = 'none'; pause.classList.remove('recording'); }
+          }
+        });
+        setMicStatus('Listening... (use Pause to mute without losing mic)', '#22c55e');
+      } catch(e) {
+        setMicStatus('Could not start: ' + e.message, '#ef4444');
+      }
+    }
+
+    function stopDictation() {
+      isRecording = false;
+      isPaused = false;
+      if (recognition) {
+        try { recognition.abort(); } catch(e) {}
+        recognition = null;
+      }
+      ['Site', 'Building', 'Comparison'].forEach(s => {
+        const btn = document.getElementById('btnMic' + s);
+        if (btn) btn.classList.remove('recording');
+        const pause = document.getElementById('btnPause' + s);
+        if (pause) { pause.style.display = 'none'; pause.classList.remove('recording'); }
+      });
+      setMicStatus('Stopped. Click mic to start new session.', '#666');
+    }
+
+    function togglePause() {
+      if (!isRecording) return;
+      isPaused = !isPaused;
+      const suffix = getDictationSuffix();
+      const pause = document.getElementById('btnPause' + suffix);
+      if (isPaused) {
+        if (pause) { pause.classList.add('recording'); pause.innerHTML = '&#9654;'; pause.title = 'Resume dictation'; }
+        setMicStatus('Paused (mic still active, input ignored)', '#f97316');
+      } else {
+        if (pause) { pause.classList.remove('recording'); pause.innerHTML = '&#9208;'; pause.title = 'Pause dictation'; }
+        setMicStatus('Listening...', '#22c55e');
+      }
+    }
+
+    function testMic() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const statusEl = document.getElementById('testMicStatus');
+      const resultEl = document.getElementById('testMicResult');
+      if (!SpeechRecognition) { statusEl.textContent = 'Not supported in this browser'; statusEl.style.color='#ef4444'; return; }
+      statusEl.textContent = 'Listening for 5 seconds...'; statusEl.style.color = '#f97316';
+      resultEl.textContent = '';
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.lang = 'en-US';
+      rec.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        resultEl.textContent = 'Heard: "' + transcript + '"';
+      };
+      rec.onerror = (e) => {
+        statusEl.textContent = 'Error: ' + e.error;
+        statusEl.style.color = '#ef4444';
+        if (e.error === 'not-allowed') resultEl.textContent = 'Mic permission denied. Check browser settings (click lock icon in address bar).';
+      };
+      rec.onend = () => {
+        if (!resultEl.textContent) {
+          statusEl.textContent = 'No speech detected'; statusEl.style.color = '#f97316';
+        } else {
+          statusEl.textContent = 'Mic working!'; statusEl.style.color = '#22c55e';
+        }
+      };
+      try { rec.start(); setTimeout(() => { try { rec.stop(); } catch(e){} }, 5000); }
+      catch(e) { statusEl.textContent = 'Failed to start: ' + e.message; statusEl.style.color = '#ef4444'; }
+    }
+
+    function cleanDictation(text) {
+      const db = getLanguageDB();
+      // Apply replacements first
+      db.replacements.forEach(r => {
+        const re = new RegExp('\\b' + r.pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+        text = text.replace(re, r.replacement);
+      });
+      // Strip fillers
+      db.fillers.forEach(filler => {
+        const re = new RegExp('\\b' + filler.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+        text = text.replace(re, '');
+      });
+      return text.replace(/\s{2,}/g, ' ').trim();
+    }
+
+    // ============================================
+    // API KEY + SETTINGS MODAL
+    // ============================================
+    function getApiKey() {
+      const key = (localStorage.getItem('mls-notes-openai-key') || '').trim();
+      // Strip any non-ASCII characters that would break HTTP headers
+      return key.replace(/[^\x20-\x7E]/g, '');
+    }
+
+    function openSettingsModal() {
+      document.getElementById('settingsModal').classList.add('show');
+      document.getElementById('settingsApiKey').value = getApiKey();
+      const db = getLanguageDB();
+      document.getElementById('settingsFillers').value = db.fillers.join(', ');
+      renderReplacementsList(db);
+      document.getElementById('settingsSiteGuidance').value = localStorage.getItem('mls-notes-site-guidance') || '';
+      document.getElementById('settingsBuildingGuidance').value = localStorage.getItem('mls-notes-building-guidance') || '';
+      document.getElementById('settingsModel').value = localStorage.getItem('mls-notes-model') || 'gpt-4o';
+      switchSettingsTab('api');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('show');
+    }
+
+    function switchSettingsTab(tab) {
+      document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.settings-tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.settings-tab[onclick*="${tab}"]`).classList.add('active');
+      document.getElementById('settingsTab-' + tab).classList.add('active');
+    }
+
+    function renderReplacementsList(db) {
+      const container = document.getElementById('replacementsList');
+      if (!db.replacements.length) {
+        container.innerHTML = '<div style="color:#555;font-size:0.846rem;padding:4px 0">No replacements yet.</div>';
+        return;
+      }
+      container.innerHTML = db.replacements.map((r, i) =>
+        `<div class="replacement-row">
+          <span class="r-pattern">${esc(r.pattern)}</span>
+          <span class="r-arrow-sep">&rarr;</span>
+          <span class="r-replacement">${esc(r.replacement)}</span>
+          <button class="a-btn a-btn-reject" onclick="deleteReplacement(${i})">Del</button>
+        </div>`
+      ).join('');
+    }
+
+    function addReplacement() {
+      const pattern = document.getElementById('newReplacementPattern').value.trim();
+      const replacement = document.getElementById('newReplacementValue').value.trim();
+      if (!pattern || !replacement) { showToast('Enter both fields'); return; }
+      const db = getLanguageDB();
+      db.replacements.push({ pattern, replacement });
+      saveLanguageDB(db);
+      document.getElementById('newReplacementPattern').value = '';
+      document.getElementById('newReplacementValue').value = '';
+      renderReplacementsList(db);
+      showToast('Replacement added');
+    }
+
+    function deleteReplacement(index) {
+      const db = getLanguageDB();
+      db.replacements.splice(index, 1);
+      saveLanguageDB(db);
+      renderReplacementsList(db);
+    }
+
+    function addToDictionary(pattern, replacement) {
+      const db = getLanguageDB();
+      if (db.replacements.some(r => r.pattern === pattern)) { showToast('Already in dictionary'); return; }
+      db.replacements.push({ pattern, replacement });
+      saveLanguageDB(db);
+      showToast('Added to dictionary');
+    }
+
+    function saveSettings() {
+      localStorage.setItem('mls-notes-openai-key', document.getElementById('settingsApiKey').value.trim());
+      const db = getLanguageDB();
+      db.fillers = document.getElementById('settingsFillers').value.split(',').map(s => s.trim()).filter(Boolean);
+      saveLanguageDB(db);
+      localStorage.setItem('mls-notes-site-guidance', document.getElementById('settingsSiteGuidance').value);
+      localStorage.setItem('mls-notes-building-guidance', document.getElementById('settingsBuildingGuidance').value);
+      localStorage.setItem('mls-notes-model', document.getElementById('settingsModel').value);
+      closeSettingsModal();
+      showToast('Settings saved');
+    }
+
+    // ============================================
+    // AI ANALYSIS (OpenAI)
+    // ============================================
+    async function analyzeComments(type) {
+      const key = getApiKey();
+      if (!key) { showToast('Set your OpenAI API key first (click API button)'); openSettingsModal(); return; }
+      const isSite = type === 'site';
+      const taId = isSite ? 'fSiteComments' : 'fBuildingComments';
+      const containerId = isSite ? 'analysisContainer' : 'buildingAnalysisContainer';
+      const ta = document.getElementById(taId);
+      const text = ta ? ta.value.trim() : '';
+      if (!text) { showToast('No ' + (isSite ? 'site' : 'building') + ' comments to analyze'); return; }
+      if (currentIndex < 0) return;
+      const p = store.properties[currentIndex];
+
+      // Find the analyze button — it's in the form-group preceding the container
+      const btn = document.querySelector(`#${containerId}`)?.previousElementSibling?.querySelector('.btn-analyze');
+      if (btn) { btn.disabled = true; btn.textContent = 'Analyzing...'; }
+
+      const siteSystemPrompt = `You are a real estate appraisal assistant. Analyze the appraiser's site comments about a property and return JSON only (no markdown fencing):
+{
+  "effectiveAge": number or null,
+  "condition": "C1-C6 rating or descriptive" or null,
+  "quality": "Fair/Average/Good/Very Good/Excellent" or null,
+  "renovations": ["kitchen","bath","roof","windows","flooring","hvac"] (only those observed),
+  "concerns": ["list of concerns or issues noted"],
+  "languageSuggestions": [{"original":"casual phrase","improved":"professional appraisal language"}],
+  "summary": "1-2 sentence professional summary suitable for an appraisal report"
+}
+Be conservative. Only suggest values clearly supported by the comments.`;
+
+      const buildingSystemPrompt = `You are a real estate appraisal assistant. Analyze the appraiser's building/improvement comments about a property and return JSON only (no markdown fencing):
+{
+  "effectiveAge": number or null,
+  "condition": "C1-C6 rating or descriptive" or null,
+  "quality": "Fair/Average/Good/Very Good/Excellent" or null,
+  "style": "architectural style if mentioned" or null,
+  "renovations": ["kitchen","bath","roof","windows","flooring","hvac"] (only those observed),
+  "buildingFeatures": ["notable features: layout, materials, systems, finishes"],
+  "deficiencies": ["deferred maintenance, functional issues, needed repairs"],
+  "concerns": ["list of concerns or issues noted"],
+  "languageSuggestions": [{"original":"casual phrase","improved":"professional appraisal language"}],
+  "summary": "1-2 sentence professional building description suitable for an appraisal report"
+}
+Focus on building condition, materials, layout, systems (HVAC, plumbing, electrical), interior finishes, and functional utility. Be conservative — only suggest values clearly supported by the comments.`;
+
+      const systemPrompt = isSite ? siteSystemPrompt : buildingSystemPrompt;
+      const label = isSite ? 'Site Comments' : 'Building Comments';
+      const corrKey = isSite ? 'siteText' : 'buildingText';
+      const userMsg = `Property: MLS# ${p.mls}, Address: ${p.address || 'unknown'}, Year Built: ${p.yearBuilt || 'unknown'}
+${label}: ${text}${getCorrectionContext(corrKey)}`;
+
+      try {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({
+            ...buildModelParams(getMiniModel(), 0.3, 1500),
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userMsg }
+            ]
+          })
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          const errMsg = err.error?.message || resp.statusText;
+          if (resp.status === 401) throw new Error('Invalid API key. Check key in Settings.');
+          throw new Error(errMsg.substring(0, 60));
+        }
+        const data = await resp.json();
+        let content = data.choices[0].message.content.trim();
+        content = content.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+        if (isSite) {
+          analysisResult = JSON.parse(content);
+          saveAnalysisResult(p, 'siteText', analysisResult);
+          renderAnalysisPanel('siteAnalysisContainer', analysisResult, 'Site Analysis');
+        } else {
+          buildingAnalysisResult = JSON.parse(content);
+          saveAnalysisResult(p, 'buildingText', buildingAnalysisResult);
+          renderAnalysisPanel('buildingAnalysisContainer', buildingAnalysisResult, 'Building Analysis');
+        }
+      } catch(e) {
+        console.error('Analysis error:', e);
+        showToast('Analysis failed: ' + (e.message || 'Unknown error').substring(0, 80));
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '\u2699 Analyze'; }
+      }
+    }
+
+    function renderAnalysisPanel(containerId, result, title) {
+      const container = document.getElementById(containerId);
+      if (!container || !result) { if (container) container.innerHTML = ''; return; }
+      const r = result;
+      let html = `<div class="analysis-panel"><h4>AI ${esc(title)}</h4>`;
+
+      // Suggested field values
+      if (r.effectiveAge != null) {
+        html += `<div class="analysis-row">
+          <span class="a-label">Effective Age</span><span class="a-value">${esc(String(r.effectiveAge))}</span>
+          <button class="a-btn a-btn-accept" onclick="acceptField('fCondition','${esc(String(r.effectiveAge))}')">Accept</button>
+          <button class="a-btn a-btn-reject" onclick="this.closest('.analysis-row').remove()">Reject</button>
+        </div>`;
+      }
+      if (r.condition) {
+        html += `<div class="analysis-row">
+          <span class="a-label">Condition</span><span class="a-value">${esc(r.condition)}</span>
+          <button class="a-btn a-btn-accept" onclick="acceptField('fCondition','${esc(r.condition)}')">Accept</button>
+          <button class="a-btn a-btn-reject" onclick="this.closest('.analysis-row').remove()">Reject</button>
+        </div>`;
+      }
+      if (r.quality) {
+        html += `<div class="analysis-row">
+          <span class="a-label">Quality</span><span class="a-value">${esc(r.quality)}</span>
+          <button class="a-btn a-btn-accept" onclick="acceptQuality('${esc(r.quality)}')">Accept</button>
+          <button class="a-btn a-btn-reject" onclick="this.closest('.analysis-row').remove()">Reject</button>
+        </div>`;
+      }
+      if (r.renovations && r.renovations.length) {
+        html += `<div class="analysis-row">
+          <span class="a-label">Renovations</span><span class="a-value">${r.renovations.join(', ')}</span>
+          <button class="a-btn a-btn-accept" onclick="acceptRenovations(${esc(JSON.stringify(r.renovations))})">Accept</button>
+          <button class="a-btn a-btn-reject" onclick="this.closest('.analysis-row').remove()">Reject</button>
+        </div>`;
+      }
+
+      // Style (building analysis)
+      if (r.style) {
+        html += `<div class="analysis-row">
+          <span class="a-label">Style</span><span class="a-value">${esc(r.style)}</span>
+          <button class="a-btn a-btn-reject" onclick="this.closest('.analysis-row').remove()">Reject</button>
+        </div>`;
+      }
+
+      // Building features (building analysis)
+      if (r.buildingFeatures && r.buildingFeatures.length) {
+        html += '<div class="analysis-row"><span class="a-label">Features</span><span class="a-value">' +
+          r.buildingFeatures.map(f => esc(f)).join(' &bull; ') + '</span></div>';
+      }
+
+      // Deficiencies (building analysis)
+      if (r.deficiencies && r.deficiencies.length) {
+        html += '<div class="analysis-concerns"><strong>Deficiencies:</strong> ' + r.deficiencies.map(d => esc(d)).join(' &bull; ') + '</div>';
+      }
+
+      // Concerns
+      if (r.concerns && r.concerns.length) {
+        html += '<div class="analysis-concerns"><strong>Concerns:</strong> ' + r.concerns.map(c => esc(c)).join(' &bull; ') + '</div>';
+      }
+
+      // Language suggestions
+      if (r.languageSuggestions && r.languageSuggestions.length) {
+        html += '<h4 style="margin-top:8px">Language Suggestions</h4>';
+        r.languageSuggestions.forEach(s => {
+          html += `<div class="analysis-suggestion">
+            <span class="orig">${esc(s.original)}</span> &rarr; <span class="improved">${esc(s.improved)}</span>
+            <button class="a-btn a-btn-dict" onclick="addToDictionary('${esc(s.original).replace(/'/g, "\\'")}','${esc(s.improved).replace(/'/g, "\\'")}')">Add to Dictionary</button>
+          </div>`;
+        });
+      }
+
+      // Summary
+      if (r.summary) {
+        html += `<div class="analysis-row" style="margin-top:8px">
+          <span class="a-label">Summary</span><span class="a-value">${esc(r.summary)}</span>
+          <button class="a-btn a-btn-copy" onclick="copyToNotes('${esc(r.summary).replace(/'/g, "\\'")}')">Copy to Notes</button>
+        </div>`;
+      }
+
+      // Correction chat
+      const corrType = containerId === 'siteAnalysisContainer' ? 'siteText' : 'buildingText';
+      html += renderCorrectionChat(corrType, containerId);
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function acceptField(fieldId, value) {
+      const el = document.getElementById(fieldId);
+      if (el) {
+        el.value = value;
+        // Also update store so comparison table reflects accepted values
+        if (currentIndex >= 0) {
+          const p = store.properties[currentIndex];
+          const fieldMap = { fCondition: 'condition', fYearBuilt: 'yearBuilt', fAddress: 'address' };
+          if (fieldMap[fieldId]) { p[fieldMap[fieldId]] = value; saveLocal(); }
+        }
+        showToast('Field updated');
+      }
+    }
+
+    function acceptQuality(value) {
+      const el = document.getElementById('fQuality');
+      if (!el) return;
+      function setAndSave(idx) {
+        el.selectedIndex = idx;
+        if (currentIndex >= 0) {
+          store.properties[currentIndex].quality = el.options[idx].value;
+          saveLocal();
+        }
+        showToast('Quality updated');
+      }
+      // Try exact match first, then partial
+      for (let i = 0; i < el.options.length; i++) {
+        if (el.options[i].value.toLowerCase() === value.toLowerCase()) {
+          setAndSave(i); return;
+        }
+      }
+      for (let i = 0; i < el.options.length; i++) {
+        if (el.options[i].value.toLowerCase().includes(value.toLowerCase()) ||
+            value.toLowerCase().includes(el.options[i].value.toLowerCase())) {
+          setAndSave(i); return;
+        }
+      }
+      showToast('Could not match quality value: ' + value);
+    }
+
+    function acceptRenovations(renos) {
+      const map = { kitchen:'reno_kitchen', bath:'reno_bath', roof:'reno_roof',
+                     windows:'reno_windows', flooring:'reno_flooring', hvac:'reno_hvac' };
+      renos.forEach(r => {
+        const el = document.getElementById(map[r.toLowerCase()]);
+        if (el) el.checked = true;
+      });
+      showToast('Renovations updated');
+    }
+
+    function copyToNotes(text) {
+      const el = document.getElementById('fNotes');
+      if (!el) return;
+      el.value = el.value ? el.value + '\n' + text : text;
+      showToast('Copied to notes');
+    }
+
+    // ============================================
+    // INDEXEDDB PHOTO STORE
+    // ============================================
+    function openPhotoDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('mls-notes-photos', 2);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          const oldVersion = e.oldVersion;
+          if (oldVersion < 1) {
+            const os = db.createObjectStore('photos', { keyPath: 'id' });
+            os.createIndex('mls', 'mls', { unique: false });
+            os.createIndex('mls_category', ['mls', 'category'], { unique: false });
+          }
+          if (oldVersion >= 1 && oldVersion < 2) {
+            // Migrate: add category to existing photos and create new index
+            const tx = e.target.transaction;
+            const os = tx.objectStore('photos');
+            if (!os.indexNames.contains('mls_category')) {
+              os.createIndex('mls_category', ['mls', 'category'], { unique: false });
+            }
+            // Set default category on existing records
+            const cursor = os.openCursor();
+            cursor.onsuccess = (ev) => {
+              const c = ev.target.result;
+              if (c) {
+                if (!c.value.category) {
+                  c.value.category = 'site';
+                  c.update(c.value);
+                }
+                c.continue();
+              }
+            };
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function savePhoto(mls, base64, filename, category) {
+      const db = await openPhotoDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('photos', 'readwrite');
+        tx.objectStore('photos').put({ id: uuid(), mls, category: category || 'site', data: base64, filename: filename || 'paste.png', timestamp: Date.now(), caption: '' });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function getPhotos(mls, category) {
+      const db = await openPhotoDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('photos', 'readonly');
+        const os = tx.objectStore('photos');
+        if (category && os.indexNames.contains('mls_category')) {
+          const idx = os.index('mls_category');
+          const req = idx.getAll([mls, category]);
+          req.onsuccess = () => resolve(req.result.sort((a, b) => a.timestamp - b.timestamp));
+          req.onerror = () => reject(req.error);
+        } else {
+          const idx = os.index('mls');
+          const req = idx.getAll(mls);
+          req.onsuccess = () => resolve(req.result.sort((a, b) => a.timestamp - b.timestamp));
+          req.onerror = () => reject(req.error);
+        }
+      });
+    }
+
+    async function deletePhoto(id) {
+      const db = await openPhotoDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('photos', 'readwrite');
+        tx.objectStore('photos').delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function updatePhotoCaption(id, caption) {
+      const db = await openPhotoDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('photos', 'readwrite');
+        const os = tx.objectStore('photos');
+        const req = os.get(id);
+        req.onsuccess = () => {
+          const rec = req.result;
+          if (rec) { rec.caption = caption; os.put(rec); }
+        };
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function getPhotoCount(mls) {
+      const photos = await getPhotos(mls);
+      return photos.length;
+    }
+
+    // ============================================
+    // PHOTO UI
+    // ============================================
+    let currentSitePhotos = [];
+    let currentBuildingPhotos = [];
+    let lightboxIndex = 0;
+    let lightboxCategory = 'site';
+    let siteVisionResult = null;
+    let buildingVisionResult = null;
+    let mlsSummaryResult = null;
+
+    function getPhotosArray(category) {
+      return category === 'building' ? currentBuildingPhotos : currentSitePhotos;
+    }
+
+    async function refreshPhotoGrid(category) {
+      if (currentIndex < 0) return;
+      const mls = store.properties[currentIndex].mls;
+      const cap = category.charAt(0).toUpperCase() + category.slice(1);
+      const gridId = category + 'PhotoGrid';
+      const badgeId = category + 'PhotoBadge';
+      const btnId = 'btnAnalyze' + cap + 'Photos';
+      let photos;
+      try { photos = await getPhotos(mls, category); } catch(e) { photos = []; }
+      if (category === 'building') currentBuildingPhotos = photos;
+      else currentSitePhotos = photos;
+      const grid = document.getElementById(gridId);
+      const badge = document.getElementById(badgeId);
+      const analyzeBtn = document.getElementById(btnId);
+      if (!grid) return;
+      if (badge) { badge.textContent = photos.length; badge.style.display = photos.length ? '' : 'none'; }
+      if (analyzeBtn) analyzeBtn.disabled = !photos.length;
+      if (!photos.length) { grid.innerHTML = ''; return; }
+      grid.innerHTML = photos.map((ph, i) =>
+        `<div class="photo-thumb" onclick="openLightbox(${i},'${category}')">
+          <img src="${ph.data}">
+          ${ph.caption ? `<div class="photo-caption">${esc(ph.caption)}</div>` : ''}
+          <button class="photo-del" onclick="event.stopPropagation();removePhoto('${ph.id}','${category}')">&times;</button>
+        </div>`
+      ).join('');
+    }
+
+    async function refreshAllPhotoGrids() {
+      await refreshPhotoGrid('site');
+      await refreshPhotoGrid('building');
+      updateAnalyzeMlsBtn();
+    }
+
+    function updateAnalyzeMlsBtn() {
+      const btn = document.getElementById('btnAnalyzeMLS');
+      if (!btn) return;
+      const hasContent = currentSitePhotos.length || currentBuildingPhotos.length ||
+        (document.getElementById('fSiteComments')?.value || '').trim() ||
+        (document.getElementById('fBuildingComments')?.value || '').trim();
+      btn.disabled = !hasContent;
+    }
+
+    async function removePhoto(id, category) {
+      await deletePhoto(id);
+      await refreshPhotoGrid(category);
+      showToast('Photo deleted');
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function addPhotoFromFile(file, category) {
+      if (currentIndex < 0) return;
+      const mls = store.properties[currentIndex].mls;
+      const base64 = await fileToBase64(file);
+      const cat = category || 'site';
+      await savePhoto(mls, base64, file.name, cat);
+      // Prompt for caption
+      const caption = prompt('Photo name/label (optional):');
+      if (caption && caption.trim()) {
+        // Find the just-added photo (most recent by timestamp)
+        const photos = await getPhotos(mls, cat);
+        if (photos.length) {
+          const newest = photos.reduce((a, b) => (b.timestamp || 0) > (a.timestamp || 0) ? b : a);
+          await updatePhotoCaption(newest.id, caption.trim());
+        }
+      }
+      await refreshPhotoGrid(cat);
+      updateAnalyzeMlsBtn();
+    }
+
+    async function pastePhoto(category) {
+      try {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          const imageType = item.types.find(t => t.startsWith('image/'));
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            const file = new File([blob], 'paste.png', { type: imageType });
+            await addPhotoFromFile(file, category);
+            showToast('Photo pasted');
+            return;
+          }
+        }
+        showToast('No image in clipboard');
+      } catch(e) {
+        showToast('Paste failed: ' + e.message);
+      }
+    }
+
+    async function onPhotoFilesSelected(event, category) {
+      const files = event.target.files;
+      if (!files.length) return;
+      for (const file of files) {
+        await addPhotoFromFile(file, category);
+      }
+      showToast('Added ' + files.length + ' photo(s)');
+      event.target.value = '';
+    }
+
+    // Paste handler — routes to site photos by default
+    document.addEventListener('paste', async (e) => {
+      if (currentIndex < 0) return;
+      if (document.querySelector('.modal-overlay.show') || document.getElementById('lightboxModal').classList.contains('show')) return;
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          // Route to building if building comments textarea is focused
+          const cat = document.activeElement?.id === 'fBuildingComments' ? 'building' : 'site';
+          await addPhotoFromFile(file, cat);
+          showToast('Photo pasted to ' + cat);
+          return;
+        }
+      }
+    });
+
+    // ============================================
+    // LIGHTBOX
+    // ============================================
+    function openLightbox(index, category) {
+      lightboxCategory = category || 'site';
+      const photos = getPhotosArray(lightboxCategory);
+      if (!photos.length) return;
+      lightboxIndex = index;
+      renderLightbox();
+      document.getElementById('lightboxModal').classList.add('show');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightboxModal').classList.remove('show');
+    }
+
+    function renderLightbox() {
+      const photos = getPhotosArray(lightboxCategory);
+      const ph = photos[lightboxIndex];
+      if (!ph) return;
+      document.getElementById('lbImage').src = ph.data;
+      document.getElementById('lbCaption').value = ph.caption || '';
+      document.getElementById('lbCounter').textContent = (lightboxIndex + 1) + ' of ' + photos.length + ' (' + lightboxCategory + ')';
+      document.getElementById('lbPrev').disabled = lightboxIndex === 0;
+      document.getElementById('lbNext').disabled = lightboxIndex === photos.length - 1;
+    }
+
+    function lightboxNav(delta) {
+      const photos = getPhotosArray(lightboxCategory);
+      const next = lightboxIndex + delta;
+      if (next < 0 || next >= photos.length) return;
+      lightboxIndex = next;
+      renderLightbox();
+    }
+
+    async function lightboxSaveCaption() {
+      const photos = getPhotosArray(lightboxCategory);
+      const ph = photos[lightboxIndex];
+      if (!ph) return;
+      const caption = document.getElementById('lbCaption').value.trim();
+      await updatePhotoCaption(ph.id, caption);
+      ph.caption = caption;
+    }
+
+    async function lightboxDelete() {
+      const photos = getPhotosArray(lightboxCategory);
+      const ph = photos[lightboxIndex];
+      if (!ph) return;
+      await deletePhoto(ph.id);
+      photos.splice(lightboxIndex, 1);
+      if (!photos.length) { closeLightbox(); await refreshPhotoGrid(lightboxCategory); return; }
+      if (lightboxIndex >= photos.length) lightboxIndex = photos.length - 1;
+      renderLightbox();
+      await refreshPhotoGrid(lightboxCategory);
+      showToast('Photo deleted');
+    }
+
+    // ============================================
+    // AI VISION ANALYSIS
+    // ============================================
+    const SITE_VISION_PROMPT = `You are a real estate appraisal site analysis assistant. Analyze the provided property photos and any appraiser site comments. Return JSON only (no markdown fencing):
+{
+  "siteObservations": ["list of observations from imagery"],
+  "contourAnalysis": "If contour lines are visible in map imagery, describe the contour interval, elevation labels, line density/spacing, and what they indicate about slope direction and steepness. State 'No contour lines visible' if none.",
+  "topography": "description of terrain/slope incorporating appraiser observations",
+  "slopeCalculation": {"rise_m": number or null, "run_m": number or null, "grade_pct": number or null, "classification": "A (Level) / B (Gentle) / C (Moderate) / D (Steep) / E (Extremely Steep) / F (Excessively Steep) or null"},
+  "vegetation": "tree cover, landscaping assessment",
+  "improvements": "visible structures, driveways, outbuildings",
+  "concerns": ["potential issues visible"],
+  "consistencyCheck": ["how images align or conflict with appraiser comments"],
+  "summary": "professional site description paragraph suitable for an appraisal report"
+}
+
+CONTOUR LINE READING — DO NOT ASSUME CONTOUR INTERVALS:
+When reading a topography/contour map, you MUST determine the actual contour interval from the map itself:
+1. Find two labeled contour lines (index/main contours) and note their elevations (e.g. 700m and 800m).
+2. Count the number of intermediate (unlabeled) contour lines between them.
+3. Divide the elevation difference by (intermediate lines + 1) to get the contour interval. Example: 700m and 800m with 4 intermediate lines = (800-700)/(4+1) = 20m interval.
+4. NEVER assume a default interval (e.g. 10m, 20m). If you cannot read labeled elevations, state "contour interval could not be determined from imagery."
+5. Once the interval is known, count lines crossing the parcel and multiply by the interval to get total elevation change across the site.
+6. Closer contour spacing = steeper slope. Wide spacing = gentler slope.
+
+SLOPE CALCULATION: If the appraiser provides rise and run measurements (e.g. "20m rise over 90m run"), OR if you can derive rise from contour lines, calculate:
+- grade_pct = (rise / run) * 100
+- Classify using the Residential Site Slope Classification Standard (AAFC/CanSIS + BC Slope Class Legend):
+  0-0.5% = A (Level) — essentially level; no material impact on residential utility
+  >0.5-2% = A (Level) — very gentle; typical residential use with positive drainage
+  >2-3% = A (Level) — generally no utility impact; typical usable yard area
+  >3-5% = B (Gentle) — gentle slope; typical residential utility
+  >5-9% = B (Gentle) — gentle to moderate; may slightly influence grading or usability
+  >9-15% = C (Moderate) — moderate; may reduce usable area and increase development complexity
+  >15-30% = D (Steep) — steep; often a meaningful utility constraint with higher development cost
+  >30-60% = E (Extremely Steep) — very steep; significant limitations to usable area
+  >60% = F (Excessively Steep) — severely constrained; residential utility often materially impaired
+Include both the letter class and description. Note the appraisal utility interpretation.
+Sources: Agriculture & Agri-Food Canada (AAFC) / Canadian Soil Information Service (CanSIS), Landform Slope Classes; Province of British Columbia, Slope Class Legend (soil and ecosystem mapping).
+
+*Topography/slope estimates derived from contour mapping are sensitive to contour interval and map generalization. Where only a limited number (minimum suggested 2 to 3) of contour intervals occur across the relevant site area (e.g. building envelope/access corridor), the resulting slope estimate is considered screening-level and may not capture localized grade variation. Where slope is a material value driver, confirmation using higher-resolution elevation data and/or site observation is recommended.
+
+CRITICAL RULES:
+1. The appraiser's site comments are GROUND-TRUTH observations from on-site inspection — they OVERRIDE what aerial imagery appears to show.
+2. Aerial/satellite imagery is nadir (top-down) and CANNOT show slope, grade, or topography. Never describe terrain as "flat" based on aerial photos alone.
+3. If the appraiser mentions slope, grade, contour lines, or elevation changes, incorporate those EXACT observations into your topography and summary sections.
+4. Your role is to SUPPLEMENT the appraiser's comments with visual details (vegetation, clearing, structures, access), not contradict them on things you cannot see from above.
+5. The consistency check should flag cases where you cannot verify something from imagery — not override the appraiser's observations.`;
+
+    const BUILDING_VISION_PROMPT = `You are a real estate appraisal building/improvements analysis assistant. Analyze the provided building photos and any appraiser building comments. Return JSON only (no markdown fencing):
+{
+  "buildingObservations": ["list of observations from imagery"],
+  "constructionType": "frame, masonry, log, etc. if determinable",
+  "materials": {"roof": "description", "siding": "description", "foundation": "description if visible"},
+  "roofCondition": "assessment of roof from imagery",
+  "exteriorCondition": "assessment of exterior walls, trim, paint, etc.",
+  "interiorNotes": "any interior observations if interior photos provided",
+  "deficiencies": ["visible damage, deferred maintenance, needed repairs"],
+  "concerns": ["potential issues visible"],
+  "consistencyCheck": ["how images align or conflict with appraiser comments"],
+  "summary": "professional building description paragraph suitable for an appraisal report"
+}
+
+Focus on: construction type, materials, roof condition, siding/cladding, windows, foundation visibility, grading at foundation, drainage around structure, visible systems (HVAC units, vents), outbuildings, garage/carport, general maintenance level.
+
+CRITICAL RULES:
+1. The appraiser's building comments are GROUND-TRUTH observations — they OVERRIDE visual impressions where they conflict.
+2. If interior photos are not provided, state that interior could not be assessed from imagery.
+3. Be specific about materials and conditions you can identify.`;
+
+    function getModel() {
+      return localStorage.getItem('mls-notes-model') || 'gpt-4o';
+    }
+    function getMiniModel() {
+      const m = getModel();
+      const miniMap = { 'gpt-5.2': 'gpt-5-mini', 'gpt-5-mini': 'gpt-5-mini', 'gpt-5-nano': 'gpt-5-nano', 'gpt-4.1': 'gpt-4.1-mini', 'gpt-4.1-mini': 'gpt-4.1-mini', 'gpt-4.1-nano': 'gpt-4.1-nano', 'gpt-4o': 'gpt-4o-mini', 'gpt-4o-mini': 'gpt-4o-mini' };
+      return miniMap[m] || 'gpt-4o-mini';
+    }
+
+    function buildModelParams(model, temperature, maxTokens) {
+      const usesNewApi = /^(gpt-5|o[1-9])/.test(model);
+      const params = { model };
+      if (!usesNewApi) params.temperature = temperature;
+      params[usesNewApi ? 'max_completion_tokens' : 'max_tokens'] = maxTokens;
+      return params;
+    }
+
+    function getCustomGuidance(category) {
+      const key = category === 'building' ? 'mls-notes-building-guidance' : 'mls-notes-site-guidance';
+      const g = (localStorage.getItem(key) || '').trim();
+      return g ? '\n\nAPPRAISER CUSTOM GUIDANCE:\n' + g : '';
+    }
+
+    async function analyzePhotos(category) {
+      const key = getApiKey();
+      if (!key) { showToast('Set your OpenAI API key first'); openSettingsModal(); return; }
+      if (currentIndex < 0) return;
+      const p = store.properties[currentIndex];
+      const photos = await getPhotos(p.mls, category);
+      if (!photos.length) { showToast('No ' + category + ' photos to analyze'); return; }
+
+      const cap = category.charAt(0).toUpperCase() + category.slice(1);
+      const btnId = 'btnAnalyze' + cap + 'Photos';
+      const containerId = category + 'VisionContainer';
+      const btn = document.getElementById(btnId);
+      if (btn) { btn.disabled = true; btn.textContent = 'Analyzing...'; }
+
+      const systemPrompt = (category === 'building' ? BUILDING_VISION_PROMPT : SITE_VISION_PROMPT) + getCustomGuidance(category);
+
+      const content = [];
+      photos.forEach(ph => {
+        if (ph.caption) content.push({ type: 'text', text: `Photo: ${ph.caption}` });
+        content.push({ type: 'image_url', image_url: { url: ph.data, detail: 'high' } });
+      });
+
+      const commentsId = category === 'building' ? 'fBuildingComments' : 'fSiteComments';
+      const liveComments = (document.getElementById(commentsId)?.value || '').trim();
+      let textBlock = `Property: MLS# ${p.mls}, Address: ${p.address || 'unknown'}, Year Built: ${p.yearBuilt || 'unknown'}`;
+      if (liveComments) textBlock += `\nAppraiser ${cap} Comments: ${liveComments}`;
+      if (p.condition) textBlock += `\nEffective Age: ${p.condition}`;
+      if (p.quality) textBlock += `\nQuality: ${p.quality}`;
+      const corrKey = category === 'building' ? 'buildingVision' : 'siteVision';
+      textBlock += getCorrectionContext(corrKey);
+      content.push({ type: 'text', text: textBlock });
+
+      try {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ ...buildModelParams(getModel(), 0.3, 1500),
+            messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: content }]
+          })
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error?.message?.substring(0, 80) || resp.statusText);
+        }
+        const data = await resp.json();
+        let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+        const result = JSON.parse(raw);
+        if (category === 'building') { buildingVisionResult = result; saveAnalysisResult(p, 'buildingVision', result); }
+        else { siteVisionResult = result; saveAnalysisResult(p, 'siteVision', result); }
+        renderVisionPanel(containerId, result, category);
+      } catch(e) {
+        console.error('Vision analysis error:', e);
+        showToast('Vision analysis failed: ' + (e.message || 'Unknown error').substring(0, 80));
+      } finally {
+        const arr = getPhotosArray(category);
+        if (btn) { btn.disabled = !arr.length; btn.textContent = 'Analyze ' + cap + ' Photos'; }
+      }
+    }
+
+    function renderVisionPanel(containerId, result, category) {
+      const container = document.getElementById(containerId);
+      if (!container || !result) { if (container) container.innerHTML = ''; return; }
+      const r = result;
+      const isSite = category === 'site';
+      const title = isSite ? 'Site Photo Analysis' : 'Building Photo Analysis';
+      let html = `<div class="vision-panel"><h4>${esc(title)}</h4>`;
+
+      // Site-specific fields
+      if (isSite) {
+        if (r.siteObservations && r.siteObservations.length) {
+          html += '<div class="vision-row"><div class="v-label">Site Observations</div><ul class="v-list">' +
+            r.siteObservations.map(o => '<li>' + esc(o) + '</li>').join('') + '</ul></div>';
+        }
+        if (r.contourAnalysis) {
+          html += `<div class="vision-row"><div class="v-label">Contour Analysis</div><div class="v-value">${esc(r.contourAnalysis)}</div></div>`;
+        }
+        if (r.topography) {
+          html += `<div class="vision-row"><div class="v-label">Topography</div><div class="v-value">${esc(r.topography)}</div></div>`;
+        }
+        if (r.slopeCalculation && (r.slopeCalculation.grade_pct != null || r.slopeCalculation.classification)) {
+          const sc = r.slopeCalculation;
+          let slopeText = '';
+          if (sc.rise_m != null && sc.run_m != null) slopeText += `Rise: ${sc.rise_m}m, Run: ${sc.run_m}m — `;
+          if (sc.grade_pct != null) slopeText += `Grade: ${Number(sc.grade_pct).toFixed(1)}%`;
+          if (sc.classification) slopeText += ` (${sc.classification})`;
+          html += `<div class="vision-row" style="background:#8b5cf622;padding:6px;border-radius:4px"><div class="v-label">Slope Calculation</div><div class="v-value" style="font-weight:600">${esc(slopeText)}</div></div>`;
+        }
+        if (r.vegetation) html += `<div class="vision-row"><div class="v-label">Vegetation</div><div class="v-value">${esc(r.vegetation)}</div></div>`;
+        if (r.improvements) html += `<div class="vision-row"><div class="v-label">Improvements</div><div class="v-value">${esc(r.improvements)}</div></div>`;
+      }
+
+      // Building-specific fields
+      if (!isSite) {
+        if (r.buildingObservations && r.buildingObservations.length) {
+          html += '<div class="vision-row"><div class="v-label">Building Observations</div><ul class="v-list">' +
+            r.buildingObservations.map(o => '<li>' + esc(o) + '</li>').join('') + '</ul></div>';
+        }
+        if (r.constructionType) html += `<div class="vision-row"><div class="v-label">Construction</div><div class="v-value">${esc(r.constructionType)}</div></div>`;
+        if (r.materials) {
+          const m = r.materials;
+          const parts = [];
+          if (m.roof) parts.push('Roof: ' + m.roof);
+          if (m.siding) parts.push('Siding: ' + m.siding);
+          if (m.foundation) parts.push('Foundation: ' + m.foundation);
+          if (parts.length) html += `<div class="vision-row"><div class="v-label">Materials</div><div class="v-value">${esc(parts.join(' | '))}</div></div>`;
+        }
+        if (r.roofCondition) html += `<div class="vision-row"><div class="v-label">Roof Condition</div><div class="v-value">${esc(r.roofCondition)}</div></div>`;
+        if (r.exteriorCondition) html += `<div class="vision-row"><div class="v-label">Exterior Condition</div><div class="v-value">${esc(r.exteriorCondition)}</div></div>`;
+        if (r.interiorNotes) html += `<div class="vision-row"><div class="v-label">Interior Notes</div><div class="v-value">${esc(r.interiorNotes)}</div></div>`;
+        if (r.deficiencies && r.deficiencies.length) {
+          html += '<div class="vision-row" style="background:#ef444422;padding:6px;border-radius:4px"><div class="v-label">Deficiencies</div><ul class="v-list">' +
+            r.deficiencies.map(d => '<li>' + esc(d) + '</li>').join('') + '</ul></div>';
+        }
+      }
+
+      // Common fields
+      if (r.concerns && r.concerns.length) {
+        html += '<div class="vision-row"><div class="v-label">Concerns</div><ul class="v-list">' +
+          r.concerns.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></div>';
+      }
+      if (r.consistencyCheck && r.consistencyCheck.length) {
+        const hasConflict = r.consistencyCheck.some(c => /conflict|discrepan|inconsist|contradict|doesn.t match/i.test(c));
+        const cls = hasConflict ? 'vision-conflicts' : 'vision-row';
+        html += `<div class="${cls}"><div class="v-label">Consistency Check</div><ul class="v-list">` +
+          r.consistencyCheck.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></div>';
+      }
+      if (r.summary) {
+        html += `<div class="vision-row" style="margin-top:6px"><div class="v-label">Summary</div><div class="v-value">${esc(r.summary)}</div>
+          <button class="a-btn a-btn-copy" style="margin-top:4px" onclick="copyToNotes('${esc(r.summary).replace(/'/g, "\\'")}')">Copy to Notes</button></div>`;
+      }
+      // Unified photo chat (replaces separate correction + photo chats for vision panels)
+      html += renderPhotoChatSection(category, containerId);
+
+      html += `<div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end">
+        <button class="a-btn a-btn-reject" onclick="this.closest('.vision-panel').parentElement.innerHTML=''">Dismiss</button>
+      </div></div>`;
+      container.innerHTML = html;
+    }
+
+    // ============================================
+    // ANALYZE MLS — UNIFIED SUMMARY
+    // ============================================
+    async function analyzeMLS() {
+      const key = getApiKey();
+      if (!key) { showToast('Set your OpenAI API key first'); openSettingsModal(); return; }
+      if (currentIndex < 0) return;
+      const p = store.properties[currentIndex];
+
+      const btn = document.getElementById('btnAnalyzeMLS');
+      if (btn) { btn.disabled = true; btn.textContent = 'Analyzing MLS...'; }
+
+      const sitePhotos = await getPhotos(p.mls, 'site');
+      const buildingPhotos = await getPhotos(p.mls, 'building');
+
+      const content = [];
+      // Add all photos with labels
+      if (sitePhotos.length) {
+        content.push({ type: 'text', text: '--- SITE/LAND PHOTOS ---' });
+        sitePhotos.forEach(ph => {
+          if (ph.caption) content.push({ type: 'text', text: `Photo: ${ph.caption}` });
+          content.push({ type: 'image_url', image_url: { url: ph.data, detail: 'high' } });
+        });
+      }
+      if (buildingPhotos.length) {
+        content.push({ type: 'text', text: '--- BUILDING/IMPROVEMENT PHOTOS ---' });
+        buildingPhotos.forEach(ph => {
+          if (ph.caption) content.push({ type: 'text', text: `Photo: ${ph.caption}` });
+          content.push({ type: 'image_url', image_url: { url: ph.data, detail: 'high' } });
+        });
+      }
+
+      const liveSite = (document.getElementById('fSiteComments')?.value || p.siteComments || '').trim();
+      const liveBuilding = (document.getElementById('fBuildingComments')?.value || p.buildingComments || '').trim();
+      const r = p.renovations || {};
+      const f = p.flags || {};
+      const renos = ['kitchen','bath','roof','windows','flooring','hvac'].filter(k => r[k]);
+
+      let textBlock = `Property: MLS# ${p.mls}, Address: ${p.address || 'unknown'}, Year Built: ${p.yearBuilt || 'unknown'}`;
+      if (p.condition) textBlock += `\nEffective Age: ${p.condition}`;
+      if (p.quality) textBlock += `\nQuality: ${p.quality}`;
+      if (p.style) textBlock += `\nStyle: ${p.style}`;
+      if (renos.length) textBlock += `\nRenovations: ${renos.join(', ')}`;
+      if (r.other) textBlock += `\nOther Renovations: ${r.other}`;
+      if (f.atypicalMotivation) textBlock += '\nFlag: Atypical Motivation';
+      if (f.concessions) textBlock += '\nFlag: Concessions';
+      if (f.dataDiscrepancy) textBlock += '\nFlag: Data Discrepancy';
+      if (liveSite) textBlock += `\n\nAppraiser Site Comments: ${liveSite}`;
+      if (liveBuilding) textBlock += `\n\nAppraiser Building Comments: ${liveBuilding}`;
+      if (p.publicRemarks) textBlock += `\n\nMLS Public Remarks: ${p.publicRemarks}`;
+      if (p.realtorRemarks) textBlock += `\n\nRealtor Remarks: ${p.realtorRemarks}`;
+      // Include all previous corrections from individual analyses
+      textBlock += getCorrectionContext('siteVision');
+      textBlock += getCorrectionContext('buildingVision');
+      textBlock += getCorrectionContext('siteText');
+      textBlock += getCorrectionContext('buildingText');
+      textBlock += getCorrectionContext('mlsSummary');
+      content.push({ type: 'text', text: textBlock });
+
+      const systemPrompt = `You are a real estate appraisal assistant performing a comprehensive MLS entry analysis. You have been given site photos (aerial/GIS/topo maps), building photos, appraiser comments for both site and building, MLS remarks, and property data. Return JSON only (no markdown fencing):
+{
+  "siteAssessment": "professional paragraph describing site/land characteristics",
+  "buildingAssessment": "professional paragraph describing building/improvements",
+  "slopeCalculation": {"rise_m": number or null, "run_m": number or null, "grade_pct": number or null, "classification": "A (Level) / B (Gentle) / C (Moderate) / D (Steep) / E (Extremely Steep) / F (Excessively Steep) or null"},
+  "conditionRating": "C1-C6 or null",
+  "qualityRating": "Fair/Average/AVG-Good/Good/Good-VG/Very Good/VG-EXC/Excellent or null",
+  "effectiveAge": number or null,
+  "keyFeatures": ["notable features"],
+  "concerns": ["issues or concerns"],
+  "dataConflicts": ["any conflicts between photos, comments, and MLS remarks"],
+  "overallSummary": "2-3 sentence professional summary suitable for an appraisal report"
+}
+
+RULES:
+1. Appraiser comments are ground-truth. MLS remarks are secondary. Photos supplement both.
+2. Aerial imagery CANNOT show slope — use appraiser observations and contour lines for topography.
+3. If rise/run mentioned, calculate grade_pct = (rise/run)*100 and classify per Residential Site Slope Classification Standard (AAFC/CanSIS + BC Slope Class Legend): 0-0.5% = A (Level), >0.5-2% = A (Level), >2-3% = A (Level), >3-5% = B (Gentle), >5-9% = B (Gentle), >9-15% = C (Moderate), >15-30% = D (Steep), >30-60% = E (Extremely Steep), >60% = F (Excessively Steep). When reading contour maps: do NOT assume contour intervals — find two labeled index contour lines, count intermediate lines between them, and divide the elevation difference by (intermediate lines + 1) to determine the actual interval.
+4. CRITICAL — dataConflicts: ONLY flag conflicts where you can cite EXACT TEXT from two different sources that contradict each other. Format each conflict as: 'Source A says "[exact quote]" vs Source B says "[exact quote]"'. NEVER paraphrase, infer, or fabricate what a source says. If you cannot find the exact contradicting text, do NOT include it as a conflict.
+5. Be conservative — only suggest ratings clearly supported by evidence. Do not invent or assume data not explicitly stated in the inputs.`;
+
+      try {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ ...buildModelParams(getModel(), 0.3, 2000),
+            messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: content }]
+          })
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error?.message?.substring(0, 80) || resp.statusText);
+        }
+        const data = await resp.json();
+        let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+        mlsSummaryResult = JSON.parse(raw);
+        saveAnalysisResult(p, 'mlsSummary', mlsSummaryResult);
+        renderMlsSummaryPanel();
+      } catch(e) {
+        console.error('MLS analysis error:', e);
+        showToast('MLS analysis failed: ' + (e.message || 'Unknown error').substring(0, 80));
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Analyze MLS'; }
+      }
+    }
+
+    function renderMlsSummaryPanel() {
+      const container = document.getElementById('mlsSummaryContainer');
+      if (!container || !mlsSummaryResult) { if (container) container.innerHTML = ''; return; }
+      const r = mlsSummaryResult;
+      let html = '<div class="vision-panel" style="border-left:3px solid #22c55e;user-select:text"><h4 style="color:#22c55e">MLS Comprehensive Analysis</h4>';
+
+      if (r.siteAssessment) html += `<div class="vision-row"><div class="v-label">Site Assessment</div><div class="v-value">${esc(r.siteAssessment)}</div></div>`;
+      if (r.buildingAssessment) html += `<div class="vision-row"><div class="v-label">Building Assessment</div><div class="v-value">${esc(r.buildingAssessment)}</div></div>`;
+
+      if (r.slopeCalculation && (r.slopeCalculation.grade_pct != null || r.slopeCalculation.classification)) {
+        const sc = r.slopeCalculation;
+        let slopeText = '';
+        if (sc.rise_m != null && sc.run_m != null) slopeText += `Rise: ${sc.rise_m}m, Run: ${sc.run_m}m — `;
+        if (sc.grade_pct != null) slopeText += `Grade: ${Number(sc.grade_pct).toFixed(1)}%`;
+        if (sc.classification) slopeText += ` (${sc.classification})`;
+        html += `<div class="vision-row" style="background:#8b5cf622;padding:6px;border-radius:4px"><div class="v-label">Slope</div><div class="v-value" style="font-weight:600">${esc(slopeText)}</div></div>`;
+      }
+
+      // Suggested ratings with accept buttons
+      if (r.conditionRating) {
+        html += `<div class="analysis-row"><span class="a-label">Condition</span><span class="a-value">${esc(r.conditionRating)}</span>
+          <button class="a-btn a-btn-accept" onclick="acceptField('fCondition','${esc(r.conditionRating)}')">Accept</button></div>`;
+      }
+      if (r.qualityRating) {
+        html += `<div class="analysis-row"><span class="a-label">Quality</span><span class="a-value">${esc(r.qualityRating)}</span>
+          <button class="a-btn a-btn-accept" onclick="acceptQuality('${esc(r.qualityRating)}')">Accept</button></div>`;
+      }
+      if (r.effectiveAge != null) {
+        html += `<div class="analysis-row"><span class="a-label">Effective Age</span><span class="a-value">${esc(String(r.effectiveAge))}</span>
+          <button class="a-btn a-btn-accept" onclick="acceptField('fCondition','${esc(String(r.effectiveAge))}')">Accept</button></div>`;
+      }
+
+      if (r.keyFeatures && r.keyFeatures.length) {
+        html += '<div class="vision-row"><div class="v-label">Key Features</div><ul class="v-list">' +
+          r.keyFeatures.map(f => '<li>' + esc(f) + '</li>').join('') + '</ul></div>';
+      }
+      if (r.concerns && r.concerns.length) {
+        html += '<div class="vision-row"><div class="v-label">Concerns</div><ul class="v-list">' +
+          r.concerns.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></div>';
+      }
+      if (r.dataConflicts && r.dataConflicts.length) {
+        html += `<div class="vision-conflicts"><div class="v-label">Data Conflicts</div><ul class="v-list">` +
+          r.dataConflicts.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></div>';
+      }
+      if (r.overallSummary) {
+        html += `<div class="vision-row" style="margin-top:6px"><div class="v-label">Overall Summary</div><div class="v-value">${esc(r.overallSummary)}</div>
+          <button class="a-btn a-btn-copy" style="margin-top:4px" onclick="copyToNotes('${esc(r.overallSummary).replace(/'/g, "\\'")}')">Copy to Notes</button></div>`;
+      }
+      html += renderCorrectionChat('mlsSummary', 'mlsSummaryContainer');
+      html += `<div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end">
+        <button class="a-btn a-btn-reject" onclick="document.getElementById('mlsSummaryContainer').innerHTML=''">Dismiss</button>
+      </div></div>`;
+      container.innerHTML = html;
+    }
+
+    // ============================================
+    // CORRECTION CHAT
+    // ============================================
+    // analysisType: 'siteVision', 'buildingVision', 'mlsSummary', 'siteText', 'buildingText'
+    function getCorrections(analysisType) {
+      if (currentIndex < 0) return [];
+      const p = store.properties[currentIndex];
+      if (!p.corrections) p.corrections = {};
+      if (!p.corrections[analysisType]) p.corrections[analysisType] = [];
+      return p.corrections[analysisType];
+    }
+
+    function addCorrection(analysisType, role, text) {
+      const corrections = getCorrections(analysisType);
+      corrections.push({ role, text, timestamp: Date.now() });
+      saveLocal();
+    }
+
+    function renderCorrectionChat(analysisType, containerId) {
+      const corrections = getCorrections(analysisType);
+      let html = '<div class="correction-chat">';
+      if (corrections.length) {
+        html += '<div class="correction-history">';
+        corrections.forEach(c => {
+          const cls = c.role === 'user' ? 'user' : 'ai';
+          const label = c.role === 'user' ? 'You' : 'AI';
+          html += `<div class="correction-msg ${cls}"><strong>${label}:</strong> ${esc(c.text)}</div>`;
+        });
+        html += '</div>';
+      }
+      html += `<div class="correction-input-row">
+        <input type="text" id="corrInput_${analysisType}" placeholder="Correct the AI (e.g. 'The siding is cedar, not log')..." onkeydown="if(event.key==='Enter')sendCorrection('${analysisType}','${containerId}')">
+        <button onclick="sendCorrection('${analysisType}','${containerId}')">Send</button>
+      </div></div>`;
+      return html;
+    }
+
+    async function sendCorrection(analysisType, containerId) {
+      // Route comparison corrections to dedicated handler
+      if (analysisType.startsWith('comparison_')) {
+        return sendComparisonCorrection(analysisType, containerId);
+      }
+
+      const input = document.getElementById('corrInput_' + analysisType);
+      if (!input) return;
+      const msg = input.value.trim();
+      if (!msg) return;
+      const key = getApiKey();
+      if (!key) { showToast('Set API key first'); return; }
+      if (currentIndex < 0) return;
+      const p = store.properties[currentIndex];
+
+      // Save the user correction
+      addCorrection(analysisType, 'user', msg);
+      input.value = '';
+      input.disabled = true;
+      const btn = input.nextElementSibling;
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+      // Determine which result to refine
+      let previousResult = null;
+      let category = null;
+      if (analysisType === 'siteVision') { previousResult = siteVisionResult; category = 'site'; }
+      else if (analysisType === 'buildingVision') { previousResult = buildingVisionResult; category = 'building'; }
+      else if (analysisType === 'mlsSummary') { previousResult = mlsSummaryResult; }
+      else if (analysisType === 'siteText') { previousResult = analysisResult; }
+      else if (analysisType === 'buildingText') { previousResult = buildingAnalysisResult; }
+
+      // Build messages: system + original context + AI response + all corrections
+      const corrections = getCorrections(analysisType);
+      const messages = [];
+      messages.push({ role: 'system', content: 'You are a real estate appraisal assistant. The appraiser is correcting your previous analysis. Apply their corrections and return the COMPLETE revised JSON analysis (same format as before). The appraiser is the expert — accept their corrections without argument. Maintain all other findings that were not corrected. Return JSON only, no markdown fencing.' });
+
+      // Include the previous result as context
+      if (previousResult) {
+        messages.push({ role: 'assistant', content: JSON.stringify(previousResult, null, 2) });
+      }
+
+      // Include all user corrections and AI acknowledgments
+      corrections.forEach(c => {
+        if (c.role === 'user') {
+          messages.push({ role: 'user', content: 'CORRECTION: ' + c.text });
+        } else {
+          messages.push({ role: 'assistant', content: c.text });
+        }
+      });
+
+      try {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ ...buildModelParams(getMiniModel(), 0.2, 1500), messages })
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error?.message?.substring(0, 80) || resp.statusText);
+        }
+        const data = await resp.json();
+        let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+        const revised = JSON.parse(raw);
+
+        // Store AI acknowledgment
+        addCorrection(analysisType, 'ai', 'Analysis revised based on your correction.');
+
+        // Update the result and re-render
+        if (analysisType === 'siteVision') { siteVisionResult = revised; saveAnalysisResult(p, 'siteVision', revised); renderVisionPanel('siteVisionContainer', revised, 'site'); }
+        else if (analysisType === 'buildingVision') { buildingVisionResult = revised; saveAnalysisResult(p, 'buildingVision', revised); renderVisionPanel('buildingVisionContainer', revised, 'building'); }
+        else if (analysisType === 'mlsSummary') { mlsSummaryResult = revised; saveAnalysisResult(p, 'mlsSummary', revised); renderMlsSummaryPanel(); }
+        else if (analysisType === 'siteText') { analysisResult = revised; saveAnalysisResult(p, 'siteText', revised); renderAnalysisPanel('siteAnalysisContainer', revised, 'Site Analysis'); }
+        else if (analysisType === 'buildingText') { buildingAnalysisResult = revised; saveAnalysisResult(p, 'buildingText', revised); renderAnalysisPanel('buildingAnalysisContainer', revised, 'Building Analysis'); }
+
+        showToast('Analysis revised');
+      } catch(e) {
+        console.error('Correction error:', e);
+        showToast('Correction failed: ' + (e.message || 'Unknown error').substring(0, 80));
+      } finally {
+        // Re-enable input (it may have been re-rendered, so find it again)
+        const newInput = document.getElementById('corrInput_' + analysisType);
+        if (newInput) newInput.disabled = false;
+        const newBtn = newInput?.nextElementSibling;
+        if (newBtn) { newBtn.disabled = false; newBtn.textContent = 'Send'; }
+      }
+    }
+
+    // Build correction context string to include in future analyses
+    function getCorrectionContext(analysisType) {
+      const corrections = getCorrections(analysisType);
+      const userCorrs = corrections.filter(c => c.role === 'user');
+      if (!userCorrs.length) return '';
+      return '\n\nPREVIOUS APPRAISER CORRECTIONS (apply these):\n' + userCorrs.map(c => '- ' + c.text).join('\n');
+    }
+
+    // ============================================
+    // PHOTO CHAT — conversational Q&A with photos
+    // ============================================
+    function getPhotoChat(category) {
+      if (currentIndex < 0) return [];
+      const p = store.properties[currentIndex];
+      if (!p.photoChats) p.photoChats = {};
+      if (!p.photoChats[category]) p.photoChats[category] = [];
+      return p.photoChats[category];
+    }
+
+    function addPhotoChatMsg(category, role, text) {
+      const chat = getPhotoChat(category);
+      chat.push({ role, text, timestamp: Date.now() });
+      saveLocal();
+    }
+
+    function renderPhotoChatSection(category, containerId) {
+      const chat = getPhotoChat(category);
+      const chatId = category + 'PhotoChatHistory';
+      const inputId = category + 'PhotoChatInput';
+      let html = '<div class="correction-chat" style="border-top:1px solid #555;margin-top:10px;padding-top:8px">';
+      html += '<div style="font-size:0.77rem;color:#999;margin-bottom:4px">Ask the AI about these photos — then Apply when satisfied</div>';
+      if (chat.length) {
+        html += `<div class="correction-history" id="${chatId}" style="max-height:200px">`;
+        chat.forEach(c => {
+          const cls = c.role === 'user' ? 'user' : 'ai';
+          const label = c.role === 'user' ? 'You' : 'AI';
+          html += `<div class="photo-chat-msg ${cls}"><strong>${label}:</strong> ${esc(c.text)}</div>`;
+        });
+        html += '</div>';
+      }
+      html += `<div class="correction-input-row">
+        <textarea rows="1" id="${inputId}" placeholder="Ask about the photos or request corrections..." style="resize:vertical;min-height:28px;max-height:100px;flex:1;font:inherit;padding:4px 6px;background:#1e1e1e;color:#eee;border:1px solid #555;border-radius:3px;" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendPhotoChatMsg('${category}','${containerId}')}"></textarea>
+        <button onclick="sendPhotoChatMsg('${category}','${containerId}')">Send</button>
+      </div>`;
+      html += `<div class="photo-chat-actions">
+        <button class="btn-apply-analysis" onclick="applyPhotoChatToAnalysis('${category}','${containerId}')" ${chat.length ? '' : 'disabled'}>Apply to Analysis</button>
+      </div>`;
+      html += '</div>';
+      return html;
+    }
+
+    async function sendPhotoChatMsg(category, containerId) {
+      const inputId = category + 'PhotoChatInput';
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const msg = input.value.trim();
+      if (!msg) return;
+      const key = getApiKey();
+      if (!key) { showToast('Set API key first'); return; }
+      if (currentIndex < 0) return;
+      const p = store.properties[currentIndex];
+
+      addPhotoChatMsg(category, 'user', msg);
+      input.value = '';
+      input.style.height = 'auto';
+      input.disabled = true;
+      const btn = input.nextElementSibling;
+      if (btn) { btn.disabled = true; btn.textContent = 'Thinking...'; }
+
+      // Build messages with photos + property context + chat history
+      const photos = await getPhotos(p.mls, category);
+      const userContent = [];
+      photos.forEach(ph => {
+        if (ph.caption) userContent.push({ type: 'text', text: 'Photo: ' + ph.caption });
+        userContent.push({ type: 'image_url', image_url: { url: ph.data, detail: 'high' } });
+      });
+
+      const cap = category.charAt(0).toUpperCase() + category.slice(1);
+      let ctx = 'Property: MLS# ' + p.mls + ', Address: ' + (p.address || 'unknown') + ', Year Built: ' + (p.yearBuilt || 'unknown');
+      const commentsId = category === 'building' ? 'fBuildingComments' : 'fSiteComments';
+      const liveComments = (document.getElementById(commentsId)?.value || '').trim();
+      if (liveComments) ctx += '\nAppraiser ' + cap + ' Comments: ' + liveComments;
+      userContent.push({ type: 'text', text: ctx });
+
+      const messages = [];
+      messages.push({ role: 'system', content: 'You are a real estate appraisal photo analysis assistant. You HAVE been provided the property photos and the current JSON analysis in this conversation — you can see and reference them directly. The appraiser may refer to the analysis as "the document", "the report", "the assessment", etc. — this means the JSON analysis you were given. Answer concisely and specifically. Cite what you can see in the images. If you cannot determine something from the photos, say so. When discussing topography maps: do NOT assume contour intervals — determine them by reading labeled elevation lines and counting intermediate contours. Reply in plain text (not JSON).' });
+
+      // Include the current analysis result as context if it exists
+      const currentResult = category === 'site' ? siteVisionResult : (category === 'building' ? buildingVisionResult : null);
+      if (currentResult) {
+        messages.push({ role: 'user', content: userContent });
+        messages.push({ role: 'assistant', content: 'Here is my current analysis:\n' + JSON.stringify(currentResult, null, 2) });
+      } else {
+        messages.push({ role: 'user', content: userContent });
+      }
+
+      // Replay chat history
+      const chat = getPhotoChat(category);
+      chat.forEach(c => {
+        messages.push({ role: c.role === 'user' ? 'user' : 'assistant', content: c.text });
+      });
+
+      try {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ ...buildModelParams(getModel(), 0.3, 1000), messages })
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error?.message?.substring(0, 80) || resp.statusText);
+        }
+        const data = await resp.json();
+        const reply = data.choices[0].message.content.trim();
+        addPhotoChatMsg(category, 'ai', reply);
+      } catch(e) {
+        console.error('Photo chat error:', e);
+        showToast('Chat failed: ' + (e.message || 'Unknown error').substring(0, 80));
+      }
+
+      // Re-render the vision panel to show updated chat
+      const result = category === 'site' ? siteVisionResult : buildingVisionResult;
+      if (result) renderVisionPanel(containerId, result, category);
+      else {
+        // No analysis yet — just re-render the chat section in the container
+        const container = document.getElementById(containerId);
+        if (container) container.innerHTML = '<div class="vision-panel"><h4>' + (category === 'site' ? 'Site Photo Chat' : 'Building Photo Chat') + '</h4>' + renderPhotoChatSection(category, containerId) + '</div>';
+      }
+    }
+
+    async function applyPhotoChatToAnalysis(category, containerId) {
+      const key = getApiKey();
+      if (!key) { showToast('Set API key first'); return; }
+      if (currentIndex < 0) return;
+      const p = store.properties[currentIndex];
+      const chat = getPhotoChat(category);
+      if (!chat.length) return;
+
+      showToast('Applying chat to analysis...');
+
+      const photos = await getPhotos(p.mls, category);
+      const systemPrompt = (category === 'building' ? BUILDING_VISION_PROMPT : SITE_VISION_PROMPT) + getCustomGuidance(category);
+
+      const userContent = [];
+      photos.forEach(ph => {
+        if (ph.caption) userContent.push({ type: 'text', text: 'Photo: ' + ph.caption });
+        userContent.push({ type: 'image_url', image_url: { url: ph.data, detail: 'high' } });
+      });
+
+      const cap = category.charAt(0).toUpperCase() + category.slice(1);
+      const commentsId = category === 'building' ? 'fBuildingComments' : 'fSiteComments';
+      const liveComments = (document.getElementById(commentsId)?.value || '').trim();
+      let textBlock = 'Property: MLS# ' + p.mls + ', Address: ' + (p.address || 'unknown') + ', Year Built: ' + (p.yearBuilt || 'unknown');
+      if (liveComments) textBlock += '\nAppraiser ' + cap + ' Comments: ' + liveComments;
+      if (p.condition) textBlock += '\nEffective Age: ' + p.condition;
+      if (p.quality) textBlock += '\nQuality: ' + p.quality;
+
+      // Include chat conversation as appraiser guidance
+      textBlock += '\n\nAPPRAISER PHOTO CHAT (incorporate these findings into your analysis):';
+      chat.forEach(c => {
+        textBlock += '\n' + (c.role === 'user' ? 'Appraiser' : 'AI') + ': ' + c.text;
+      });
+
+      const corrKey = category === 'building' ? 'buildingVision' : 'siteVision';
+      textBlock += getCorrectionContext(corrKey);
+      userContent.push({ type: 'text', text: textBlock });
+
+      try {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ ...buildModelParams(getModel(), 0.3, 1500),
+            messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userContent }]
+          })
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error?.message?.substring(0, 80) || resp.statusText);
+        }
+        const data = await resp.json();
+        let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+        const result = JSON.parse(raw);
+
+        if (category === 'building') { buildingVisionResult = result; saveAnalysisResult(p, 'buildingVision', result); }
+        else { siteVisionResult = result; saveAnalysisResult(p, 'siteVision', result); }
+        renderVisionPanel(containerId, result, category);
+        showToast('Analysis updated from chat');
+      } catch(e) {
+        console.error('Apply chat error:', e);
+        showToast('Apply failed: ' + (e.message || 'Unknown error').substring(0, 80));
+      }
+    }
+
+    // ============================================
+    // SUBJECT PROPERTY + COMPARISON
+    // ============================================
+    function addSubjectProperty() {
+      // If subject already exists, navigate to it
+      if (store.subjectMls) {
+        const idx = store.properties.findIndex(x => x.mls === store.subjectMls);
+        if (idx >= 0) {
+          currentIndex = idx;
+          render();
+          const subj = store.properties[idx];
+          showToast('Navigated to subject: ' + (subj.address || subj.mls));
+          return;
+        }
+      }
+
+      // Show choice: create manually or pick from existing entries
+      const existing = store.properties.filter(p => p.mls !== 'SUBJECT');
+      let choice;
+      if (existing.length > 0) {
+        choice = prompt('Set subject property:\n\n1 = Create manually (enter address)\n2 = Use existing MLS entry\n\nEnter 1 or 2:');
+        if (!choice) return;
+        choice = choice.trim();
+      } else {
+        choice = '1';
+      }
+
+      if (choice === '2' && existing.length > 0) {
+        // Show list of existing entries to pick from
+        const listStr = existing.map((p, i) => `${i + 1}. ${p.mls} — ${p.address || '(no address)'}`).join('\n');
+        const pick = prompt('Select entry number:\n\n' + listStr);
+        if (!pick) return;
+        const pickIdx = parseInt(pick.trim()) - 1;
+        if (isNaN(pickIdx) || pickIdx < 0 || pickIdx >= existing.length) {
+          showToast('Invalid selection');
+          return;
+        }
+        const chosen = existing[pickIdx];
+        store.subjectMls = chosen.mls;
+        currentIndex = store.properties.findIndex(x => x.mls === chosen.mls);
+        saveLocal();
+        render();
+        showToast('Subject set: ' + (chosen.address || chosen.mls));
+        return;
+      }
+
+      const addr = prompt('Subject property address:');
+      if (!addr || !addr.trim()) return;
+
+      if (!activeSlug) {
+        activeSlug = 'default';
+        store = { version: 1, projectName: 'Default', lastModified: '', customFields: store.customFields || [], properties: [] };
+        localStorage.setItem('mls-notes-active-project', activeSlug);
+        renderProjectSelect();
+        updateFooter();
+      }
+
+      // Create subject entry with SUBJECT as the MLS identifier
+      const subjId = 'SUBJECT';
+      // Remove existing subject entry if any
+      store.properties = store.properties.filter(p => p.mls !== subjId);
+
+      const entry = {
+        id: uuid(),
+        mls: subjId,
+        sortOrder: -1, // sort before all comps
+        address: addr.trim(),
+        condition: '',
+        quality: '',
+        renovations: { kitchen: false, bath: false, roof: false, windows: false, flooring: false, hvac: false, other: '' },
+        flags: { atypicalMotivation: false, concessions: false, dataDiscrepancy: false },
+        siteComments: '',
+        buildingComments: '',
+        notes: '',
+        reviewed: false,
+        created: new Date().toISOString(),
+        modified: new Date().toISOString()
+      };
+
+      // Insert at beginning
+      store.properties.unshift(entry);
+      // Reorder
+      store.properties.forEach((p, i) => p.sortOrder = i);
+      store.subjectMls = subjId;
+      currentIndex = 0;
+      saveLocal();
+      renderProjectSelect();
+      render();
+      showToast('Subject added: ' + addr.trim());
+    }
+
+    function renderSubjectBar(subj) {
+      if (!subj) return '';
+      const fields = [];
+      if (subj.address) fields.push(`Address: <span>${esc(subj.address)}</span>`);
+      if (subj.yearBuilt) fields.push(`YB: <span>${esc(subj.yearBuilt)}</span>`);
+      if (subj.condition) fields.push(`Eff Age: <span>${esc(subj.condition)}</span>`);
+      if (subj.quality) fields.push(`Quality: <span>${esc(subj.quality)}</span>`);
+      if (subj.style) fields.push(`Style: <span>${esc(subj.style)}</span>`);
+      return `<div class="subject-bar">
+        <div class="sb-title">★ Subject: ${esc(subj.address || subj.mls)}</div>
+        <div class="sb-fields">${fields.join('')}</div>
+      </div>`;
+    }
+
+    function renderComparisonSection(comp, subj) {
+      if (!comp || !subj) return '';
+      const subjMls = subj.mls;
+      const compData = (comp.comparisons && comp.comparisons[subjMls]) || {};
+      const notes = compData.notes || '';
+
+      // Build comparison table rows
+      const rows = [];
+      const addRow = (label, sVal, cVal) => {
+        if (sVal || cVal) rows.push({ label, s: sVal || '--', c: cVal || '--' });
+      };
+      addRow('Address', subj.address, comp.address);
+      addRow('Year Built', subj.yearBuilt, comp.yearBuilt);
+      addRow('Effective Age', subj.condition, comp.condition);
+      addRow('Quality', subj.quality, comp.quality);
+      addRow('Style', subj.style, comp.style);
+      addRow('Bsmt Finish', subj.basementFinish, comp.basementFinish);
+      addRow('Bsmt Grade', subj.basementGrade, comp.basementGrade);
+
+      let tableHtml = '';
+      if (rows.length) {
+        tableHtml = `<table class="comparison-table">
+          <tr><th class="col-label"></th><th class="col-subject">Subject</th><th class="col-comp">Comp</th></tr>
+          ${rows.map(r => `<tr><td class="col-label">${esc(r.label)}</td><td class="col-subject">${esc(r.s)}</td><td class="col-comp">${esc(r.c)}</td></tr>`).join('')}
+        </table>`;
+      }
+
+      return `<div class="comparison-section">
+        <h4>Comparison to Subject (${esc(subj.mls)})</h4>
+        ${tableHtml}
+        <div class="form-group">
+          <label>Comparison Notes</label>
+          <div class="site-comments-row">
+            <textarea id="fComparisonNotes" placeholder="Describe how this comp compares to the subject...">${esc(notes)}</textarea>
+            <div class="site-comments-buttons">
+              <button class="btn-mic" id="btnMicComparison" onclick="toggleDictation('fComparisonNotes')" title="Dictate comparison notes">&#127908;</button>
+              <button class="btn-analyze" id="btnAnalyzeComparison" onclick="analyzeComparison()" title="AI Compare to Subject">&#9881; Compare</button>
+            </div>
+          </div>
+        </div>
+        <div id="comparisonContainer"></div>
+      </div>`;
+    }
+
+    async function analyzeComparison() {
+      const key = getApiKey();
+      if (!key) { showToast('Set your OpenAI API key first'); openSettingsModal(); return; }
+      if (currentIndex < 0 || !store.subjectMls) return;
+      const comp = store.properties[currentIndex];
+      const subj = store.properties.find(x => x.mls === store.subjectMls);
+      if (!subj || subj.mls === comp.mls) return;
+
+      const btn = document.getElementById('btnAnalyzeComparison');
+      if (btn) { btn.disabled = true; btn.textContent = 'Comparing...'; }
+
+      const compNotes = (document.getElementById('fComparisonNotes')?.value || '').trim();
+      const subjMls = subj.mls;
+
+      // Build context with both properties — include all known structured data
+      const subjR = subj.renovations || {};
+      const subjF = subj.flags || {};
+      const subjRenos = ['kitchen','bath','roof','windows','flooring','hvac'].filter(k => subjR[k]);
+      const compR = comp.renovations || {};
+      const compF = comp.flags || {};
+      const compRenos = ['kitchen','bath','roof','windows','flooring','hvac'].filter(k => compR[k]);
+
+      let textBlock = `=== SUBJECT PROPERTY (ground-truth facts) ===
+MLS#: ${subj.mls}, Address: ${subj.address || 'unknown'}, Year Built: ${subj.yearBuilt || 'unknown'}
+Effective Age: ${subj.condition || 'unknown'}, Quality: ${subj.quality || 'unknown'}, Style: ${subj.style || 'unknown'}
+Basement: ${subj.basementFinish || 'unknown'} / ${subj.basementGrade || 'unknown'}`;
+      if (subjRenos.length) textBlock += `\nRenovations: ${subjRenos.join(', ')}`;
+      if (subjR.other) textBlock += `\nOther Renovations: ${subjR.other}`;
+      if (subjF.atypicalMotivation) textBlock += '\nFlag: Atypical Motivation';
+      if (subjF.concessions) textBlock += '\nFlag: Concessions';
+      if (subjF.dataDiscrepancy) textBlock += '\nFlag: Data Discrepancy';
+      if (subj.siteComments) textBlock += `\nSubject Site Comments: ${subj.siteComments}`;
+      if (subj.buildingComments) textBlock += `\nSubject Building Comments: ${subj.buildingComments}`;
+      if (subj.publicRemarks) textBlock += `\nSubject Public Remarks: ${subj.publicRemarks}`;
+      if (subj.realtorRemarks) textBlock += `\nSubject Realtor Remarks: ${subj.realtorRemarks}`;
+      // Include subject's prior AI analysis as additional verified context
+      const subjAr = subj.analysisResults || {};
+      if (subjAr.siteText) textBlock += `\nSubject AI Site Analysis: ${JSON.stringify(subjAr.siteText)}`;
+      if (subjAr.buildingText) textBlock += `\nSubject AI Building Analysis: ${JSON.stringify(subjAr.buildingText)}`;
+      if (subjAr.siteVision) textBlock += `\nSubject AI Site Vision: ${JSON.stringify(subjAr.siteVision)}`;
+      if (subjAr.buildingVision) textBlock += `\nSubject AI Building Vision: ${JSON.stringify(subjAr.buildingVision)}`;
+      if (subjAr.mlsSummary) textBlock += `\nSubject AI MLS Summary: ${JSON.stringify(subjAr.mlsSummary)}`;
+
+      textBlock += `\n\n=== COMPARABLE PROPERTY (ground-truth facts) ===
+MLS#: ${comp.mls}, Address: ${comp.address || 'unknown'}, Year Built: ${comp.yearBuilt || 'unknown'}
+Effective Age: ${comp.condition || 'unknown'}, Quality: ${comp.quality || 'unknown'}, Style: ${comp.style || 'unknown'}
+Basement: ${comp.basementFinish || 'unknown'} / ${comp.basementGrade || 'unknown'}`;
+      if (compRenos.length) textBlock += `\nRenovations: ${compRenos.join(', ')}`;
+      if (compR.other) textBlock += `\nOther Renovations: ${compR.other}`;
+      if (compF.atypicalMotivation) textBlock += '\nFlag: Atypical Motivation';
+      if (compF.concessions) textBlock += '\nFlag: Concessions';
+      if (compF.dataDiscrepancy) textBlock += '\nFlag: Data Discrepancy';
+      if (comp.siteComments) textBlock += `\nComp Site Comments: ${comp.siteComments}`;
+      if (comp.buildingComments) textBlock += `\nComp Building Comments: ${comp.buildingComments}`;
+      if (comp.publicRemarks) textBlock += `\nComp Public Remarks: ${comp.publicRemarks}`;
+      if (comp.realtorRemarks) textBlock += `\nComp Realtor Remarks: ${comp.realtorRemarks}`;
+      // Include comp's prior AI analysis
+      const compAr = comp.analysisResults || {};
+      if (compAr.siteText) textBlock += `\nComp AI Site Analysis: ${JSON.stringify(compAr.siteText)}`;
+      if (compAr.buildingText) textBlock += `\nComp AI Building Analysis: ${JSON.stringify(compAr.buildingText)}`;
+      if (compAr.siteVision) textBlock += `\nComp AI Site Vision: ${JSON.stringify(compAr.siteVision)}`;
+      if (compAr.buildingVision) textBlock += `\nComp AI Building Vision: ${JSON.stringify(compAr.buildingVision)}`;
+      if (compAr.mlsSummary) textBlock += `\nComp AI MLS Summary: ${JSON.stringify(compAr.mlsSummary)}`;
+
+      if (compNotes) textBlock += `\n\n=== APPRAISER COMPARISON NOTES ===\n${compNotes}`;
+
+      // Include previous corrections
+      const corrKey = 'comparison_' + subjMls;
+      textBlock += getCorrectionContext(corrKey);
+
+      // Include photos from both
+      const content = [];
+      try {
+        const subjSitePhotos = await getPhotos(subj.mls, 'site');
+        const subjBldgPhotos = await getPhotos(subj.mls, 'building');
+        const compSitePhotos = await getPhotos(comp.mls, 'site');
+        const compBldgPhotos = await getPhotos(comp.mls, 'building');
+
+        if (subjSitePhotos.length || subjBldgPhotos.length) {
+          content.push({ type: 'text', text: '--- SUBJECT PHOTOS ---' });
+          [...subjSitePhotos, ...subjBldgPhotos].slice(0, 4).forEach(ph => {
+            if (ph.caption) content.push({ type: 'text', text: `Photo: ${ph.caption}` });
+            content.push({ type: 'image_url', image_url: { url: ph.data, detail: 'low' } });
+          });
+        }
+        if (compSitePhotos.length || compBldgPhotos.length) {
+          content.push({ type: 'text', text: '--- COMPARABLE PHOTOS ---' });
+          [...compSitePhotos, ...compBldgPhotos].slice(0, 4).forEach(ph => {
+            if (ph.caption) content.push({ type: 'text', text: `Photo: ${ph.caption}` });
+            content.push({ type: 'image_url', image_url: { url: ph.data, detail: 'low' } });
+          });
+        }
+      } catch(e) { /* photos optional */ }
+
+      content.push({ type: 'text', text: textBlock });
+
+      const systemPrompt = `You are a real estate appraisal comparison assistant. Compare the comparable property to the subject property and return JSON only (no markdown fencing):
+{
+  "siteComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
+  "buildingComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
+  "qualityComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
+  "conditionComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
+  "ageComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
+  "styleComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
+  "adjustmentSuggestions": ["list of suggested adjustment directions and categories"],
+  "comparisonSummary": "professional narrative paragraph comparing the comp to the subject, suitable for an appraisal report"
+}
+
+RULES:
+1. "direction" is from the COMP's perspective relative to the subject. "superior" means the comp is better than the subject in that category. "inferior" means the comp is worse.
+2. The appraiser's comments, notes, and structured property data are GROUND-TRUTH. Use ONLY facts explicitly stated in the provided data. If a fact (lot size, GLA, room count, etc.) is not stated for a property, say "not stated" — NEVER invent, assume, or infer values.
+3. Do NOT fabricate property details. If the subject site size is not given, do not guess "2 acres" or any other figure. Cite the exact source text when referencing a fact.
+4. Be conservative — only suggest adjustments where clear, cited differences exist.
+5. For adjustmentSuggestions, indicate the direction: e.g. "Quality: negative adjustment (comp inferior)" or "Site: positive adjustment (comp superior)".
+6. Focus on appraisal-relevant differences that would warrant market adjustments.
+7. SIZE AND STYLE NUANCE — Larger does NOT automatically mean superior:
+   - A multi-story home (2-story, split-level) is often INFERIOR to a single-story in both price-per-sqft and market appeal due to: less functional layout, stairs limiting accessibility, higher construction cost per livable sqft, and lower desirability in many markets.
+   - Larger GLA can mean higher overall cost without proportional value — the market adjusts on a diminishing marginal basis.
+   - NEVER say "larger = superior" without qualifying the cost, utility, and market appeal implications. A comp with more sqft may still warrant a NEGATIVE adjustment if it is multi-story vs. a single-story subject, or if the extra space is in less desirable areas (e.g. upper floors, basement).
+   - When GLA or lot size differs, note both the raw difference AND the likely market reaction (e.g. "Comp is 200 sqft larger but 2-story vs subject's 1-story — market typically penalizes multi-story on a per-sqft basis").
+8. Do NOT make general market assumptions or average-based conclusions (e.g. "two-story designs typically offer more living space"). State only what the DATA shows for THESE specific properties.`;
+
+      try {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ ...buildModelParams(getModel(), 0.3, 1500),
+            messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: content }]
+          })
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error?.message?.substring(0, 80) || resp.statusText);
+        }
+        const data = await resp.json();
+        let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+        comparisonResult = JSON.parse(raw);
+
+        // Persist result
+        if (!comp.comparisons) comp.comparisons = {};
+        if (!comp.comparisons[subjMls]) comp.comparisons[subjMls] = {};
+        comp.comparisons[subjMls].result = comparisonResult;
+        saveLocal();
+
+        renderComparisonPanel();
+      } catch(e) {
+        console.error('Comparison analysis error:', e);
+        showToast('Comparison failed: ' + (e.message || 'Unknown error').substring(0, 80));
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '\u2699 Compare'; }
+      }
+    }
+
+    function renderComparisonPanel() {
+      const container = document.getElementById('comparisonContainer');
+      if (!container || !comparisonResult) { if (container) container.innerHTML = ''; return; }
+      const r = comparisonResult;
+      const subjMls = store.subjectMls;
+      const corrKey = 'comparison_' + subjMls;
+
+      let html = '<div class="vision-panel" style="border-left:3px solid #f59e0b;user-select:text"><h4 style="color:#f59e0b">Comparison Analysis</h4>';
+
+      // Render each comparison category
+      const cats = [
+        ['Site', r.siteComparison],
+        ['Building', r.buildingComparison],
+        ['Quality', r.qualityComparison],
+        ['Condition', r.conditionComparison],
+        ['Age', r.ageComparison],
+        ['Style', r.styleComparison]
+      ];
+      cats.forEach(([label, data]) => {
+        if (!data) return;
+        const dirClass = data.direction === 'superior' ? 'dir-superior' : data.direction === 'inferior' ? 'dir-inferior' : 'dir-similar';
+        const dirLabel = data.direction ? data.direction.charAt(0).toUpperCase() + data.direction.slice(1) : 'N/A';
+        html += `<div class="vision-row"><div class="v-label">${esc(label)}</div>
+          <div class="v-value"><span class="${dirClass}">${esc(dirLabel)}</span> — ${esc(data.notes || '')}</div></div>`;
+      });
+
+      if (r.adjustmentSuggestions && r.adjustmentSuggestions.length) {
+        html += '<div class="vision-row" style="background:#f59e0b11;padding:6px;border-radius:4px"><div class="v-label">Suggested Adjustments</div><ul class="v-list">' +
+          r.adjustmentSuggestions.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul></div>';
+      }
+
+      if (r.comparisonSummary) {
+        html += `<div class="vision-row" style="margin-top:6px"><div class="v-label">Summary</div><div class="v-value">${esc(r.comparisonSummary)}</div>
+          <button class="a-btn a-btn-copy" style="margin-top:4px" onclick="copyToNotes('${esc(r.comparisonSummary).replace(/'/g, "\\'")}')">Copy to Notes</button></div>`;
+      }
+
+      html += renderCorrectionChat(corrKey, 'comparisonContainer');
+      html += `<div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end">
+        <button class="a-btn a-btn-reject" onclick="document.getElementById('comparisonContainer').innerHTML=''">Dismiss</button>
+      </div></div>`;
+      container.innerHTML = html;
+    }
+
+    async function sendComparisonCorrection(analysisType, containerId) {
+      const input = document.getElementById('corrInput_' + analysisType);
+      if (!input) return;
+      const msg = input.value.trim();
+      if (!msg) return;
+      const key = getApiKey();
+      if (!key) { showToast('Set API key first'); return; }
+      if (currentIndex < 0) return;
+
+      addCorrection(analysisType, 'user', msg);
+      input.value = '';
+      input.disabled = true;
+      const btn = input.nextElementSibling;
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+      const corrections = getCorrections(analysisType);
+      const messages = [];
+      messages.push({ role: 'system', content: 'You are a real estate appraisal comparison assistant. The appraiser is correcting your comparison analysis. Apply corrections and return revised JSON (same format). Appraiser is the expert. Return JSON only, no markdown fencing.' });
+      if (comparisonResult) messages.push({ role: 'assistant', content: JSON.stringify(comparisonResult, null, 2) });
+      corrections.forEach(c => {
+        messages.push({ role: c.role === 'user' ? 'user' : 'assistant', content: c.role === 'user' ? 'CORRECTION: ' + c.text : c.text });
+      });
+
+      try {
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          body: JSON.stringify({ ...buildModelParams(getMiniModel(), 0.2, 1500), messages })
+        });
+        if (!resp.ok) throw new Error((await resp.json().catch(() => ({}))).error?.message?.substring(0, 80) || resp.statusText);
+        const data = await resp.json();
+        let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+        comparisonResult = JSON.parse(raw);
+        addCorrection(analysisType, 'ai', 'Comparison revised.');
+        const comp = store.properties[currentIndex];
+        const subjMls = analysisType.replace('comparison_', '');
+        if (!comp.comparisons) comp.comparisons = {};
+        if (!comp.comparisons[subjMls]) comp.comparisons[subjMls] = {};
+        comp.comparisons[subjMls].result = comparisonResult;
+        saveLocal();
+        renderComparisonPanel();
+        showToast('Comparison revised');
+      } catch(e) {
+        showToast('Correction failed: ' + (e.message || '').substring(0, 80));
+      } finally {
+        const ni = document.getElementById('corrInput_' + analysisType);
+        if (ni) ni.disabled = false;
+        const nb = ni?.nextElementSibling;
+        if (nb) { nb.disabled = false; nb.textContent = 'Send'; }
+      }
+    }
+
+    // ============================================
     // KEYBOARD
     // ============================================
     document.addEventListener('keydown', e => {
+      if (document.getElementById('lightboxModal').classList.contains('show')) {
+        if (e.key === 'Escape') closeLightbox();
+        else if (e.key === 'ArrowLeft') lightboxNav(-1);
+        else if (e.key === 'ArrowRight') lightboxNav(1);
+        return;
+      }
       if (document.getElementById('importModal').classList.contains('show')) {
         if (e.key === 'Escape') closeImportModal();
         return;
@@ -1631,11 +3966,14 @@
         if (e.key === 'Escape') closeRemarksModal(false);
         return;
       }
-
-      if (e.key === 'Escape') {
-        window.close();
+      if (document.getElementById('settingsModal').classList.contains('show')) {
+        if (e.key === 'Escape') closeSettingsModal();
         return;
       }
+
+      // Escape without a modal open — do nothing.
+      // AHK handles window close; avoid accidental data loss.
+      if (e.key === 'Escape') return;
 
       if (e.ctrlKey && e.key === 's') {
         e.preventDefault();
@@ -1660,6 +3998,16 @@
         navNext();
       }
     });
+
+    // ============================================
+    // CLOSE CONFIRMATION
+    // ============================================
+    window.onbeforeunload = function(e) {
+      if (store.properties.length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
 
     // ============================================
     // INIT
