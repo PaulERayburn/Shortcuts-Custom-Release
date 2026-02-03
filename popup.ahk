@@ -60,9 +60,6 @@ CapsLock & .::ToggleMlsNotes()
 Escape::ClosePopup()
 #HotIf
 
-#HotIf WinActive("ahk_exe msedge.exe") and WinExist("MLS Notes")
-Escape::CloseMlsNotes()
-#HotIf
 
 ; ============================================
 ; FUNCTIONS
@@ -148,9 +145,9 @@ ToggleMlsNotes(*) {
     posX := (A_ScreenWidth - MLS_WIDTH) // 2
     posY := (A_ScreenHeight - MLS_HEIGHT) // 2
 
-    ; Launch Edge in app mode
+    ; Launch Edge in app mode (auto-grant mic for dictation)
     edgePath := "msedge.exe"
-    edgeArgs := Format('--app="{1}" --window-size={2},{3} --window-position={4},{5}',
+    edgeArgs := Format('--app="{1}" --window-size={2},{3} --window-position={4},{5} --auto-accept-camera-and-microphone-capture',
         MLS_HTML_FILE, MLS_WIDTH, MLS_HEIGHT, posX, posY)
 
     Run edgePath " " edgeArgs
@@ -231,16 +228,39 @@ CheckForScriptRun() {
             hwnd := WinGetID("SIZE::")
             try WinSetTitle("MLS Notes", "ahk_id " hwnd)
 
+            ; Get the monitor the window is currently on
+            try {
+                WinGetPos(&wx, &wy, , , "ahk_id " hwnd)
+            } catch {
+                wx := 0, wy := 0
+            }
+            monNum := 0
+            Loop MonitorGetCount() {
+                MonitorGetWorkArea(A_Index, &mL, &mT, &mR, &mB)
+                if (wx >= mL && wx < mR && wy >= mT && wy < mB) {
+                    monNum := A_Index
+                    break
+                }
+            }
+            if (monNum = 0) {
+                monNum := MonitorGetPrimary()
+                MonitorGetWorkArea(monNum, &mL, &mT, &mR, &mB)
+            }
+            monW := mR - mL
+            monH := mB - mT
+
             if InStr(title, "SIZE::REMARKS") {
-                rw := MLS_REMARKS_WIDTH
-                rh := Min(MLS_REMARKS_HEIGHT, A_ScreenHeight - 40)
-                rx := (A_ScreenWidth - rw) // 2
-                ry := (A_ScreenHeight - rh) // 2
+                rw := Min(MLS_REMARKS_WIDTH, monW - 20)
+                rh := Min(MLS_REMARKS_HEIGHT, monH - 40)
+                rx := mL + (monW - rw) // 2
+                ry := mT + (monH - rh) // 2
                 WinMove rx, ry, rw, rh, "ahk_id " hwnd
             } else if InStr(title, "SIZE::COMPACT") {
-                px := (A_ScreenWidth - MLS_WIDTH) // 2
-                py := (A_ScreenHeight - MLS_HEIGHT) // 2
-                WinMove px, py, MLS_WIDTH, MLS_HEIGHT, "ahk_id " hwnd
+                pw := Min(MLS_WIDTH, monW - 20)
+                ph := Min(MLS_HEIGHT, monH - 40)
+                px := mL + (monW - pw) // 2
+                py := mT + (monH - ph) // 2
+                WinMove px, py, pw, ph, "ahk_id " hwnd
             }
         }
     }

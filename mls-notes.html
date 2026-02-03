@@ -131,7 +131,7 @@
 
     .list-item {
       display: grid;
-      grid-template-columns: 28px 90px 1fr 36px 56px 16px;
+      grid-template-columns: 28px 90px 1fr 38px 36px 56px 16px;
       gap: 4px;
       padding: 5px 8px;
       align-items: center;
@@ -139,6 +139,7 @@
       border-bottom: 1px solid #2a2a2a;
       font-size: 0.923rem;
     }
+    .list-item .sim { font-size: 0.769rem; color: #60a5fa; text-align: right; }
     .list-item:hover { background: #333; }
     .list-item.active { background: #3b82f633; border-left: 3px solid #3b82f6; }
     .list-item .rank { color: #666; font-size: 0.846rem; text-align: center; }
@@ -443,6 +444,11 @@
     .list-item.subject-row { background: #22c55e11; border-left: 3px solid #f59e0b; }
     .list-item.subject-row .mls { color: #f59e0b; }
     .subject-badge { background: #f59e0b; color: #000; font-size: 0.7rem; padding: 1px 5px; border-radius: 8px; font-weight: 700; margin-left: 4px; }
+    .excluded-badge { background: #dc2626; color: #fff; font-size: 0.65rem; padding: 1px 4px; border-radius: 8px; font-weight: 600; margin-left: 4px; }
+    .included-badge { background: #22c55e; color: #000; font-size: 0.65rem; padding: 1px 4px; border-radius: 8px; font-weight: 600; margin-left: 4px; }
+    .list-item.excluded-row { opacity: 0.5; }
+    .list-item.excluded-row .addr { text-decoration: line-through; }
+    .list-item.included-row { border-left: 2px solid #22c55e; }
     .btn-subject { padding: 5px 12px; border: 1px solid #f59e0b; border-radius: 4px; background: #1e1e1e; color: #f59e0b; cursor: pointer; font-size: 0.846rem; font-weight: 600; }
     .btn-subject:hover { background: #f59e0b22; }
     .btn-subject.is-subject { background: #f59e0b; color: #000; border-color: #f59e0b; }
@@ -557,6 +563,8 @@
     <button class="btn btn-primary" onclick="promptNewProject()" style="white-space:nowrap">+ New Project</button>
   </div>
 
+  <div id="subjectInfoBar"></div>
+
   <div class="search-nav">
     <input type="text" class="search-box" id="searchBox" placeholder="Search MLS# or address..." oninput="onSearch()">
     <button class="nav-btn" id="prevBtn" onclick="navPrev()">&larr; Prev</button>
@@ -652,6 +660,7 @@
         <button class="settings-tab active" onclick="switchSettingsTab('api')">API Key</button>
         <button class="settings-tab" onclick="switchSettingsTab('language')">Language</button>
         <button class="settings-tab" onclick="switchSettingsTab('guidance')">AI Guidance</button>
+        <button class="settings-tab" onclick="switchSettingsTab('condition')">Condition</button>
       </div>
       <div class="settings-tab-content active" id="settingsTab-api">
         <div class="form-group">
@@ -705,6 +714,53 @@
           <label>Building Analysis Guidance</label>
           <textarea id="settingsBuildingGuidance" style="min-height:120px;font-size:0.846rem;white-space:pre-wrap" placeholder="Add custom guidance for building/improvement photo analysis..."></textarea>
           <p style="font-size:0.77rem;color:#666;margin-top:4px">Appended to the building vision prompt on every analysis.</p>
+        </div>
+      </div>
+      <div class="settings-tab-content" id="settingsTab-condition">
+        <div class="form-group">
+          <label>Condition Rating System</label>
+          <select id="settingsConditionSystem" style="font-size:0.923rem;padding:6px 8px;background:#1e1e1e;color:#eee;border:1px solid #555;border-radius:3px;width:100%">
+            <option value="c-rating">C1-C6 Condition Ratings (USPAP/Fannie Mae)</option>
+            <option value="eff-age">Effective Age Ranges</option>
+          </select>
+        </div>
+        <div style="margin-top:16px;background:#1e1e22;border-radius:6px;padding:12px;font-size:0.82rem;max-height:280px;overflow-y:auto">
+          <div style="font-weight:600;color:#f59e0b;margin-bottom:8px">C1-C6 Rating Descriptions</div>
+          <div style="margin-bottom:10px">
+            <span style="color:#22c55e;font-weight:600">C1 - New Construction</span>
+            <p style="color:#aaa;margin:2px 0 0 0">Brand new, never occupied. All components are new and meet current standards. No physical depreciation.</p>
+          </div>
+          <div style="margin-bottom:10px">
+            <span style="color:#4ade80;font-weight:600">C2 - Like New</span>
+            <p style="color:#aaa;margin:2px 0 0 0">Recently built or completely renovated. No deferred maintenance, little/no physical depreciation. Appears new.</p>
+          </div>
+          <div style="margin-bottom:10px">
+            <span style="color:#86efac;font-weight:600">C3 - Well Maintained</span>
+            <p style="color:#aaa;margin:2px 0 0 0">Well maintained with limited physical depreciation. Some components updated. No deferred maintenance. Normal wear.</p>
+          </div>
+          <div style="margin-bottom:10px">
+            <span style="color:#fbbf24;font-weight:600">C4 - Adequately Maintained</span>
+            <p style="color:#aaa;margin:2px 0 0 0">Adequately maintained, showing normal wear. Minor deferred maintenance may exist. Some components nearing end of useful life.</p>
+          </div>
+          <div style="margin-bottom:10px">
+            <span style="color:#fb923c;font-weight:600">C5 - Partially Worn</span>
+            <p style="color:#aaa;margin:2px 0 0 0">Obvious deferred maintenance present. Many components need repair/replacement. Livable but needs significant work.</p>
+          </div>
+          <div style="margin-bottom:0">
+            <span style="color:#f87171;font-weight:600">C6 - Poor/Substantial Damage</span>
+            <p style="color:#aaa;margin:2px 0 0 0">Substantial damage or deferred maintenance. Major systems need repair/replacement. May affect safety, soundness, or habitability.</p>
+          </div>
+        </div>
+        <div style="margin-top:12px;background:#1e1e22;border-radius:6px;padding:12px;font-size:0.82rem">
+          <div style="font-weight:600;color:#3b82f6;margin-bottom:8px">Effective Age Equivalents (approximate)</div>
+          <table style="width:100%;color:#aaa;border-collapse:collapse">
+            <tr><td style="padding:2px 8px">C1</td><td>0 years (new)</td></tr>
+            <tr><td style="padding:2px 8px">C2</td><td>1-5 years</td></tr>
+            <tr><td style="padding:2px 8px">C3</td><td>6-15 years</td></tr>
+            <tr><td style="padding:2px 8px">C4</td><td>16-25 years</td></tr>
+            <tr><td style="padding:2px 8px">C5</td><td>26-40 years</td></tr>
+            <tr><td style="padding:2px 8px">C6</td><td>40+ years / poor maintenance</td></tr>
+          </table>
         </div>
       </div>
       <div class="modal-buttons">
@@ -1034,8 +1090,23 @@
             flags: { atypicalMotivation: false, concessions: false, dataDiscrepancy: false },
             dateSold: '',
             priceSold: '',
+            adjPrice: '',
+            adjRatio: '',
+            similarity: '',
+            sim1: '',
+            sim2: '',
+            sim3: '',
+            distanceToSubject: '',
+            sqFtTotal: '',
+            beds: '',
+            baths: '',
+            lotSize: '',
+            city: '',
             siteComments: '',
             buildingComments: '',
+            inclExcl: '',
+            selectionRationale: '',
+            exclusionReason: '',
             notes: '',
             reviewed: false,
             created: new Date().toISOString(),
@@ -1270,11 +1341,20 @@
     }
 
     function selectByProperty(prop) {
-      currentIndex = store.properties.indexOf(prop);
+      const newIndex = store.properties.indexOf(prop);
+      if (currentIndex >= 0 && currentIndex !== newIndex) {
+        // Auto-save current entry before switching
+        saveEntryQuiet();
+      }
+      currentIndex = newIndex;
       render();
     }
 
     function selectIndex(i) {
+      if (currentIndex >= 0 && currentIndex !== i) {
+        // Auto-save current entry before switching
+        saveEntryQuiet();
+      }
       currentIndex = i;
       listOpen = false;
       render();
@@ -1311,6 +1391,7 @@
       updateNav();
       updateToggleBar();
       updateSubjectButton();
+      updateSubjectInfoBar();
       formDirty = false;
     }
 
@@ -1326,6 +1407,24 @@
         btn.textContent = '★ Subject';
         btn.classList.remove('is-subject');
       }
+    }
+
+    function updateSubjectInfoBar() {
+      const bar = document.getElementById('subjectInfoBar');
+      if (!bar) return;
+      if (!store.subjectMls) { bar.innerHTML = ''; return; }
+      const subj = store.properties.find(x => x.mls === store.subjectMls);
+      if (!subj) { bar.innerHTML = ''; return; }
+      const fields = [];
+      if (subj.address) fields.push(`<span>Address:</span> ${esc(subj.address)}`);
+      if (subj.yearBuilt) fields.push(`<span>YB:</span> ${esc(subj.yearBuilt)}`);
+      if (subj.condition) fields.push(`<span>${getConditionSystem() === 'c-rating' ? 'Cond:' : 'Eff Age:'}</span> ${esc(subj.condition)}`);
+      if (subj.quality) fields.push(`<span>Quality:</span> ${esc(subj.quality)}`);
+      if (subj.style) fields.push(`<span>Style:</span> ${esc(subj.style)}`);
+      bar.innerHTML = `<div style="background:#2d2f34;border:1px solid #f59e0b;border-radius:6px;padding:6px 12px;margin-bottom:10px;">
+        <div style="color:#f59e0b;font-weight:600;font-size:0.9rem;margin-bottom:3px;">★ Subject: ${esc(subj.address || subj.mls)}</div>
+        <div style="font-size:0.8rem;color:#aaa;display:flex;gap:16px;flex-wrap:wrap">${fields.join('')}</div>
+      </div>`;
     }
 
     function updateToggleBar() {
@@ -1366,10 +1465,17 @@
         const rowClass = dataFlag ? 'has-data-row' : 'no-data-row';
         const isSubj = store.subjectMls === p.mls;
         const subjClass = isSubj ? ' subject-row' : '';
-        html += `<div class="list-item ${active}${subjClass} ${rowClass}" onclick="selectIndex(${idx})">
+        const isExcluded = p.inclExcl === 'exclude';
+        const isIncluded = p.inclExcl === 'include';
+        const excludedClass = isExcluded ? ' excluded-row' : '';
+        const includedClass = isIncluded ? ' included-row' : '';
+        const simText = p.similarity ? (parseFloat(p.similarity)*100).toFixed(0) + '%' : '';
+        const badge = isSubj ? '<span class="subject-badge">SUBJ</span>' : (isExcluded ? '<span class="excluded-badge">EXCL</span>' : (isIncluded ? '<span class="included-badge">INCL</span>' : ''));
+        html += `<div class="list-item ${active}${subjClass}${excludedClass}${includedClass} ${rowClass}" onclick="selectIndex(${idx})">
           <span class="rank">${p.sortOrder + 1}</span>
-          <span class="mls">${esc(p.mls)}${isSubj ? '<span class="subject-badge">SUBJ</span>' : ''}</span>
+          <span class="mls">${esc(p.mls)}${badge}</span>
           <span class="addr">${esc(p.address) || '—'}</span>
+          <span class="sim">${simText}</span>
           <span class="cq ${cClass}">${esc(cText)}</span>
           <span class="cq ${qClass}">${esc(qText)}</span>
           <span class="status-dot ${statusClass}"></span>
@@ -1430,7 +1536,6 @@
       const showComparison = !isSubject && subjectProp;
 
       panel.innerHTML = `
-        ${showComparison ? renderSubjectBar(subjectProp) : ''}
         ${isSubject ? `
         <div class="form-group">
           <label style="color:#f59e0b;font-weight:600;font-size:0.923rem">★ Subject Property</label>
@@ -1439,13 +1544,29 @@
         </div>
         ` : `
         <div class="form-row">
-          <div class="form-group">
+          <div class="form-group" style="max-width:120px">
             <label>MLS #</label>
             <input type="text" id="fMls" value="${esc(p.mls)}" readonly style="background:#333;color:#fff;font-weight:600">
           </div>
-          <div class="form-group">
+          <div class="form-group" style="flex:1">
             <label>Address</label>
             <input type="text" id="fAddress" value="${esc(p.address)}" placeholder="Enter address...">
+          </div>
+        </div>
+        <div class="form-row" style="align-items:flex-start;gap:12px;margin-bottom:8px">
+          <div style="display:flex;flex-direction:column;gap:4px;min-width:90px">
+            <label class="incl-excl-option ${p.inclExcl === 'include' ? 'selected include' : ''}" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.85rem;border:1px solid ${p.inclExcl === 'include' ? '#22c55e' : '#444'};background:${p.inclExcl === 'include' ? '#14532d' : 'transparent'}">
+              <input type="radio" name="inclExcl" id="inclExcl_include" value="include" ${p.inclExcl === 'include' ? 'checked' : ''} onchange="updateInclExclStyle()" style="margin:0">
+              <span style="color:${p.inclExcl === 'include' ? '#4ade80' : '#888'}">Include</span>
+            </label>
+            <label class="incl-excl-option ${p.inclExcl === 'exclude' ? 'selected exclude' : ''}" style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.85rem;border:1px solid ${p.inclExcl === 'exclude' ? '#dc2626' : '#444'};background:${p.inclExcl === 'exclude' ? '#7f1d1d' : 'transparent'}">
+              <input type="radio" name="inclExcl" id="inclExcl_exclude" value="exclude" ${p.inclExcl === 'exclude' ? 'checked' : ''} onchange="updateInclExclStyle()" style="margin:0">
+              <span style="color:${p.inclExcl === 'exclude' ? '#f87171' : '#888'}">Exclude</span>
+            </label>
+          </div>
+          <div class="form-group" style="flex:1;margin:0">
+            <label style="color:${p.inclExcl === 'exclude' ? '#f87171' : (p.inclExcl === 'include' ? '#4ade80' : '#aaa')}">${p.inclExcl === 'exclude' ? 'Reason for Exclusion' : (p.inclExcl === 'include' ? 'Reason for Inclusion' : 'Selection Rationale')}</label>
+            <textarea id="fSelectionRationale" placeholder="Explain why this sale is being included or excluded from the analysis..." style="min-height:50px;resize:vertical;font-size:0.9rem;${p.inclExcl === 'exclude' ? 'background:#7f1d1d;border-color:#dc2626;color:#fca5a5' : (p.inclExcl === 'include' ? 'background:#14532d;border-color:#22c55e;color:#bbf7d0' : '')}">${esc(p.selectionRationale || p.exclusionReason || '')}</textarea>
           </div>
         </div>
         `}
@@ -1457,8 +1578,31 @@
           </div>
           <div class="form-group">
             <label>Price Sold</label>
-            <input type="text" id="fPriceSold" value="${esc(p.priceSold || '')}" placeholder="e.g. 450000">
+            <input type="text" id="fPriceSold" value="${p.priceSold ? '$' + parseInt(String(p.priceSold).replace(/[$,]/g, '')).toLocaleString() : ''}" placeholder="e.g. $450,000">
           </div>
+          <div class="form-group" style="max-width:70px">
+            <label>Adj%</label>
+            <input type="text" id="fAdjRatio" value="${p.adjRatio ? ((parseFloat(p.adjRatio) - 1) * 100).toFixed(1) + '%' : ''}" readonly style="background:#1e1e22;text-align:center;${p.adjRatio && parseFloat(p.adjRatio) < 1 ? 'color:#f87171' : (p.adjRatio && parseFloat(p.adjRatio) > 1 ? 'color:#4ade80' : '')}">
+          </div>
+          <div class="form-group">
+            <label>Adj Price</label>
+            <input type="text" id="fAdjPrice" value="${p.adjPrice ? '$' + Math.round(parseFloat(p.adjPrice)).toLocaleString() : ''}" placeholder="Time-adjusted" readonly style="background:#1e1e22">
+          </div>
+        </div>
+        ${(p.sim1 || p.similarity || p.distanceToSubject || p.sqFtTotal || p.beds) ? `
+        <div class="form-row" style="font-size:0.85rem;color:#aaa;margin-bottom:8px;gap:16px;flex-wrap:wrap">
+          ${p.sim1 ? `<span style="display:inline-flex;gap:4px"><span style="background:#3b82f6;color:#fff;padding:1px 6px;border-radius:3px;font-size:0.75rem">Sim1<strong>[${(parseFloat(p.sim1)*100).toFixed(1)}]</strong></span><span style="background:#8b5cf6;color:#fff;padding:1px 6px;border-radius:3px;font-size:0.75rem">Sim2<strong>[${(parseFloat(p.sim2||0)*100).toFixed(1)}]</strong></span><span style="background:#06b6d4;color:#fff;padding:1px 6px;border-radius:3px;font-size:0.75rem">Sim3<strong>[${(parseFloat(p.sim3||0)*100).toFixed(1)}]</strong></span></span>` : (p.similarity ? `<span style="background:#3b82f6;color:#fff;padding:1px 6px;border-radius:3px;font-size:0.75rem">Sim<strong>[${(parseFloat(p.similarity)*100).toFixed(1)}]</strong></span>` : '')}
+          ${p.distanceToSubject ? `<span><strong>Distance:</strong> ${parseFloat(p.distanceToSubject).toFixed(2)} km</span>` : ''}
+          ${p.sqFtTotal ? `<span><strong>SqFt:</strong> ${esc(String(p.sqFtTotal))}</span>` : ''}
+          ${p.beds ? `<span><strong>Beds:</strong> ${esc(String(p.beds))}</span>` : ''}
+          ${p.baths ? `<span><strong>Baths:</strong> ${esc(String(p.baths))}</span>` : ''}
+          ${p.lotSize ? `<span><strong>Lot:</strong> ${esc(String(p.lotSize))} ac</span>` : ''}
+          ${p.city ? `<span><strong>City:</strong> ${esc(String(p.city))}</span>` : ''}
+        </div>
+        ` : ''}
+
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+          <button onclick="analyzeAll()" style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;padding:5px 14px;font-size:0.85rem;font-weight:600;border-radius:4px;cursor:pointer" title="Run all AI analyses in parallel">&#9881; Analyze All</button>
         </div>
 
         <div class="form-section-header">Site
@@ -1504,8 +1648,20 @@
             <input type="text" id="fYearBuilt" value="${esc(p.yearBuilt || '')}" maxlength="4">
           </div>
           <div class="form-group">
-            <label>Effective Age</label>
-            <input type="text" id="fCondition" value="${esc(p.condition)}" maxlength="5">
+            <label>${getConditionSystem() === 'c-rating' ? 'Condition' : 'Eff Age'}</label>
+            ${getConditionSystem() === 'c-rating' ? `
+            <select id="fCondition">
+              <option value="" ${!p.condition ? 'selected' : ''}>--</option>
+              <option value="C1" ${p.condition === 'C1' ? 'selected' : ''}>C1 - New</option>
+              <option value="C2" ${p.condition === 'C2' ? 'selected' : ''}>C2 - Like New</option>
+              <option value="C3" ${p.condition === 'C3' ? 'selected' : ''}>C3 - Well Maintained</option>
+              <option value="C4" ${p.condition === 'C4' ? 'selected' : ''}>C4 - Adequate</option>
+              <option value="C5" ${p.condition === 'C5' ? 'selected' : ''}>C5 - Partially Worn</option>
+              <option value="C6" ${p.condition === 'C6' ? 'selected' : ''}>C6 - Poor</option>
+            </select>
+            ` : `
+            <input type="text" id="fCondition" value="${esc(p.condition)}" maxlength="5" placeholder="e.g. 15">
+            `}
           </div>
           <div class="form-group">
             <label>Quality</label>
@@ -1612,7 +1768,7 @@
         }).join('')}
         <div class="form-group">
           <label>Notes</label>
-          <textarea id="fNotes" placeholder="Observations, adjustments, etc...">${esc(p.notes)}</textarea>
+          <textarea id="fNotes" placeholder="Observations, adjustments, etc..." oninput="autoGrow(this)">${esc(p.notes)}</textarea>
         </div>
         <div class="form-actions">
           <button class="btn btn-clear" onclick="deleteEntry()">Delete Entry</button>
@@ -1636,15 +1792,28 @@
       }
       if (mlsSummaryResult) renderMlsSummaryPanel();
       if (comparisonResult) renderComparisonPanel();
+      const notesEl = document.getElementById('fNotes');
+      if (notesEl) autoGrow(notesEl);
     }
 
-    function saveEntry() {
-      if (currentIndex < 0) return;
+    function saveEntryCore() {
+      if (currentIndex < 0) return false;
       const p = store.properties[currentIndex];
 
-      p.address = document.getElementById('fAddress').value.trim();
+      // Check if form elements exist (might not if form not rendered)
+      const addrEl = document.getElementById('fAddress');
+      if (!addrEl) return false;
+
+      p.address = addrEl.value.trim();
+      const inclEl = document.getElementById('inclExcl_include');
+      const exclEl = document.getElementById('inclExcl_exclude');
+      if (inclEl && exclEl) {
+        p.inclExcl = inclEl.checked ? 'include' : (exclEl.checked ? 'exclude' : '');
+      }
+      const ratEl = document.getElementById('fSelectionRationale');
+      if (ratEl) p.selectionRationale = ratEl.value.trim();
       p.dateSold = document.getElementById('fDateSold').value.trim();
-      p.priceSold = document.getElementById('fPriceSold').value.trim();
+      p.priceSold = document.getElementById('fPriceSold').value.replace(/[$,]/g, '').trim();
       p.yearBuilt = document.getElementById('fYearBuilt').value.trim();
       p.condition = document.getElementById('fCondition').value.trim();
       p.quality = document.getElementById('fQuality').value;
@@ -1658,28 +1827,29 @@
       if (bcEl) p.buildingComments = bcEl.value;
 
       p.renovations = {
-        kitchen: document.getElementById('reno_kitchen').checked,
-        bath: document.getElementById('reno_bath').checked,
-        roof: document.getElementById('reno_roof').checked,
-        windows: document.getElementById('reno_windows').checked,
-        flooring: document.getElementById('reno_flooring').checked,
-        hvac: document.getElementById('reno_hvac').checked,
-        other: document.getElementById('renoOther').value.trim()
+        kitchen: document.getElementById('reno_kitchen')?.checked || false,
+        bath: document.getElementById('reno_bath')?.checked || false,
+        roof: document.getElementById('reno_roof')?.checked || false,
+        windows: document.getElementById('reno_windows')?.checked || false,
+        flooring: document.getElementById('reno_flooring')?.checked || false,
+        hvac: document.getElementById('reno_hvac')?.checked || false,
+        other: document.getElementById('renoOther')?.value?.trim() || ''
       };
 
       p.flags = {
-        atypicalMotivation: document.getElementById('flag_atypical').checked,
-        concessions: document.getElementById('flag_concessions').checked,
-        dataDiscrepancy: document.getElementById('flag_discrepancy').checked
+        atypicalMotivation: document.getElementById('flag_atypical')?.checked || false,
+        concessions: document.getElementById('flag_concessions')?.checked || false,
+        dataDiscrepancy: document.getElementById('flag_discrepancy')?.checked || false
       };
 
       // Save remark flags from modal if open
-      if ((p.publicRemarks || p.realtorRemarks) && document.getElementById('remarksModal').classList.contains('show')) {
+      if ((p.publicRemarks || p.realtorRemarks) && document.getElementById('remarksModal')?.classList.contains('show')) {
         if (!p.remarkFlags) p.remarkFlags = {};
         document.querySelectorAll('#rmFlags input[data-flag]').forEach(el => {
           p.remarkFlags[el.dataset.flag] = el.checked;
         });
-        p.notes = document.getElementById('rmNotes').value;
+        const rmNotes = document.getElementById('rmNotes');
+        if (rmNotes) p.notes = rmNotes.value;
       }
 
       // Save comparison notes if visible
@@ -1700,12 +1870,59 @@
       p.modified = new Date().toISOString();
 
       saveLocal();
+      formDirty = false;
+      return true;
+    }
+
+    function saveEntryQuiet() {
+      saveEntryCore();
+    }
+
+    function saveEntry() {
+      if (!saveEntryCore()) return;
       renderList();
       renderForm();
       updateToggleBar();
       updateNav();
-      formDirty = false;
       showToast('Entry saved');
+    }
+
+    function updateInclExclStyle() {
+      const inclEl = document.getElementById('inclExcl_include');
+      const exclEl = document.getElementById('inclExcl_exclude');
+      const ratEl = document.getElementById('fSelectionRationale');
+      if (!inclEl || !exclEl || !ratEl) return;
+      const isIncl = inclEl.checked;
+      const isExcl = exclEl.checked;
+      // Update radio label styles
+      inclEl.parentElement.style.borderColor = isIncl ? '#22c55e' : '#444';
+      inclEl.parentElement.style.background = isIncl ? '#14532d' : 'transparent';
+      inclEl.parentElement.querySelector('span').style.color = isIncl ? '#4ade80' : '#888';
+      exclEl.parentElement.style.borderColor = isExcl ? '#dc2626' : '#444';
+      exclEl.parentElement.style.background = isExcl ? '#7f1d1d' : 'transparent';
+      exclEl.parentElement.querySelector('span').style.color = isExcl ? '#f87171' : '#888';
+      // Update textarea style
+      const label = ratEl.previousElementSibling;
+      if (isExcl) {
+        ratEl.style.background = '#7f1d1d';
+        ratEl.style.borderColor = '#dc2626';
+        ratEl.style.color = '#fca5a5';
+        label.style.color = '#f87171';
+        label.textContent = 'Reason for Exclusion';
+      } else if (isIncl) {
+        ratEl.style.background = '#14532d';
+        ratEl.style.borderColor = '#22c55e';
+        ratEl.style.color = '#bbf7d0';
+        label.style.color = '#4ade80';
+        label.textContent = 'Reason for Inclusion';
+      } else {
+        ratEl.style.background = '';
+        ratEl.style.borderColor = '';
+        ratEl.style.color = '';
+        label.style.color = '#aaa';
+        label.textContent = 'Selection Rationale';
+      }
+      formDirty = true;
     }
 
     function deleteEntry() {
@@ -2024,10 +2241,24 @@
       const addrCol = findCol(['address']);
       const pubCol = findCol(['public remark']);
       const realCol = findCol(['realtor', 'realtorr']);
-      const ybCol = findCol(['year built']);
-      const styleCol = findCol(['architectural style']);
-      const soldDateCol = findCol(['sold date', 'date sold', 'close date']);
-      const soldPriceCol = findCol(['sold price', 'price sold', 'close price']);
+      const ybCol = findCol(['year built', 'yrblt']);
+      const styleCol = findCol(['architectural style', 'stylestoreys']);
+      const soldDateCol = findCol(['sold date', 'date sold', 'close date', 'datesold']);
+      const soldPriceCol = findCol(['sold price', 'price sold', 'close price', 'pricesold']);
+      // CValR similarity export columns - use exact match helper for ambiguous names
+      const findColExact = (patterns) => colKeys.find(k => patterns.some(p => k.toLowerCase() === p.toLowerCase()));
+      const adjPriceCol = findColExact(['AdjPrice']) || findCol(['adjusted price']);
+      const adjRatioCol = findColExact(['AdjPriceRatio']);
+      const similarityCol = findColExact(['Similarity']) || findCol(['similarity score']);
+      const sim1Col = findColExact(['Similarity_1']);
+      const sim2Col = findColExact(['Similarity_2']);
+      const sim3Col = findColExact(['Similarity_3']);
+      const distCol = findColExact(['RoadDistanceKM']) || findColExact(['DistanceToSubject']);
+      const sqftCol = findCol(['sqfttotal', 'sqft total', 'total sqft', 'sq ft']);
+      const bedsCol = findCol(['beds', 'bedrooms']);
+      const bathsCol = findCol(['tb', 'total bath', 'baths', 'bathrooms']);
+      const lotCol = findCol(['lots', 'lot size', 'lotsize', 'lot acres']);
+      const cityCol = findCol(['city']);
 
       if (!mlsCol) { showToast('No MLS# column found in CSV'); return; }
 
@@ -2055,6 +2286,20 @@
         // Fill date sold / price sold from CSV
         if (soldDateCol && row[soldDateCol]) p.dateSold = row[soldDateCol].trim();
         if (soldPriceCol && row[soldPriceCol]) p.priceSold = row[soldPriceCol].trim();
+
+        // CValR similarity export fields
+        if (adjPriceCol && row[adjPriceCol]) p.adjPrice = row[adjPriceCol].trim();
+        if (adjRatioCol && row[adjRatioCol]) p.adjRatio = row[adjRatioCol].trim();
+        if (similarityCol && row[similarityCol]) p.similarity = row[similarityCol].trim();
+        if (sim1Col && row[sim1Col]) p.sim1 = row[sim1Col].trim();
+        if (sim2Col && row[sim2Col]) p.sim2 = row[sim2Col].trim();
+        if (sim3Col && row[sim3Col]) p.sim3 = row[sim3Col].trim();
+        if (distCol && row[distCol]) p.distanceToSubject = row[distCol].trim();
+        if (sqftCol && row[sqftCol]) p.sqFtTotal = row[sqftCol].trim();
+        if (bedsCol && row[bedsCol]) p.beds = row[bedsCol].trim();
+        if (bathsCol && row[bathsCol]) p.baths = row[bathsCol].trim();
+        if (lotCol && row[lotCol]) p.lotSize = row[lotCol].trim();
+        if (cityCol && row[cityCol]) p.city = row[cityCol].trim();
 
         // Map architectural style from CSV
         if (styleCol && row[styleCol]) {
@@ -2391,7 +2636,12 @@
       document.getElementById('settingsSiteGuidance').value = localStorage.getItem('mls-notes-site-guidance') || '';
       document.getElementById('settingsBuildingGuidance').value = localStorage.getItem('mls-notes-building-guidance') || '';
       document.getElementById('settingsModel').value = localStorage.getItem('mls-notes-model') || 'gpt-4o';
+      document.getElementById('settingsConditionSystem').value = localStorage.getItem('mls-notes-condition-system') || 'c-rating';
       switchSettingsTab('api');
+    }
+
+    function getConditionSystem() {
+      return localStorage.getItem('mls-notes-condition-system') || 'c-rating';
     }
 
     function closeSettingsModal() {
@@ -2457,13 +2707,50 @@
       localStorage.setItem('mls-notes-site-guidance', document.getElementById('settingsSiteGuidance').value);
       localStorage.setItem('mls-notes-building-guidance', document.getElementById('settingsBuildingGuidance').value);
       localStorage.setItem('mls-notes-model', document.getElementById('settingsModel').value);
+      localStorage.setItem('mls-notes-condition-system', document.getElementById('settingsConditionSystem').value);
       closeSettingsModal();
+      render(); // Re-render to update condition field display
       showToast('Settings saved');
     }
 
     // ============================================
     // AI ANALYSIS (OpenAI)
     // ============================================
+    async function analyzeAll() {
+      const key = getApiKey();
+      if (!key) { showToast('Set your OpenAI API key first (click API button)'); openSettingsModal(); return; }
+      if (currentIndex < 0) return;
+      const p = store.properties[currentIndex];
+
+      const tasks = [];
+      let count = 0;
+
+      // Site comments
+      const siteText = document.getElementById('fSiteComments')?.value?.trim();
+      if (siteText) { tasks.push(analyzeComments('site')); count++; }
+
+      // Building comments
+      const buildingText = document.getElementById('fBuildingComments')?.value?.trim();
+      if (buildingText) { tasks.push(analyzeComments('building')); count++; }
+
+      // MLS remarks
+      if (p.publicRemarks || p.realtorRemarks) { tasks.push(analyzeMLS()); count++; }
+
+      // Site photos
+      const sitePhotos = await getPhotos(p.mls, 'site');
+      if (sitePhotos.length) { tasks.push(analyzePhotos('site')); count++; }
+
+      // Building photos
+      const buildingPhotos = await getPhotos(p.mls, 'building');
+      if (buildingPhotos.length) { tasks.push(analyzePhotos('building')); count++; }
+
+      if (!count) { showToast('Nothing to analyze - add comments, remarks, or photos first'); return; }
+
+      showToast('Running ' + count + ' analyses...');
+      await Promise.allSettled(tasks);
+      showToast('All analyses complete');
+    }
+
     async function analyzeComments(type) {
       const key = getApiKey();
       if (!key) { showToast('Set your OpenAI API key first (click API button)'); openSettingsModal(); return; }
@@ -2481,32 +2768,32 @@
       const btn = document.querySelector(`#${containerId}`)?.previousElementSibling?.querySelector('.btn-analyze');
       if (btn) { btn.disabled = true; btn.textContent = 'Analyzing...'; }
 
-      const siteSystemPrompt = `You are a real estate appraisal assistant. Analyze the appraiser's site comments about a property and return JSON only (no markdown fencing):
+      const siteSystemPrompt = `You are an impartial residential appraisal assistant. Analyze site comments and return JSON only (no markdown):
 {
   "effectiveAge": number or null,
-  "condition": "C1-C6 rating or descriptive" or null,
+  "condition": "C1-C6" or null,
   "quality": "Fair/Average/Good/Very Good/Excellent" or null,
-  "renovations": ["kitchen","bath","roof","windows","flooring","hvac"] (only those observed),
-  "concerns": ["list of concerns or issues noted"],
-  "languageSuggestions": [{"original":"casual phrase","improved":"professional appraisal language"}],
-  "summary": "1-2 sentence professional summary suitable for an appraisal report"
+  "renovations": ["kitchen","bath","roof","windows","flooring","hvac"] (only observed),
+  "concerns": ["material issues only"],
+  "languageSuggestions": [{"original":"phrase","improved":"concise appraisal language"}],
+  "summary": "One concise sentence stating key site characteristics and any material issues. No marketing language."
 }
-Be conservative. Only suggest values clearly supported by the comments.`;
+STYLE: Write as an impartial analyst, not a listing agent. Be factual, concise, and objective. Avoid superlatives, promotional language, or unnecessary adjectives. Focus only on features that affect value or marketability. Omit obvious/typical items.`;
 
-      const buildingSystemPrompt = `You are a real estate appraisal assistant. Analyze the appraiser's building/improvement comments about a property and return JSON only (no markdown fencing):
+      const buildingSystemPrompt = `You are an impartial residential appraisal assistant. Analyze building comments and return JSON only (no markdown):
 {
   "effectiveAge": number or null,
-  "condition": "C1-C6 rating or descriptive" or null,
+  "condition": "C1-C6" or null,
   "quality": "Fair/Average/Good/Very Good/Excellent" or null,
-  "style": "architectural style if mentioned" or null,
-  "renovations": ["kitchen","bath","roof","windows","flooring","hvac"] (only those observed),
-  "buildingFeatures": ["notable features: layout, materials, systems, finishes"],
-  "deficiencies": ["deferred maintenance, functional issues, needed repairs"],
-  "concerns": ["list of concerns or issues noted"],
-  "languageSuggestions": [{"original":"casual phrase","improved":"professional appraisal language"}],
-  "summary": "1-2 sentence professional building description suitable for an appraisal report"
+  "style": "architectural style" or null,
+  "renovations": ["kitchen","bath","roof","windows","flooring","hvac"] (only observed),
+  "buildingFeatures": ["only notable/atypical features affecting value"],
+  "deficiencies": ["deferred maintenance, functional issues"],
+  "concerns": ["material issues only"],
+  "languageSuggestions": [{"original":"phrase","improved":"concise appraisal language"}],
+  "summary": "One concise sentence on condition, key features, and material issues. No marketing language."
 }
-Focus on building condition, materials, layout, systems (HVAC, plumbing, electrical), interior finishes, and functional utility. Be conservative — only suggest values clearly supported by the comments.`;
+STYLE: Write as an impartial analyst, not a listing agent. Be factual, concise, and objective. Avoid superlatives, promotional language, or unnecessary adjectives. Focus on condition, functional utility, and items affecting value. Omit typical/expected features.`;
 
       const systemPrompt = isSite ? siteSystemPrompt : buildingSystemPrompt;
       const label = isSite ? 'Site Comments' : 'Building Comments';
@@ -2519,7 +2806,7 @@ ${label}: ${text}${getCorrectionContext(corrKey)}`;
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
           body: JSON.stringify({
-            ...buildModelParams(getMiniModel(), 0.3, 1500),
+            ...buildModelParams(getMiniModel(), 0.3, 3000),
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userMsg }
@@ -2535,7 +2822,13 @@ ${label}: ${text}${getCorrectionContext(corrKey)}`;
         const data = await resp.json();
         let content = data.choices[0].message.content.trim();
         content = content.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
-        const parsed = JSON.parse(content);
+        let parsed;
+        try { parsed = JSON.parse(content); }
+        catch (parseErr) {
+          const reason = data.choices[0].finish_reason;
+          if (reason === 'length') throw new Error('AI response was cut off (token limit). Try shorter input.');
+          throw new Error('AI returned invalid JSON. Try again.');
+        }
         saveAnalysisResult(p, isSite ? 'siteText' : 'buildingText', parsed);
         if (currentIndex === capturedIndex) {
           if (isSite) { analysisResult = parsed; renderAnalysisPanel('siteAnalysisContainer', parsed, 'Site Analysis'); }
@@ -2686,11 +2979,17 @@ ${label}: ${text}${getCorrectionContext(corrKey)}`;
       showToast('Renovations updated');
     }
 
+    function autoGrow(el) {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+
     function copyToNotes(text, heading) {
       const el = document.getElementById('fNotes');
       if (!el) return;
       const block = heading ? heading + ': ' + text : text;
       el.value = el.value ? el.value + '\n' + block : block;
+      autoGrow(el);
       showToast('Copied to notes');
     }
 
@@ -3003,8 +3302,10 @@ ${label}: ${text}${getCorrectionContext(corrKey)}`;
   "improvements": "visible structures, driveways, outbuildings",
   "concerns": ["potential issues visible"],
   "consistencyCheck": ["how images align or conflict with appraiser comments"],
-  "summary": "professional site description paragraph suitable for an appraisal report"
+  "summary": "1-2 concise sentences: key site characteristics and material issues only. No marketing language, no superlatives."
 }
+
+WRITING STYLE: You are an impartial analyst, not a listing agent. Be factual, concise, objective. Avoid promotional language, unnecessary adjectives, or verbose descriptions. Focus only on features materially affecting value. Omit typical/expected items.
 
 CONTOUR LINE READING — DO NOT ASSUME CONTOUR INTERVALS:
 When reading a topography/contour map, you MUST determine the actual contour interval from the map itself:
@@ -3050,10 +3351,12 @@ CRITICAL RULES:
   "deficiencies": ["visible damage, deferred maintenance, needed repairs"],
   "concerns": ["potential issues visible"],
   "consistencyCheck": ["how images align or conflict with appraiser comments"],
-  "summary": "professional building description paragraph suitable for an appraisal report"
+  "summary": "1-2 concise sentences: condition, key features, and material issues only. No marketing language, no superlatives."
 }
 
-Focus on: construction type, materials, roof condition, siding/cladding, windows, foundation visibility, grading at foundation, drainage around structure, visible systems (HVAC units, vents), outbuildings, garage/carport, general maintenance level.
+Focus on: construction type, materials, roof condition, siding/cladding, windows, foundation, drainage, visible systems, outbuildings, general maintenance level.
+
+WRITING STYLE: You are an impartial analyst, not a listing agent. Be factual, concise, objective. Avoid promotional language, unnecessary adjectives, or verbose descriptions. Focus only on features materially affecting value. Omit typical/expected items.
 
 CRITICAL RULES:
 1. The appraiser's building comments are GROUND-TRUTH observations — they OVERRIDE visual impressions where they conflict.
@@ -3286,19 +3589,21 @@ CRITICAL RULES:
       textBlock += getCorrectionContext('mlsSummary');
       content.push({ type: 'text', text: textBlock });
 
-      const systemPrompt = `You are a real estate appraisal assistant performing a comprehensive MLS entry analysis. You have been given site photos (aerial/GIS/topo maps), building photos, appraiser comments for both site and building, MLS remarks, and property data. Return JSON only (no markdown fencing):
+      const systemPrompt = `You are an impartial residential appraisal assistant. Analyze all provided data and return JSON only (no markdown):
 {
-  "siteAssessment": "professional paragraph describing site/land characteristics",
-  "buildingAssessment": "professional paragraph describing building/improvements",
-  "slopeCalculation": {"rise_m": number or null, "run_m": number or null, "grade_pct": number or null, "classification": "A (Level) / B (Gentle) / C (Moderate) / D (Steep) / E (Extremely Steep) / F (Excessively Steep) or null"},
+  "siteAssessment": "1-2 concise sentences on key site characteristics and material issues only",
+  "buildingAssessment": "1-2 concise sentences on condition, key features, and material issues only",
+  "slopeCalculation": {"rise_m": number or null, "run_m": number or null, "grade_pct": number or null, "classification": "A/B/C/D/E/F or null"},
   "conditionRating": "C1-C6 or null",
   "qualityRating": "Fair/Average/AVG-Good/Good/Good-VG/Very Good/VG-EXC/Excellent or null",
   "effectiveAge": number or null,
-  "keyFeatures": ["notable features"],
-  "concerns": ["issues or concerns"],
-  "dataConflicts": ["any conflicts between photos, comments, and MLS remarks"],
-  "overallSummary": "2-3 sentence professional summary suitable for an appraisal report"
+  "keyFeatures": ["only atypical features materially affecting value"],
+  "concerns": ["material issues only"],
+  "dataConflicts": ["conflicts with exact quotes from sources"],
+  "overallSummary": "1-2 concise sentences: property type, condition, and any material issues. No marketing language."
 }
+
+WRITING STYLE: You are an impartial analyst, not a listing agent. Be factual, concise, objective. Avoid superlatives ("beautiful", "stunning", "spacious"), promotional language, or unnecessary adjectives. Focus only on features materially affecting value or marketability. Omit typical/expected items that don't differentiate the property.
 
 RULES:
 1. Appraiser comments are ground-truth. MLS remarks are secondary. Photos supplement both.
@@ -3815,7 +4120,7 @@ RULES:
       const fields = [];
       if (subj.address) fields.push(`Address: <span>${esc(subj.address)}</span>`);
       if (subj.yearBuilt) fields.push(`YB: <span>${esc(subj.yearBuilt)}</span>`);
-      if (subj.condition) fields.push(`Eff Age: <span>${esc(subj.condition)}</span>`);
+      if (subj.condition) fields.push(`${getConditionSystem() === 'c-rating' ? 'Cond' : 'Eff Age'}: <span>${esc(subj.condition)}</span>`);
       if (subj.quality) fields.push(`Quality: <span>${esc(subj.quality)}</span>`);
       if (subj.style) fields.push(`Style: <span>${esc(subj.style)}</span>`);
       return `<div class="subject-bar">
@@ -3965,17 +4270,19 @@ Basement: ${comp.basementFinish || 'unknown'} / ${comp.basementGrade || 'unknown
 
       content.push({ type: 'text', text: textBlock });
 
-      const systemPrompt = `You are a real estate appraisal comparison assistant. Compare the comparable property to the subject property and return JSON only (no markdown fencing):
+      const systemPrompt = `You are an impartial residential appraisal comparison assistant. Compare comp to subject and return JSON only (no markdown):
 {
-  "siteComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
-  "buildingComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
-  "qualityComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
-  "conditionComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
-  "ageComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
-  "styleComparison": {"direction": "inferior|superior|similar", "notes": "explanation"},
-  "adjustmentSuggestions": ["list of suggested adjustment directions and categories"],
-  "comparisonSummary": "professional narrative paragraph comparing the comp to the subject, suitable for an appraisal report"
+  "siteComparison": {"direction": "inferior|superior|similar", "notes": "brief factual note"},
+  "buildingComparison": {"direction": "inferior|superior|similar", "notes": "brief factual note"},
+  "qualityComparison": {"direction": "inferior|superior|similar", "notes": "brief factual note"},
+  "conditionComparison": {"direction": "inferior|superior|similar", "notes": "brief factual note"},
+  "ageComparison": {"direction": "inferior|superior|similar", "notes": "brief factual note"},
+  "styleComparison": {"direction": "inferior|superior|similar", "notes": "brief factual note"},
+  "adjustmentSuggestions": ["category: direction (reason)"],
+  "comparisonSummary": "1-2 concise sentences: key differences requiring adjustment. No marketing language."
 }
+
+WRITING STYLE: You are an impartial analyst. Be factual, concise, objective. Avoid promotional language or verbose explanations. State only material differences affecting value. Comparison notes should be brief (under 15 words each).
 
 RULES:
 1. "direction" is from the COMP's perspective relative to the subject. "superior" means the comp is better than the subject in that category. "inferior" means the comp is worse.
@@ -4151,9 +4458,13 @@ RULES:
         return;
       }
 
-      // Escape without a modal open — do nothing.
-      // AHK handles window close; avoid accidental data loss.
-      if (e.key === 'Escape') return;
+      if (e.key === 'Escape') {
+        const msg = formDirty
+          ? 'You have unsaved changes. Are you sure you want to close?'
+          : 'Are you sure you want to close the app?';
+        if (confirm(msg)) window.close();
+        return;
+      }
 
       if (e.ctrlKey && e.key === 's') {
         e.preventDefault();
