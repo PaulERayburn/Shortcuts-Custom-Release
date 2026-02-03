@@ -542,6 +542,7 @@
       <button class="btn" style="background:#f97316;color:#fff" onclick="triggerCSVLoad()">Load CSV</button>
       <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="onCSVFileSelected(event)">
       <button class="btn btn-save" onclick="saveToDisk()">Save to Disk</button>
+      <button class="btn" style="background:#10b981;color:#fff" onclick="exportForReport()">Export for Report</button>
       <button class="btn" style="background:#06b6d4;color:#fff" onclick="copyMlsList()">Copy MLS#s</button>
       <button class="btn btn-export" onclick="exportCSV()">Export CSV</button>
       <button class="btn" style="background:#f59e0b;color:#000" onclick="openFieldsModal()">Fields</button>
@@ -742,6 +743,7 @@
     let remarksZoom = parseInt(localStorage.getItem('mls-notes-remarks-zoom') || '12');
     let recognition = null;
     let isRecording = false;
+    let formDirty = false;
     let isPaused = false;
     let comparisonResult = null;
     let dictationTarget = 'fSiteComments'; // which textarea mic feeds into
@@ -1030,6 +1032,8 @@
             quality: '',
             renovations: { kitchen: false, bath: false, roof: false, windows: false, flooring: false, hvac: false, other: '' },
             flags: { atypicalMotivation: false, concessions: false, dataDiscrepancy: false },
+            dateSold: '',
+            priceSold: '',
             siteComments: '',
             buildingComments: '',
             notes: '',
@@ -1091,6 +1095,115 @@
 
     function getScriptDir() {
       return 'C:\\GitRepos\\Shortcuts-Custom';
+    }
+
+    async function exportForReport() {
+      if (!store.properties.length) { showToast('No properties to export'); return; }
+      if (currentIndex >= 0) saveEntry();
+
+      // Try File System Access API (Chromium browsers)
+      let dirHandle;
+      try {
+        dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      } catch (e) {
+        if (e.name === 'AbortError') return; // user cancelled
+        showToast('Folder picker not supported — use a Chromium browser');
+        return;
+      }
+
+      const statusEl = document.getElementById('footerSaved');
+      if (statusEl) statusEl.textContent = 'Exporting...';
+
+      try {
+        // Build export data
+        const exportData = {
+          projectName: store.projectName || '',
+          exported: new Date().toISOString(),
+          subjectMls: store.subjectMls || '',
+          properties: []
+        };
+
+        // Create photos subdirectory
+        const photosDir = await dirHandle.getDirectoryHandle('photos', { create: true });
+
+        for (const p of store.properties) {
+          // Gather analysis summaries
+          const ar = p.analysisResults || {};
+          const analysisSummaries = {};
+          if (ar.siteText && ar.siteText.summary) analysisSummaries.site = ar.siteText.summary;
+          if (ar.buildingText && ar.buildingText.summary) analysisSummaries.building = ar.buildingText.summary;
+          if (ar.siteVision && ar.siteVision.summary) analysisSummaries.sitePhoto = ar.siteVision.summary;
+          if (ar.buildingVision && ar.buildingVision.summary) analysisSummaries.buildingPhoto = ar.buildingVision.summary;
+          if (ar.mlsSummary && ar.mlsSummary.overallSummary) analysisSummaries.mlsSummary = ar.mlsSummary.overallSummary;
+
+          // Comparison summary (against subject)
+          const subjMls = store.subjectMls;
+          if (subjMls && p.comparisons && p.comparisons[subjMls] && p.comparisons[subjMls].result) {
+            analysisSummaries.comparison = p.comparisons[subjMls].result.comparisonSummary || '';
+          }
+
+          // Export photos
+          const allPhotos = await getPhotos(p.mls);
+          const photoRefs = [];
+          if (allPhotos.length) {
+            const mlsPhotoDir = await photosDir.getDirectoryHandle(p.mls, { create: true });
+            for (let i = 0; i < allPhotos.length; i++) {
+              const ph = allPhotos[i];
+              // Parse data URI: data:image/png;base64,xxxxx
+              const match = ph.data.match(/^data:image\/(\w+);base64,(.+)$/);
+              if (!match) continue;
+              const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+              const b64 = match[2];
+              const filename = (ph.category || 'photo') + '_' + (i + 1) + '.' + ext;
+
+              // Decode base64 and write file
+              const binary = atob(b64);
+              const bytes = new Uint8Array(binary.length);
+              for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+
+              const fileHandle = await mlsPhotoDir.getFileHandle(filename, { create: true });
+              const writable = await fileHandle.createWritable();
+              await writable.write(bytes);
+              await writable.close();
+
+              photoRefs.push({ category: ph.category || 'site', filename, caption: ph.caption || '' });
+            }
+          }
+
+          exportData.properties.push({
+            mls: p.mls,
+            address: p.address || '',
+            yearBuilt: p.yearBuilt || '',
+            dateSold: p.dateSold || '',
+            priceSold: p.priceSold || '',
+            condition: p.condition || '',
+            quality: p.quality || '',
+            style: p.style || '',
+            basementFinish: p.basementFinish || '',
+            basementGrade: p.basementGrade || '',
+            renovations: p.renovations || {},
+            flags: p.flags || {},
+            notes: p.notes || '',
+            siteComments: p.siteComments || '',
+            buildingComments: p.buildingComments || '',
+            analysisSummaries,
+            photos: photoRefs
+          });
+        }
+
+        // Write report-data.json
+        const jsonHandle = await dirHandle.getFileHandle('report-data.json', { create: true });
+        const jsonWritable = await jsonHandle.createWritable();
+        await jsonWritable.write(JSON.stringify(exportData, null, 2));
+        await jsonWritable.close();
+
+        showToast('Exported ' + exportData.properties.length + ' properties + photos');
+        if (statusEl) statusEl.textContent = 'Exported: ' + new Date().toLocaleTimeString();
+      } catch (e) {
+        console.error('Export failed:', e);
+        showToast('Export failed: ' + e.message);
+        if (statusEl) statusEl.textContent = '';
+      }
     }
 
     // ============================================
@@ -1198,6 +1311,7 @@
       updateNav();
       updateToggleBar();
       updateSubjectButton();
+      formDirty = false;
     }
 
     function updateSubjectButton() {
@@ -1336,7 +1450,26 @@
         </div>
         `}
 
-        <div class="form-section-header">Site</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date Sold</label>
+            <input type="text" id="fDateSold" value="${esc(p.dateSold || '')}" placeholder="YYYY-MM-DD">
+          </div>
+          <div class="form-group">
+            <label>Price Sold</label>
+            <input type="text" id="fPriceSold" value="${esc(p.priceSold || '')}" placeholder="e.g. 450000">
+          </div>
+        </div>
+
+        <div class="form-section-header">Site
+          <span style="margin-left:18px;font-size:0.85rem;font-weight:normal;color:#aaa;">Slope calculator</span>
+          <span style="margin-left:6px;font-size:0.85rem;font-weight:normal;">Run</span>
+          <input type="number" id="slopeRun" min="0" step="any" style="width:55px;margin-left:3px;padding:2px 4px;font-size:0.85rem;background:#2a2a2e;color:#eee;border:1px solid #555;border-radius:3px;" oninput="calcSlope()">
+          <span style="margin-left:8px;font-size:0.85rem;font-weight:normal;">Rise</span>
+          <input type="number" id="slopeRise" min="0" step="any" style="width:55px;margin-left:3px;padding:2px 4px;font-size:0.85rem;background:#2a2a2e;color:#eee;border:1px solid #555;border-radius:3px;" oninput="calcSlope()">
+          <span style="margin-left:8px;font-size:0.85rem;font-weight:normal;">SLOPE %</span>
+          <input type="text" id="slopeResult" readonly style="width:50px;margin-left:3px;padding:2px 4px;font-size:0.85rem;background:#1e1e22;color:#eee;border:1px solid #555;border-radius:3px;">
+        </div>
         <div class="form-group">
           <label>Site Comments</label>
           <div class="site-comments-row">
@@ -1510,6 +1643,8 @@
       const p = store.properties[currentIndex];
 
       p.address = document.getElementById('fAddress').value.trim();
+      p.dateSold = document.getElementById('fDateSold').value.trim();
+      p.priceSold = document.getElementById('fPriceSold').value.trim();
       p.yearBuilt = document.getElementById('fYearBuilt').value.trim();
       p.condition = document.getElementById('fCondition').value.trim();
       p.quality = document.getElementById('fQuality').value;
@@ -1569,6 +1704,7 @@
       renderForm();
       updateToggleBar();
       updateNav();
+      formDirty = false;
       showToast('Entry saved');
     }
 
@@ -1604,7 +1740,7 @@
 
       const cfHeaders = store.customFields.map(cf => cf.label);
       const rfHeaders = Object.keys(REMARK_FLAG_LABELS).map(k => REMARK_FLAG_LABELS[k]);
-      const headers = ['Project', 'SortOrder', 'MLS', 'Address', 'YearBuilt', 'EffectiveAge', 'Quality', 'Style', 'BasementFinish', 'BasementGrade',
+      const headers = ['Project', 'SortOrder', 'MLS', 'Address', 'DateSold', 'PriceSold', 'YearBuilt', 'EffectiveAge', 'Quality', 'Style', 'BasementFinish', 'BasementGrade',
         'Kitchen', 'Bath', 'Roof', 'Windows', 'Flooring', 'HVAC', 'OtherReno',
         'AtypicalMotivation', 'Concessions', 'DataDiscrepancy',
         ...cfHeaders,
@@ -1619,7 +1755,7 @@
         const cfValues = store.customFields.map(cf => (p.custom || {})[cf.id] || '');
         const rfValues = rfKeys.map(k => rf[k] ? 'Y' : '');
         return [
-          store.projectName || '', p.sortOrder + 1, p.mls, p.address, p.yearBuilt || '', p.condition, p.quality, p.style || '', p.basementFinish || '', p.basementGrade || '',
+          store.projectName || '', p.sortOrder + 1, p.mls, p.address, p.dateSold || '', p.priceSold || '', p.yearBuilt || '', p.condition, p.quality, p.style || '', p.basementFinish || '', p.basementGrade || '',
           r.kitchen ? 'Y' : '', r.bath ? 'Y' : '', r.roof ? 'Y' : '',
           r.windows ? 'Y' : '', r.flooring ? 'Y' : '', r.hvac ? 'Y' : '',
           r.other || '',
@@ -1658,6 +1794,17 @@
     function esc(str) {
       if (!str) return '';
       return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function calcSlope() {
+      const run = parseFloat(document.getElementById('slopeRun').value);
+      const rise = parseFloat(document.getElementById('slopeRise').value);
+      const el = document.getElementById('slopeResult');
+      if (run > 0 && rise >= 0) {
+        el.value = Math.round((rise / run) * 100) + '%';
+      } else {
+        el.value = '';
+      }
     }
 
     function showToast(msg) {
@@ -1879,6 +2026,8 @@
       const realCol = findCol(['realtor', 'realtorr']);
       const ybCol = findCol(['year built']);
       const styleCol = findCol(['architectural style']);
+      const soldDateCol = findCol(['sold date', 'date sold', 'close date']);
+      const soldPriceCol = findCol(['sold price', 'price sold', 'close price']);
 
       if (!mlsCol) { showToast('No MLS# column found in CSV'); return; }
 
@@ -1902,6 +2051,10 @@
         if (ybCol && row[ybCol]) {
           p.yearBuilt = row[ybCol].trim();
         }
+
+        // Fill date sold / price sold from CSV
+        if (soldDateCol && row[soldDateCol]) p.dateSold = row[soldDateCol].trim();
+        if (soldPriceCol && row[soldPriceCol]) p.priceSold = row[soldPriceCol].trim();
 
         // Map architectural style from CSV
         if (styleCol && row[styleCol]) {
@@ -2321,7 +2474,8 @@
       const text = ta ? ta.value.trim() : '';
       if (!text) { showToast('No ' + (isSite ? 'site' : 'building') + ' comments to analyze'); return; }
       if (currentIndex < 0) return;
-      const p = store.properties[currentIndex];
+      const capturedIndex = currentIndex;
+      const p = store.properties[capturedIndex];
 
       // Find the analyze button — it's in the form-group preceding the container
       const btn = document.querySelector(`#${containerId}`)?.previousElementSibling?.querySelector('.btn-analyze');
@@ -2381,14 +2535,11 @@ ${label}: ${text}${getCorrectionContext(corrKey)}`;
         const data = await resp.json();
         let content = data.choices[0].message.content.trim();
         content = content.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
-        if (isSite) {
-          analysisResult = JSON.parse(content);
-          saveAnalysisResult(p, 'siteText', analysisResult);
-          renderAnalysisPanel('siteAnalysisContainer', analysisResult, 'Site Analysis');
-        } else {
-          buildingAnalysisResult = JSON.parse(content);
-          saveAnalysisResult(p, 'buildingText', buildingAnalysisResult);
-          renderAnalysisPanel('buildingAnalysisContainer', buildingAnalysisResult, 'Building Analysis');
+        const parsed = JSON.parse(content);
+        saveAnalysisResult(p, isSite ? 'siteText' : 'buildingText', parsed);
+        if (currentIndex === capturedIndex) {
+          if (isSite) { analysisResult = parsed; renderAnalysisPanel('siteAnalysisContainer', parsed, 'Site Analysis'); }
+          else { buildingAnalysisResult = parsed; renderAnalysisPanel('buildingAnalysisContainer', parsed, 'Building Analysis'); }
         }
       } catch(e) {
         console.error('Analysis error:', e);
@@ -2473,7 +2624,7 @@ ${label}: ${text}${getCorrectionContext(corrKey)}`;
       if (r.summary) {
         html += `<div class="analysis-row" style="margin-top:8px">
           <span class="a-label">Summary</span><span class="a-value">${esc(r.summary)}</span>
-          <button class="a-btn a-btn-copy" onclick="copyToNotes('${esc(r.summary).replace(/'/g, "\\'")}')">Copy to Notes</button>
+          <button class="a-btn a-btn-copy" onclick="copyToNotes('${esc(r.summary).replace(/'/g, "\\'")}','${esc(title).replace(/'/g, "\\'")}')">Copy to Notes</button>
         </div>`;
       }
 
@@ -2535,10 +2686,11 @@ ${label}: ${text}${getCorrectionContext(corrKey)}`;
       showToast('Renovations updated');
     }
 
-    function copyToNotes(text) {
+    function copyToNotes(text, heading) {
       const el = document.getElementById('fNotes');
       if (!el) return;
-      el.value = el.value ? el.value + '\n' + text : text;
+      const block = heading ? heading + ': ' + text : text;
+      el.value = el.value ? el.value + '\n' + block : block;
       showToast('Copied to notes');
     }
 
@@ -2935,7 +3087,8 @@ CRITICAL RULES:
       const key = getApiKey();
       if (!key) { showToast('Set your OpenAI API key first'); openSettingsModal(); return; }
       if (currentIndex < 0) return;
-      const p = store.properties[currentIndex];
+      const capturedIndex = currentIndex;
+      const p = store.properties[capturedIndex];
       const photos = await getPhotos(p.mls, category);
       if (!photos.length) { showToast('No ' + category + ' photos to analyze'); return; }
 
@@ -2978,15 +3131,18 @@ CRITICAL RULES:
         const data = await resp.json();
         let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
         const result = JSON.parse(raw);
-        if (category === 'building') { buildingVisionResult = result; saveAnalysisResult(p, 'buildingVision', result); }
-        else { siteVisionResult = result; saveAnalysisResult(p, 'siteVision', result); }
-        renderVisionPanel(containerId, result, category);
+        saveAnalysisResult(p, category === 'building' ? 'buildingVision' : 'siteVision', result);
+        if (currentIndex === capturedIndex) {
+          if (category === 'building') buildingVisionResult = result;
+          else siteVisionResult = result;
+          renderVisionPanel(containerId, result, category);
+        }
       } catch(e) {
         console.error('Vision analysis error:', e);
         showToast('Vision analysis failed: ' + (e.message || 'Unknown error').substring(0, 80));
       } finally {
         const arr = getPhotosArray(category);
-        if (btn) { btn.disabled = !arr.length; btn.textContent = 'Analyze ' + cap + ' Photos'; }
+        if (currentIndex === capturedIndex && btn) { btn.disabled = !arr.length; btn.textContent = 'Analyze ' + cap + ' Photos'; }
       }
     }
 
@@ -3059,7 +3215,7 @@ CRITICAL RULES:
       }
       if (r.summary) {
         html += `<div class="vision-row" style="margin-top:6px"><div class="v-label">Summary</div><div class="v-value">${esc(r.summary)}</div>
-          <button class="a-btn a-btn-copy" style="margin-top:4px" onclick="copyToNotes('${esc(r.summary).replace(/'/g, "\\'")}')">Copy to Notes</button></div>`;
+          <button class="a-btn a-btn-copy" style="margin-top:4px" onclick="copyToNotes('${esc(r.summary).replace(/'/g, "\\'")}','${category.charAt(0).toUpperCase() + category.slice(1)} Photo Analysis')">Copy to Notes</button></div>`;
       }
       // Unified photo chat (replaces separate correction + photo chats for vision panels)
       html += renderPhotoChatSection(category, containerId);
@@ -3077,7 +3233,8 @@ CRITICAL RULES:
       const key = getApiKey();
       if (!key) { showToast('Set your OpenAI API key first'); openSettingsModal(); return; }
       if (currentIndex < 0) return;
-      const p = store.properties[currentIndex];
+      const capturedIndex = currentIndex;
+      const p = store.properties[capturedIndex];
 
       const btn = document.getElementById('btnAnalyzeMLS');
       if (btn) { btn.disabled = true; btn.textContent = 'Analyzing MLS...'; }
@@ -3164,14 +3321,17 @@ RULES:
         }
         const data = await resp.json();
         let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
-        mlsSummaryResult = JSON.parse(raw);
-        saveAnalysisResult(p, 'mlsSummary', mlsSummaryResult);
-        renderMlsSummaryPanel();
+        const parsed = JSON.parse(raw);
+        saveAnalysisResult(p, 'mlsSummary', parsed);
+        if (currentIndex === capturedIndex) {
+          mlsSummaryResult = parsed;
+          renderMlsSummaryPanel();
+        }
       } catch(e) {
         console.error('MLS analysis error:', e);
         showToast('MLS analysis failed: ' + (e.message || 'Unknown error').substring(0, 80));
       } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Analyze MLS'; }
+        if (currentIndex === capturedIndex && btn) { btn.disabled = false; btn.textContent = 'Analyze MLS'; }
       }
     }
 
@@ -3221,7 +3381,7 @@ RULES:
       }
       if (r.overallSummary) {
         html += `<div class="vision-row" style="margin-top:6px"><div class="v-label">Overall Summary</div><div class="v-value">${esc(r.overallSummary)}</div>
-          <button class="a-btn a-btn-copy" style="margin-top:4px" onclick="copyToNotes('${esc(r.overallSummary).replace(/'/g, "\\'")}')">Copy to Notes</button></div>`;
+          <button class="a-btn a-btn-copy" style="margin-top:4px" onclick="copyToNotes('${esc(r.overallSummary).replace(/'/g, "\\'")}','MLS Summary')">Copy to Notes</button></div>`;
       }
       html += renderCorrectionChat('mlsSummary', 'mlsSummaryContainer');
       html += `<div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end">
@@ -3280,7 +3440,8 @@ RULES:
       const key = getApiKey();
       if (!key) { showToast('Set API key first'); return; }
       if (currentIndex < 0) return;
-      const p = store.properties[currentIndex];
+      const capturedIndex = currentIndex;
+      const p = store.properties[capturedIndex];
 
       // Save the user correction
       addCorrection(analysisType, 'user', msg);
@@ -3334,12 +3495,17 @@ RULES:
         // Store AI acknowledgment
         addCorrection(analysisType, 'ai', 'Analysis revised based on your correction.');
 
-        // Update the result and re-render
-        if (analysisType === 'siteVision') { siteVisionResult = revised; saveAnalysisResult(p, 'siteVision', revised); renderVisionPanel('siteVisionContainer', revised, 'site'); }
-        else if (analysisType === 'buildingVision') { buildingVisionResult = revised; saveAnalysisResult(p, 'buildingVision', revised); renderVisionPanel('buildingVisionContainer', revised, 'building'); }
-        else if (analysisType === 'mlsSummary') { mlsSummaryResult = revised; saveAnalysisResult(p, 'mlsSummary', revised); renderMlsSummaryPanel(); }
-        else if (analysisType === 'siteText') { analysisResult = revised; saveAnalysisResult(p, 'siteText', revised); renderAnalysisPanel('siteAnalysisContainer', revised, 'Site Analysis'); }
-        else if (analysisType === 'buildingText') { buildingAnalysisResult = revised; saveAnalysisResult(p, 'buildingText', revised); renderAnalysisPanel('buildingAnalysisContainer', revised, 'Building Analysis'); }
+        // Always save to the correct property
+        const saveKey = analysisType === 'siteVision' ? 'siteVision' : analysisType === 'buildingVision' ? 'buildingVision' : analysisType === 'mlsSummary' ? 'mlsSummary' : analysisType === 'siteText' ? 'siteText' : 'buildingText';
+        saveAnalysisResult(p, saveKey, revised);
+        // Only update globals and DOM if still viewing same property
+        if (currentIndex === capturedIndex) {
+          if (analysisType === 'siteVision') { siteVisionResult = revised; renderVisionPanel('siteVisionContainer', revised, 'site'); }
+          else if (analysisType === 'buildingVision') { buildingVisionResult = revised; renderVisionPanel('buildingVisionContainer', revised, 'building'); }
+          else if (analysisType === 'mlsSummary') { mlsSummaryResult = revised; renderMlsSummaryPanel(); }
+          else if (analysisType === 'siteText') { analysisResult = revised; renderAnalysisPanel('siteAnalysisContainer', revised, 'Site Analysis'); }
+          else if (analysisType === 'buildingText') { buildingAnalysisResult = revised; renderAnalysisPanel('buildingAnalysisContainer', revised, 'Building Analysis'); }
+        }
 
         showToast('Analysis revised');
       } catch(e) {
@@ -3414,7 +3580,8 @@ RULES:
       const key = getApiKey();
       if (!key) { showToast('Set API key first'); return; }
       if (currentIndex < 0) return;
-      const p = store.properties[currentIndex];
+      const capturedIndex = currentIndex;
+      const p = store.properties[capturedIndex];
 
       addPhotoChatMsg(category, 'user', msg);
       input.value = '';
@@ -3474,13 +3641,14 @@ RULES:
         showToast('Chat failed: ' + (e.message || 'Unknown error').substring(0, 80));
       }
 
-      // Re-render the vision panel to show updated chat
-      const result = category === 'site' ? siteVisionResult : buildingVisionResult;
-      if (result) renderVisionPanel(containerId, result, category);
-      else {
-        // No analysis yet — just re-render the chat section in the container
-        const container = document.getElementById(containerId);
-        if (container) container.innerHTML = '<div class="vision-panel"><h4>' + (category === 'site' ? 'Site Photo Chat' : 'Building Photo Chat') + '</h4>' + renderPhotoChatSection(category, containerId) + '</div>';
+      // Re-render only if still viewing same property
+      if (currentIndex === capturedIndex) {
+        const result = category === 'site' ? siteVisionResult : buildingVisionResult;
+        if (result) renderVisionPanel(containerId, result, category);
+        else {
+          const container = document.getElementById(containerId);
+          if (container) container.innerHTML = '<div class="vision-panel"><h4>' + (category === 'site' ? 'Site Photo Chat' : 'Building Photo Chat') + '</h4>' + renderPhotoChatSection(category, containerId) + '</div>';
+        }
       }
     }
 
@@ -3488,7 +3656,8 @@ RULES:
       const key = getApiKey();
       if (!key) { showToast('Set API key first'); return; }
       if (currentIndex < 0) return;
-      const p = store.properties[currentIndex];
+      const capturedIndex = currentIndex;
+      const p = store.properties[capturedIndex];
       const chat = getPhotoChat(category);
       if (!chat.length) return;
 
@@ -3537,9 +3706,12 @@ RULES:
         let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
         const result = JSON.parse(raw);
 
-        if (category === 'building') { buildingVisionResult = result; saveAnalysisResult(p, 'buildingVision', result); }
-        else { siteVisionResult = result; saveAnalysisResult(p, 'siteVision', result); }
-        renderVisionPanel(containerId, result, category);
+        saveAnalysisResult(p, category === 'building' ? 'buildingVision' : 'siteVision', result);
+        if (currentIndex === capturedIndex) {
+          if (category === 'building') buildingVisionResult = result;
+          else siteVisionResult = result;
+          renderVisionPanel(containerId, result, category);
+        }
         showToast('Analysis updated from chat');
       } catch(e) {
         console.error('Apply chat error:', e);
@@ -3700,7 +3872,8 @@ RULES:
       const key = getApiKey();
       if (!key) { showToast('Set your OpenAI API key first'); openSettingsModal(); return; }
       if (currentIndex < 0 || !store.subjectMls) return;
-      const comp = store.properties[currentIndex];
+      const capturedIndex = currentIndex;
+      const comp = store.properties[capturedIndex];
       const subj = store.properties.find(x => x.mls === store.subjectMls);
       if (!subj || subj.mls === comp.mls) return;
 
@@ -3832,20 +4005,23 @@ RULES:
         }
         const data = await resp.json();
         let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
-        comparisonResult = JSON.parse(raw);
+        const parsed = JSON.parse(raw);
 
         // Persist result
         if (!comp.comparisons) comp.comparisons = {};
         if (!comp.comparisons[subjMls]) comp.comparisons[subjMls] = {};
-        comp.comparisons[subjMls].result = comparisonResult;
+        comp.comparisons[subjMls].result = parsed;
         saveLocal();
 
-        renderComparisonPanel();
+        if (currentIndex === capturedIndex) {
+          comparisonResult = parsed;
+          renderComparisonPanel();
+        }
       } catch(e) {
         console.error('Comparison analysis error:', e);
         showToast('Comparison failed: ' + (e.message || 'Unknown error').substring(0, 80));
       } finally {
-        if (btn) { btn.disabled = false; btn.textContent = '\u2699 Compare'; }
+        if (currentIndex === capturedIndex && btn) { btn.disabled = false; btn.textContent = '\u2699 Compare'; }
       }
     }
 
@@ -3882,7 +4058,7 @@ RULES:
 
       if (r.comparisonSummary) {
         html += `<div class="vision-row" style="margin-top:6px"><div class="v-label">Summary</div><div class="v-value">${esc(r.comparisonSummary)}</div>
-          <button class="a-btn a-btn-copy" style="margin-top:4px" onclick="copyToNotes('${esc(r.comparisonSummary).replace(/'/g, "\\'")}')">Copy to Notes</button></div>`;
+          <button class="a-btn a-btn-copy" style="margin-top:4px" onclick="copyToNotes('${esc(r.comparisonSummary).replace(/'/g, "\\'")}','Comparison')">Copy to Notes</button></div>`;
       }
 
       html += renderCorrectionChat(corrKey, 'comparisonContainer');
@@ -3900,6 +4076,7 @@ RULES:
       const key = getApiKey();
       if (!key) { showToast('Set API key first'); return; }
       if (currentIndex < 0) return;
+      const capturedIndex = currentIndex;
 
       addCorrection(analysisType, 'user', msg);
       input.value = '';
@@ -3924,15 +4101,18 @@ RULES:
         if (!resp.ok) throw new Error((await resp.json().catch(() => ({}))).error?.message?.substring(0, 80) || resp.statusText);
         const data = await resp.json();
         let raw = data.choices[0].message.content.trim().replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
-        comparisonResult = JSON.parse(raw);
+        const revised = JSON.parse(raw);
         addCorrection(analysisType, 'ai', 'Comparison revised.');
-        const comp = store.properties[currentIndex];
+        const comp = store.properties[capturedIndex];
         const subjMls = analysisType.replace('comparison_', '');
         if (!comp.comparisons) comp.comparisons = {};
         if (!comp.comparisons[subjMls]) comp.comparisons[subjMls] = {};
-        comp.comparisons[subjMls].result = comparisonResult;
+        comp.comparisons[subjMls].result = revised;
         saveLocal();
-        renderComparisonPanel();
+        if (currentIndex === capturedIndex) {
+          comparisonResult = revised;
+          renderComparisonPanel();
+        }
         showToast('Comparison revised');
       } catch(e) {
         showToast('Correction failed: ' + (e.message || '').substring(0, 80));
@@ -4003,11 +4183,17 @@ RULES:
     // CLOSE CONFIRMATION
     // ============================================
     window.onbeforeunload = function(e) {
-      if (store.properties.length > 0) {
+      if (formDirty) {
         e.preventDefault();
         e.returnValue = '';
       }
     };
+
+    // ============================================
+    // TRACK UNSAVED CHANGES
+    // ============================================
+    document.getElementById('formPanel').addEventListener('input', () => { formDirty = true; });
+    document.getElementById('formPanel').addEventListener('change', () => { formDirty = true; });
 
     // ============================================
     // INIT
