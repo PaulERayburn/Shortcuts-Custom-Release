@@ -19,30 +19,20 @@ Built with AutoHotkey v2 and Microsoft Edge (app mode). No internet required —
 
 ## Quick Start
 
-### Option A: Download a Release (recommended)
-
-1. Go to the [Releases](../../releases) page
-2. Download the latest `.zip` file
-3. Extract to any folder (e.g. `C:\Shortcuts-Custom`)
-4. Double-click `popup.exe` to start
-
-### Option B: Run from Source
-
 1. **Install AutoHotkey v2**
    ```
    winget install AutoHotkey.AutoHotkey
    ```
    Or download from [autohotkey.com](https://www.autohotkey.com/)
 
-2. **Clone the repo**
+2. **Download this repo** — click the green **Code** button above, then **Download ZIP**. Extract to any folder (e.g. `C:\Shortcuts-Custom`).
+
+   Or clone with git:
    ```
    git clone https://github.com/PaulERayburn/Shortcuts-Custom-Release.git
    ```
 
-3. **Run the script**
-   ```
-   Double-click popup.ahk
-   ```
+3. **Double-click `popup.ahk`** to start.
 
 You'll see a tooltip: "Shortcuts Popup ready!" and a green **H** icon in your system tray.
 
