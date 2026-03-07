@@ -18,10 +18,12 @@ DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr")  ; Per-Monitor V2
 ;   ^+/              Ctrl + Shift + /      +   = Shift
 ;   F12              F12 key               #   = Win
 ;   #/               Win + /               & = combines two keys
+;   Note: the backtick (`) before ; is required — it tells AHK
+;   the semicolon is a key, not a comment. Don't remove it.
 
 KEY_POPUP       := "CapsLock & /"    ; Open/close the shortcuts popup
-KEY_COLLECT     := "CapsLock & `;"    ; Collect selected text into active list
-KEY_NEW_LIST    := "CapsLock & `;"    ; (with Shift held) Create new list from clipboard
+KEY_COLLECT     := "CapsLock & `;"    ; Collect selected text (CapsLock + ;)
+KEY_NEW_LIST    := "CapsLock & `;"    ; (with Shift held) New list from clipboard
 KEY_PASTE       := "CapsLock & ]"    ; Paste all collected items
 KEY_VIEWER      := "CapsLock & BS"   ; Open/close the Collector viewer
 KEY_KB_FIX      := "CapsLock & '"    ; Keyboard fix utility (optional — delete if not needed)
