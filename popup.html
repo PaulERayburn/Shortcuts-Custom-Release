@@ -459,6 +459,7 @@
       <button class="btn btn-add" onclick="openAddModal()">+ Add</button>
       <button class="btn btn-edit" id="editModeBtn" onclick="toggleEditMode()">Edit</button>
       <button class="btn btn-edit" onclick="openCategoryModal()" title="Manage Categories" style="background:#8b5cf6">Categories</button>
+      <button class="btn btn-edit" onclick="openCollector()" title="Open Collector Viewer" style="background:#10b981">Collector</button>
     </div>
   </div>
 
@@ -886,6 +887,12 @@
         label.textContent = 'Keys / Command';
         input.placeholder = 'e.g., Ctrl+B d';
       }
+    }
+
+    function openCollector() {
+      document.title = 'Shortcuts-Custom';
+      setTimeout(() => { document.title = 'OPEN::COLLECTOR'; }, 50);
+      showToast('Opening Collector...');
     }
 
     function filterShortcuts() {

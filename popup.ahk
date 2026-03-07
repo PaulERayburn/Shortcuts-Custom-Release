@@ -31,29 +31,43 @@ MLS_HEIGHT := 1050
 MLS_HTML_FILE := A_ScriptDir "\mls-notes.html"
 MLS_ACTIVE_FILE := A_ScriptDir "\data\mls-active.txt"
 
+; Collector settings
+COLLECTOR_WIDTH := 450
+COLLECTOR_HEIGHT := 520
+COLLECTOR_HTML_FILE := A_ScriptDir "\collector.html"
+COLLECTOR_DATA_FILE := A_ScriptDir "\collector-data.js"
+
 ; ============================================
 ; GLOBALS
 ; ============================================
 global popupHwnd := 0
 global mlsHwnd := 0
+global collectorHwnd := 0
 global previousWindow := 0
+global collectorLists := Map()
+global activeListName := ""
 
 ; ============================================
 ; HOTKEY REGISTRATION
 ; ============================================
-; Register the hotkey
+; Register the hotkeys dynamically for consistent behavior
 Hotkey TRIGGER_KEY, TogglePopup
+Hotkey "CapsLock & .", ToggleMlsNotes
+Hotkey "CapsLock & '", KeyboardFixHotkey
+; Shift+CapsLock+; = new list from clipboard (must register before the plain version)
+HotIf (*) => GetKeyState("Shift", "P")
+Hotkey "CapsLock & `;", NewListFromClipboardHotkey
+HotIf
+Hotkey "CapsLock & `;", CollectSelection
+Hotkey "CapsLock & ]", PasteCollected
+Hotkey "CapsLock & BS", ToggleCollector
 
-; Keyboard fix hotkey: CapsLock + "
-CapsLock & '::
-{
+; Keyboard fix function
+KeyboardFixHotkey(*) {
     Run 'explorer.exe /select,"' A_MyDocuments '\Scripts_PR_Shortcuts\Keyboard EnableDisable\Temporary Enable keyboard.bat"'
     ToolTip "Right-click the bat file > Run as administrator"
     SetTimer () => ToolTip(), -4000
 }
-
-; MLS Notes hotkey: CapsLock + .
-CapsLock & .::ToggleMlsNotes()
 
 ; Also allow Esc to close when popup is active
 #HotIf WinActive("ahk_exe msedge.exe") and WinExist("Shortcuts-Custom")
@@ -74,8 +88,12 @@ TogglePopup(*) {
         return
     }
 
-    ; Remember the current window before opening popup
-    previousWindow := WinGetID("A")
+    ; Remember the current window before opening popup (may not exist)
+    try {
+        previousWindow := WinGetID("A")
+    } catch {
+        previousWindow := 0
+    }
 
     ; Calculate center position
     screenWidth := A_ScreenWidth
@@ -103,9 +121,9 @@ ClosePopup(*) {
     global popupHwnd, previousWindow
 
     if (popupHwnd != 0 && WinExist("ahk_id " popupHwnd)) {
-        SetTimer CheckForScriptRun, 0
         WinClose "ahk_id " popupHwnd
         popupHwnd := 0
+        StopTimerIfNoWindows()
 
         ; Return focus to previous window
         if (previousWindow != 0 && WinExist("ahk_id " previousWindow)) {
@@ -128,8 +146,12 @@ ToggleMlsNotes(*) {
         return
     }
 
-    ; Remember the current window before opening
-    previousWindow := WinGetID("A")
+    ; Remember the current window before opening (may not exist)
+    try {
+        previousWindow := WinGetID("A")
+    } catch {
+        previousWindow := 0
+    }
 
     ; Pre-load clipboard with disk JSON (uses active project marker)
     loadScript := A_ScriptDir "\scripts\load-mls-notes.ps1"
@@ -166,9 +188,9 @@ CloseMlsNotes(*) {
     global mlsHwnd, previousWindow
 
     if (mlsHwnd != 0 && WinExist("ahk_id " mlsHwnd)) {
-        SetTimer CheckForScriptRun, 0
         WinClose "ahk_id " mlsHwnd
         mlsHwnd := 0
+        StopTimerIfNoWindows()
 
         if (previousWindow != 0 && WinExist("ahk_id " previousWindow)) {
             Sleep 50
@@ -219,7 +241,67 @@ MLS_REMARKS_WIDTH := 1500
 MLS_REMARKS_HEIGHT := 1200
 
 CheckForScriptRun() {
-    global mlsHwnd
+    global mlsHwnd, collectorHwnd, collectorLists, activeListName
+
+    ; Handle COLLECTOR:: signals from viewer
+    try {
+        if WinExist("COLLECTOR::") {
+            title := WinGetTitle("COLLECTOR::")
+            hwnd := WinGetID("COLLECTOR::")
+            try WinSetTitle("Collector", "ahk_id " hwnd)
+
+            rest := SubStr(title, 12)  ; after "COLLECTOR::"
+            parts := StrSplit(rest, "::",, 3)
+            action := parts.Length >= 1 ? parts[1] : ""
+            param1 := parts.Length >= 2 ? parts[2] : ""
+            param2 := parts.Length >= 3 ? parts[3] : ""
+
+            if (action = "REMOVE" && param1 != "" && param2 != "") {
+                idx := Integer(param2)
+                if (collectorLists.Has(param1) && idx >= 1 && idx <= collectorLists[param1].Length)
+                    collectorLists[param1].RemoveAt(idx)
+            }
+            else if (action = "CLEAR_LIST" && param1 != "") {
+                if collectorLists.Has(param1)
+                    collectorLists[param1] := []
+            }
+            else if (action = "DELETE_LIST" && param1 != "") {
+                if collectorLists.Has(param1) {
+                    collectorLists.Delete(param1)
+                    if (activeListName = param1) {
+                        activeListName := ""
+                        for name, _ in collectorLists {
+                            activeListName := name
+                            break
+                        }
+                    }
+                }
+            }
+            else if (action = "NEW_LIST" && param1 != "") {
+                if !collectorLists.Has(param1)
+                    collectorLists[param1] := []
+                activeListName := param1
+            }
+            else if (action = "RENAME_LIST" && param1 != "" && param2 != "") {
+                if (collectorLists.Has(param1) && !collectorLists.Has(param2)) {
+                    collectorLists[param2] := collectorLists[param1]
+                    collectorLists.Delete(param1)
+                    if (activeListName = param1)
+                        activeListName := param2
+                }
+            }
+            else if (action = "SWITCH" && param1 != "") {
+                if collectorLists.Has(param1)
+                    activeListName := param1
+            }
+            else if (action = "ADD" && param1 != "" && param2 != "") {
+                if !collectorLists.Has(param1)
+                    collectorLists[param1] := []
+                collectorLists[param1].Push(param2)
+            }
+            WriteCollectorFile()
+        }
+    }
 
     ; Handle SIZE:: signals from MLS Notes
     try {
@@ -265,6 +347,17 @@ CheckForScriptRun() {
         }
     }
 
+    ; Handle OPEN:: signals from popup
+    try {
+        if WinExist("OPEN::") {
+            title := WinGetTitle("OPEN::")
+            hwnd := WinGetID("OPEN::")
+            try WinSetTitle("Shortcuts-Custom", "ahk_id " hwnd)
+            if InStr(title, "OPEN::COLLECTOR")
+                ToggleCollector()
+        }
+    }
+
     ; Find any window whose title contains RUN::
     try {
         if WinExist("RUN::") {
@@ -307,22 +400,211 @@ CheckForScriptRun() {
 }
 
 ; ============================================
+; CLIPBOARD COLLECTOR
+; ============================================
+
+CollectSelection(*) {
+    global collectorLists, activeListName
+    prevClip := A_Clipboard
+    A_Clipboard := ""
+    KeyWait "CapsLock"
+    Send "^c"
+    if !ClipWait(1) {
+        A_Clipboard := prevClip
+        ToolTip "Nothing selected to collect"
+        SetTimer () => ToolTip(), -1500
+        return
+    }
+    item := Trim(A_Clipboard, " `t`r`n")
+    A_Clipboard := prevClip
+
+    if (item = "") {
+        ToolTip "Empty selection"
+        SetTimer () => ToolTip(), -1500
+        return
+    }
+
+    ; Create default list if none exists
+    if (activeListName = "" || !collectorLists.Has(activeListName)) {
+        if (activeListName = "")
+            activeListName := "List 1"
+        if !collectorLists.Has(activeListName)
+            collectorLists[activeListName] := []
+    }
+
+    collectorLists[activeListName].Push(item)
+    WriteCollectorFile()
+
+    items := collectorLists[activeListName]
+    count := items.Length
+    preview := ""
+    startIdx := Max(1, count - 4)
+    Loop count - startIdx + 1 {
+        idx := startIdx + A_Index - 1
+        if (preview != "")
+            preview .= "  "
+        preview .= items[idx]
+    }
+    if (startIdx > 1)
+        preview := "... " preview
+
+    ToolTip "[" activeListName "] (" count "): " preview
+    SetTimer () => ToolTip(), -3000
+}
+
+NewListFromClipboardHotkey(*) {
+    KeyWait "CapsLock"
+    NewListFromClipboard()
+}
+
+NewListFromClipboard() {
+    global collectorLists, activeListName
+    listName := Trim(A_Clipboard, " `t`r`n")
+    if (listName = "") {
+        ToolTip "Clipboard is empty — copy an address first"
+        SetTimer () => ToolTip(), -2000
+        return
+    }
+    ; Truncate very long names
+    if (StrLen(listName) > 60)
+        listName := SubStr(listName, 1, 60)
+    if !collectorLists.Has(listName)
+        collectorLists[listName] := []
+    activeListName := listName
+    WriteCollectorFile()
+    ToolTip "New list: [" listName "]`nCapsLock+; to collect items"
+    SetTimer () => ToolTip(), -3000
+}
+
+PasteCollected(*) {
+    global collectorLists, activeListName
+    if (activeListName = "" || !collectorLists.Has(activeListName) || collectorLists[activeListName].Length = 0) {
+        ToolTip "Collector is empty"
+        SetTimer () => ToolTip(), -1500
+        return
+    }
+
+    items := collectorLists[activeListName]
+    result := ""
+    for idx, item in items {
+        if (idx > 1)
+            result .= " "
+        result .= item
+    }
+
+    A_Clipboard := result
+    KeyWait "CapsLock"
+    Send "^v"
+
+    ToolTip "Pasted " items.Length " items from [" activeListName "]"
+    SetTimer () => ToolTip(), -2500
+}
+
+; ============================================
+; COLLECTOR VIEWER POPUP
+; ============================================
+
+ToggleCollector(*) {
+    global collectorHwnd, previousWindow
+
+    if (collectorHwnd != 0 && WinExist("ahk_id " collectorHwnd)) {
+        CloseCollector()
+        return
+    }
+
+    try {
+        previousWindow := WinGetID("A")
+    } catch {
+        previousWindow := 0
+    }
+
+    WriteCollectorFile()
+
+    posX := (A_ScreenWidth - COLLECTOR_WIDTH) // 2
+    posY := (A_ScreenHeight - COLLECTOR_HEIGHT) // 2
+
+    edgePath := "msedge.exe"
+    edgeArgs := Format('--app="{1}" --window-size={2},{3} --window-position={4},{5}',
+        COLLECTOR_HTML_FILE, COLLECTOR_WIDTH, COLLECTOR_HEIGHT, posX, posY)
+
+    Run edgePath " " edgeArgs
+
+    if WinWait("Collector", , 3) {
+        collectorHwnd := WinGetID("Collector")
+        WinActivate "ahk_id " collectorHwnd
+        SetTimer CheckForScriptRun, 250
+    }
+}
+
+CloseCollector(*) {
+    global collectorHwnd, previousWindow
+
+    if (collectorHwnd != 0 && WinExist("ahk_id " collectorHwnd)) {
+        WinClose "ahk_id " collectorHwnd
+        collectorHwnd := 0
+        StopTimerIfNoWindows()
+
+        if (previousWindow != 0 && WinExist("ahk_id " previousWindow)) {
+            Sleep 50
+            WinActivate "ahk_id " previousWindow
+        }
+    }
+}
+
+WriteCollectorFile() {
+    global collectorLists, activeListName
+    js := "window._collectorData = {"
+    js .= '"activeList":"' EscapeJsonString(activeListName) '",'
+    js .= '"lists":{'
+    first := true
+    for name, items in collectorLists {
+        if (!first)
+            js .= ","
+        first := false
+        js .= '"' EscapeJsonString(name) '":['
+        for idx, item in items {
+            if (idx > 1)
+                js .= ","
+            js .= '"' EscapeJsonString(item) '"'
+        }
+        js .= "]"
+    }
+    js .= "}};`n"
+    try FileDelete(COLLECTOR_DATA_FILE)
+    try FileAppend(js, COLLECTOR_DATA_FILE)
+}
+
+StopTimerIfNoWindows() {
+    global popupHwnd, mlsHwnd, collectorHwnd
+    popupAlive := (popupHwnd != 0 && WinExist("ahk_id " popupHwnd))
+    mlsAlive := (mlsHwnd != 0 && WinExist("ahk_id " mlsHwnd))
+    collectorAlive := (collectorHwnd != 0 && WinExist("ahk_id " collectorHwnd))
+    if (!popupAlive && !mlsAlive && !collectorAlive)
+        SetTimer CheckForScriptRun, 0
+}
+
+EscapeJsonString(str) {
+    str := StrReplace(str, "\", "\\")
+    str := StrReplace(str, '"', '\"')
+    str := StrReplace(str, "`n", "\n")
+    str := StrReplace(str, "`r", "\r")
+    str := StrReplace(str, "`t", "\t")
+    return str
+}
+
+; ============================================
 ; TRAY MENU
 ; ============================================
 A_TrayMenu.Delete()
 A_TrayMenu.Add("Show Popup", TogglePopup)
 A_TrayMenu.Add("MLS Notes", ToggleMlsNotes)
-A_TrayMenu.Add("Open Shortcuts Folder", OpenFolder)
+A_TrayMenu.Add("Collector", ToggleCollector)
 A_TrayMenu.Add()
 A_TrayMenu.Add("Edit Hotkey", EditHotkey)
 A_TrayMenu.Add()
 A_TrayMenu.Add("Reload Script", ReloadScript)
 A_TrayMenu.Add("Exit", ExitScript)
 A_TrayMenu.Default := "Show Popup"
-
-OpenFolder(*) {
-    Run "explorer.exe " A_ScriptDir
-}
 
 EditHotkey(*) {
     MsgBox "To change the hotkey:`n`n1. Open: " A_ScriptDir "\popup.ahk`n2. Find the line: TRIGGER_KEY := `"" TRIGGER_KEY "`"`n3. Change it to your preferred hotkey`n4. Save and reload the script`n`nCommon options:`n  CapsLock & /`n  ^!s (Ctrl+Alt+S)`n  ^+/ (Ctrl+Shift+/)`n  F12", "Edit Hotkey"
@@ -340,5 +622,5 @@ ExitScript(*) {
 ; STARTUP
 ; ============================================
 ; Show a tooltip on startup
-ToolTip "Shortcuts Popup ready!`nPress " TRIGGER_KEY " to toggle"
-SetTimer () => ToolTip(), -2000
+ToolTip "Shortcuts Popup ready!`nPress " TRIGGER_KEY " to toggle`nCapsLock+; collect | Shift+CapsLock+; new list | CapsLock+] paste | CapsLock+BS viewer"
+SetTimer () => ToolTip(), -3000

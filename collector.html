@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collector</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-size: 13px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #333;
+      flex-shrink: 0;
+    }
+    .header h1 { font-size: 16px; font-weight: 600; color: #fff; }
+    .count { font-size: 13px; color: #888; margin-left: 8px; }
+
+    /* List tabs */
+    .list-tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+      align-items: center;
+    }
+
+    .list-tab {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      background: #333;
+      color: #999;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .list-tab:hover { color: #fff; background: #444; }
+    .list-tab.active { background: #3b82f6; color: #fff; font-weight: 600; }
+
+    .list-tab .tab-count {
+      font-size: 10px;
+      margin-left: 4px;
+      opacity: 0.7;
+    }
+
+    .list-tab .tab-close {
+      margin-left: 6px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      color: inherit;
+    }
+    .list-tab:hover .tab-close { opacity: 0.6; }
+    .list-tab .tab-close:hover { opacity: 1; color: #ef4444; }
+
+    .btn-new-list {
+      padding: 5px 10px;
+      border: 1px dashed #555;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      background: none;
+      color: #666;
+      transition: all 0.15s;
+    }
+    .btn-new-list:hover { color: #fff; border-color: #888; }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.8; }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn-copy { background: #22c55e; color: #fff; }
+    .btn-clear { background: #ef4444; color: #fff; }
+    .btn-add { background: #3b82f6; color: #fff; }
+    .btn-rename { background: #8b5cf6; color: #fff; }
+
+    /* Add row */
+    .add-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .add-input {
+      flex: 1;
+      padding: 7px 10px;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: #2d2d2d;
+      color: #d4d4d4;
+      font-size: 13px;
+      font-family: 'Consolas', 'Courier New', monospace;
+    }
+    .add-input:focus { outline: none; border-color: #3b82f6; }
+
+    /* Items list */
+    .items-list {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      background: #2d2d2d;
+      border-radius: 4px;
+      margin-bottom: 3px;
+      transition: background 0.15s;
+    }
+    .item-row:hover { background: #3d3d3d; }
+
+    .item-num {
+      font-size: 11px;
+      color: #666;
+      min-width: 20px;
+      text-align: right;
+    }
+
+    .item-text {
+      flex: 1;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 13px;
+      color: #fff;
+      word-break: break-all;
+      user-select: text;
+    }
+
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #555;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .btn-remove:hover { color: #ef4444; background: #ef444422; }
+
+    .empty-state {
+      text-align: center;
+      color: #555;
+      padding: 40px 20px;
+      font-size: 14px;
+    }
+    .empty-state .hint { font-size: 12px; margin-top: 8px; color: #444; }
+
+    /* Preview */
+    .preview-label { font-size: 11px; color: #555; margin-top: 8px; margin-bottom: 2px; flex-shrink: 0; }
+
+    .preview {
+      flex-shrink: 0;
+      padding: 8px 10px;
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      color: #999;
+      word-break: break-all;
+      max-height: 50px;
+      overflow-y: auto;
+      user-select: text;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #22c55e;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 200;
+    }
+    .toast.show { opacity: 1; }
+
+    /* Info button */
+    .btn-info {
+      background: #e91e8a;
+      border: none;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
+      transition: opacity 0.15s;
+    }
+    .btn-info:hover { opacity: 0.8; }
+
+    /* Info panel */
+    .info-panel {
+      display: none;
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      color: #999;
+      flex-shrink: 0;
+    }
+    .info-panel table { width: 100%; border-collapse: collapse; }
+    .info-panel td { padding: 3px 0; }
+    .info-panel td:first-child {
+      font-family: 'Consolas', 'Courier New', monospace;
+      color: #ccc;
+      white-space: nowrap;
+      padding-right: 12px;
+      width: 1%;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #1e1e1e; }
+    ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div style="display:flex;align-items:baseline">
+      <h1>Collector</h1>
+      <span class="count" id="count"></span>
+    </div>
+    <button class="btn-info" onclick="toggleInfo()" title="Instructions &amp; shortcuts">Instructions</button>
+  </div>
+
+  <div class="info-panel" id="infoPanel">
+    <div style="margin-bottom:8px;font-weight:600;color:#ccc;font-size:12px">Keyboard Shortcuts</div>
+    <table>
+      <tr><td>CapsLock+;</td><td>Collect selected text into the active list</td></tr>
+      <tr><td>Shift+CapsLock+;</td><td>Create a new list named from clipboard contents</td></tr>
+      <tr><td>CapsLock+]</td><td>Paste all items (space-separated) into current app</td></tr>
+      <tr><td>CapsLock+Backspace</td><td>Toggle this viewer window</td></tr>
+    </table>
+    <div style="margin:10px 0 6px;border-top:1px solid #333;padding-top:8px;font-weight:600;color:#ccc;font-size:12px">How to Use</div>
+    <div style="line-height:1.6">
+      <b>1.</b> Create a list &mdash; click <b>+ New List</b> above, or copy an address or any text and press <b>Shift+CapsLock+;</b> to name a list from clipboard.<br>
+      <b>2.</b> Collect items &mdash; highlight text (e.g. an MLS number) anywhere and press <b>CapsLock+;</b>. It gets added to the active list.<br>
+      <b>3.</b> Review &mdash; open this viewer with <b>CapsLock+Backspace</b> to see, reorder, or remove items. You can also type/paste items manually above.<br>
+      <b>4.</b> Paste &mdash; press <b>CapsLock+]</b> to paste all items space-separated, or click <b>Copy List</b> to copy to clipboard.<br>
+      <b>5.</b> Manage &mdash; switch between lists via tabs, rename with <b>Rename</b>, or clear/delete as needed.
+    </div>
+  </div>
+
+  <div class="list-tabs" id="listTabs"></div>
+
+  <div class="add-row">
+    <input type="text" class="add-input" id="addInput" placeholder="Type or paste items and press Enter...">
+    <button class="btn btn-add" onclick="addManual()">Add</button>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-copy" id="copyBtn" onclick="copyList()">Copy List</button>
+    <button class="btn btn-rename" onclick="renameActiveList()">Rename</button>
+    <button class="btn btn-clear" id="clearBtn" onclick="clearList()">Clear</button>
+  </div>
+
+  <div class="items-list" id="itemsList"></div>
+
+  <div class="preview-label">Output preview (space-separated):</div>
+  <div class="preview" id="preview"></div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let data = { activeList: '', lists: {} };
+    let signalPending = false;
+    let signalQueue = [];
+
+    // =====================
+    // POLLING (file-based)
+    // =====================
+    function pollFile() {
+      if (signalPending) return;
+      const script = document.createElement('script');
+      script.src = 'collector-data.js?t=' + Date.now();
+      script.onload = () => {
+        if (window._collectorData) {
+          const incoming = window._collectorData;
+          delete window._collectorData;
+          // Merge: use incoming as truth
+          data = {
+            activeList: incoming.activeList || '',
+            lists: incoming.lists || {}
+          };
+          render();
+        }
+        script.remove();
+      };
+      script.onerror = () => script.remove();
+      document.head.appendChild(script);
+    }
+
+    // Start polling every 500ms
+    setInterval(pollFile, 500);
+    // Also load immediately
+    pollFile();
+
+    // =====================
+    // SIGNALING (title-based back to AHK)
+    // =====================
+    function flushSignals() {
+      if (signalQueue.length === 0) return;
+      const next = signalQueue.shift();
+      signalPending = true;
+      document.title = 'COLLECTOR::' + next;
+      setTimeout(() => {
+        document.title = 'Collector';
+        if (signalQueue.length > 0) {
+          setTimeout(flushSignals, 50);
+        } else {
+          // Keep polling frozen a bit longer so AHK finishes writing the file
+          setTimeout(() => { signalPending = false; }, 300);
+        }
+      }, 400);
+    }
+
+    function queueSignal(action) {
+      signalQueue.push(action);
+      if (!signalPending) flushSignals();
+    }
+
+    function signal(action) {
+      queueSignal(action);
+    }
+
+    // =====================
+    // RENDERING
+    // =====================
+    function render() {
+      renderTabs();
+      renderItems();
+      renderPreview();
+    }
+
+    function renderTabs() {
+      const container = document.getElementById('listTabs');
+      const names = Object.keys(data.lists);
+      let html = '';
+
+      names.forEach(name => {
+        const active = name === data.activeList ? 'active' : '';
+        const count = data.lists[name].length;
+        const escaped = escapeHtml(name);
+        html += `<button class="list-tab ${active}" onclick="switchList('${escAttr(name)}')" ondblclick="renameList('${escAttr(name)}')">
+          ${escaped}<span class="tab-count">(${count})</span>${names.length > 1 ? `<span class="tab-close" onclick="event.stopPropagation(); deleteList('${escAttr(name)}')">&times;</span>` : ''}
+        </button>`;
+      });
+
+      html += `<button class="btn-new-list" onclick="newList()">+ New List</button>`;
+      container.innerHTML = html;
+    }
+
+    function renderItems() {
+      const list = document.getElementById('itemsList');
+      const count = document.getElementById('count');
+      const items = data.lists[data.activeList] || [];
+      const copyBtn = document.getElementById('copyBtn');
+      const clearBtn = document.getElementById('clearBtn');
+
+      const totalItems = Object.values(data.lists).reduce((sum, arr) => sum + arr.length, 0);
+      const listCount = Object.keys(data.lists).length;
+      count.textContent = totalItems > 0
+        ? `(${items.length} in list, ${totalItems} total)`
+        : '(empty)';
+
+      copyBtn.disabled = items.length === 0;
+      clearBtn.disabled = items.length === 0;
+
+      if (!data.activeList || items.length === 0) {
+        list.innerHTML = `<div class="empty-state">
+          ${!data.activeList ? 'No lists yet' : 'This list is empty'}
+          <div class="hint">Use <b>CapsLock+;</b> to collect selected text<br>or type above to add manually</div>
+        </div>`;
+        return;
+      }
+
+      let html = '';
+      items.forEach((item, i) => {
+        html += `<div class="item-row">
+          <span class="item-num">${i + 1}.</span>
+          <span class="item-text">${escapeHtml(item)}</span>
+          <button class="btn-remove" onclick="removeItem(${i})" title="Remove">&times;</button>
+        </div>`;
+      });
+      list.innerHTML = html;
+    }
+
+    function renderPreview() {
+      const items = data.lists[data.activeList] || [];
+      document.getElementById('preview').textContent = items.join(' ');
+    }
+
+    // =====================
+    // ACTIONS
+    // =====================
+    function switchList(name) {
+      if (name === data.activeList) return;
+      data.activeList = name;
+      render();
+      signal('SWITCH::' + name);
+    }
+
+    function newList() {
+      const name = prompt('New list name:');
+      if (!name || !name.trim()) return;
+      const trimmed = name.trim();
+      if (data.lists[trimmed]) {
+        showToast('List already exists');
+        return;
+      }
+      data.lists[trimmed] = [];
+      data.activeList = trimmed;
+      render();
+      signal('NEW_LIST::' + trimmed);
+    }
+
+    function renameActiveList() {
+      if (!data.activeList) return;
+      renameList(data.activeList);
+    }
+
+    function renameList(oldName) {
+      const newName = prompt('Rename list:', oldName);
+      if (!newName || !newName.trim() || newName.trim() === oldName) return;
+      const trimmed = newName.trim();
+      if (data.lists[trimmed]) {
+        showToast('Name already taken');
+        return;
+      }
+      data.lists[trimmed] = data.lists[oldName];
+      delete data.lists[oldName];
+      if (data.activeList === oldName) data.activeList = trimmed;
+      render();
+      signal('RENAME_LIST::' + oldName + '::' + trimmed);
+    }
+
+    function deleteList(name) {
+      const count = (data.lists[name] || []).length;
+      const msg = count > 0 ? `Delete "${name}" with ${count} item(s)?` : `Delete "${name}"?`;
+      if (!confirm(msg)) return;
+      delete data.lists[name];
+      if (data.activeList === name) {
+        const remaining = Object.keys(data.lists);
+        data.activeList = remaining.length > 0 ? remaining[0] : '';
+      }
+      render();
+      signal('DELETE_LIST::' + name);
+    }
+
+    function removeItem(index) {
+      const items = data.lists[data.activeList];
+      if (!items) return;
+      items.splice(index, 1);
+      render();
+      signal('REMOVE::' + data.activeList + '::' + (index + 1));  // 1-based for AHK
+    }
+
+    function clearList() {
+      if (!data.activeList) return;
+      data.lists[data.activeList] = [];
+      render();
+      signal('CLEAR_LIST::' + data.activeList);
+      showToast('Cleared');
+    }
+
+    function addManual() {
+      const input = document.getElementById('addInput');
+      const val = input.value.trim();
+      if (!val) return;
+      if (!data.activeList) {
+        data.activeList = 'List 1';
+        data.lists['List 1'] = [];
+        queueSignal('NEW_LIST::List 1');
+      }
+      const parts = val.split(/[\n\r\t,]+/).map(s => s.trim()).filter(Boolean);
+      parts.forEach(p => {
+        data.lists[data.activeList].push(p);
+        queueSignal('ADD::' + data.activeList + '::' + p);
+      });
+      input.value = '';
+      render();
+      showToast('Added ' + parts.length + ' item' + (parts.length !== 1 ? 's' : ''));
+      input.focus();
+    }
+
+    async function copyList() {
+      const items = data.lists[data.activeList] || [];
+      if (items.length === 0) return;
+      const text = items.join(' ');
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Copied: ' + text);
+      } catch (e) {
+        showToast('Copy failed');
+      }
+    }
+
+    // =====================
+    // UTILITIES
+    // =====================
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function escAttr(str) {
+      return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    function toggleInfo() {
+      const panel = document.getElementById('infoPanel');
+      panel.style.display = panel.style.display === 'none' || !panel.style.display ? 'block' : 'none';
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    // Keyboard
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (document.activeElement === document.getElementById('addInput')) {
+          document.getElementById('addInput').blur();
+        } else {
+          window.close();
+        }
+      }
+      if (e.key === 'Enter' && document.activeElement === document.getElementById('addInput')) {
+        e.preventDefault();
+        addManual();
+      }
+    });
+
+    // Auto-add on multi-item paste
+    document.getElementById('addInput').addEventListener('paste', () => {
+      setTimeout(() => {
+        const input = document.getElementById('addInput');
+        if (input.value.includes('\n') || input.value.includes('\t')) {
+          addManual();
+        }
+      }, 0);
+    });
+  </script>
+</body>
+</html>

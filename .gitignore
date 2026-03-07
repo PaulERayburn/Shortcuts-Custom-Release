@@ -13,6 +13,9 @@ desktop.ini
 # AHK compiled binaries
 *.exe
 
+# Installer output
+dist/
+
 # Null file artifact
 nul
 
