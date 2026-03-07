@@ -1,6 +1,6 @@
 # Shortcuts-Custom
 
-A lightweight keyboard shortcut manager for Windows. Press a hotkey to open a searchable popup where you can view, copy, organize, and run your shortcuts. Includes a **Clipboard Collector** for gathering text snippets and an **MLS Notes** tool for real estate workflows.
+A lightweight keyboard shortcut manager for Windows. Press a hotkey to open a searchable popup where you can view, copy, organize, and run your shortcuts. Includes a **Clipboard Collector** for gathering text snippets.
 
 Built with AutoHotkey v2 and Microsoft Edge (app mode). No internet required — everything runs locally.
 
@@ -12,7 +12,6 @@ Built with AutoHotkey v2 and Microsoft Edge (app mode). No internet required —
 
 - **Shortcut Popup** (CapsLock + /) — searchable, categorized shortcut reference with copy-to-clipboard
 - **Clipboard Collector** (CapsLock + ;) — collect text selections into named lists, paste them all at once
-- **MLS Notes** (CapsLock + .) — structured note-taking tool with dictation support
 - **Runnable Scripts** — launch .bat, .ps1, or .exe files directly from the popup
 - **Categories & Favorites** — organize shortcuts with color-coded categories and star your most-used ones
 - **Inline Notes** — attach notes to any shortcut for extra context
@@ -52,7 +51,6 @@ You'll see a tooltip: "Shortcuts Popup ready!" and a green **H** icon in your sy
 | Shortcut | Action |
 |---|---|
 | `CapsLock + /` | Toggle the shortcuts popup |
-| `CapsLock + .` | Toggle MLS Notes |
 | `CapsLock + ;` | Collect selected text into active list |
 | `Shift + CapsLock + ;` | Create a new collector list from clipboard |
 | `CapsLock + ]` | Paste collected items (space-separated) |
@@ -67,7 +65,7 @@ The app runs as a system tray application. Hotkeys open lightweight Edge windows
 Search, browse by category, copy key combos to clipboard, or run scripts. Add/edit/delete shortcuts through the UI.
 
 ### Clipboard Collector
-Highlight text anywhere and press `CapsLock + ;` to collect it. Items are stored in named lists. Press `CapsLock + ]` to paste all items from the active list, space-separated. Great for gathering MLS numbers, addresses, or any repeated data entry.
+Highlight text anywhere and press `CapsLock + ;` to collect it. Items are stored in named lists. Press `CapsLock + ]` to paste all items from the active list, space-separated. Great for gathering addresses, reference numbers, or any repeated data entry.
 
 ### Collector Viewer
 A visual interface to see your collected items, add/remove entries, switch between lists, rename or delete lists, and copy the full list to clipboard.
@@ -106,8 +104,6 @@ To compile `popup.ahk` into a standalone `.exe`:
 | `popup.html` | Shortcuts popup UI |
 | `collector.html` | Collector viewer UI |
 | `collector-data.js` | Collector data bridge (auto-generated, do not edit) |
-| `mls-notes.html` | MLS Notes tool UI |
-| `scripts/` | Helper scripts (PowerShell) |
 | `shortcuts.json` | Default shortcuts data |
 | `config.json` | Configuration file |
 

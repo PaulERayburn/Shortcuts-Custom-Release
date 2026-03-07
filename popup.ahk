@@ -25,12 +25,6 @@ POPUP_WIDTH := 700
 POPUP_HEIGHT := 600
 HTML_FILE := A_ScriptDir "\popup.html"
 
-; MLS Notes settings
-MLS_WIDTH := 500
-MLS_HEIGHT := 1050
-MLS_HTML_FILE := A_ScriptDir "\mls-notes.html"
-MLS_ACTIVE_FILE := A_ScriptDir "\data\mls-active.txt"
-
 ; Collector settings
 COLLECTOR_WIDTH := 450
 COLLECTOR_HEIGHT := 520
@@ -41,7 +35,6 @@ COLLECTOR_DATA_FILE := A_ScriptDir "\collector-data.js"
 ; GLOBALS
 ; ============================================
 global popupHwnd := 0
-global mlsHwnd := 0
 global collectorHwnd := 0
 global previousWindow := 0
 global collectorLists := Map()
@@ -52,7 +45,6 @@ global activeListName := ""
 ; ============================================
 ; Register the hotkeys dynamically for consistent behavior
 Hotkey TRIGGER_KEY, TogglePopup
-Hotkey "CapsLock & .", ToggleMlsNotes
 Hotkey "CapsLock & '", KeyboardFixHotkey
 ; Shift+CapsLock+; = new list from clipboard (must register before the plain version)
 HotIf (*) => GetKeyState("Shift", "P")
@@ -134,114 +126,11 @@ ClosePopup(*) {
 }
 
 ; ============================================
-; MLS NOTES FUNCTIONS
-; ============================================
-
-ToggleMlsNotes(*) {
-    global mlsHwnd, previousWindow
-
-    ; Check if MLS Notes exists and is visible
-    if (mlsHwnd != 0 && WinExist("ahk_id " mlsHwnd)) {
-        CloseMlsNotes()
-        return
-    }
-
-    ; Remember the current window before opening (may not exist)
-    try {
-        previousWindow := WinGetID("A")
-    } catch {
-        previousWindow := 0
-    }
-
-    ; Pre-load clipboard with disk JSON (uses active project marker)
-    loadScript := A_ScriptDir "\scripts\load-mls-notes.ps1"
-    if FileExist(MLS_ACTIVE_FILE) {
-        Run 'powershell.exe -ExecutionPolicy Bypass -File "' loadScript '"', , "Hide"
-        Sleep 500
-    } else if FileExist(A_ScriptDir "\data\mls-notes.json") {
-        Run 'powershell.exe -ExecutionPolicy Bypass -File "' loadScript '"', , "Hide"
-        Sleep 500
-    }
-
-    ; Calculate center position
-    posX := (A_ScreenWidth - MLS_WIDTH) // 2
-    posY := (A_ScreenHeight - MLS_HEIGHT) // 2
-
-    ; Launch Edge in app mode (auto-grant mic for dictation)
-    edgePath := "msedge.exe"
-    edgeArgs := Format('--app="{1}" --window-size={2},{3} --window-position={4},{5} --auto-accept-camera-and-microphone-capture',
-        MLS_HTML_FILE, MLS_WIDTH, MLS_HEIGHT, posX, posY)
-
-    Run edgePath " " edgeArgs
-
-    if WinWait("MLS Notes", , 3) {
-        mlsHwnd := WinGetID("MLS Notes")
-        WinSetAlwaysOnTop true, "ahk_id " mlsHwnd
-        WinActivate "ahk_id " mlsHwnd
-        SetTimer CheckForScriptRun, 250
-        ; Retry resize — clipboard dialog may delay readiness
-        SetTimer ResizeMlsWindow, 500
-    }
-}
-
-CloseMlsNotes(*) {
-    global mlsHwnd, previousWindow
-
-    if (mlsHwnd != 0 && WinExist("ahk_id " mlsHwnd)) {
-        WinClose "ahk_id " mlsHwnd
-        mlsHwnd := 0
-        StopTimerIfNoWindows()
-
-        if (previousWindow != 0 && WinExist("ahk_id " previousWindow)) {
-            Sleep 50
-            WinActivate "ahk_id " previousWindow
-        }
-    }
-}
-
-; ============================================
-; MLS WINDOW RESIZE (retry until it sticks)
-; ============================================
-global mlsResizeAttempts := 0
-
-ResizeMlsWindow() {
-    global mlsHwnd, mlsResizeAttempts
-    mlsResizeAttempts++
-
-    if (mlsHwnd = 0 || !WinExist("ahk_id " mlsHwnd)) {
-        SetTimer ResizeMlsWindow, 0
-        mlsResizeAttempts := 0
-        return
-    }
-
-    try {
-        WinGetPos(&curX, &curY, &curW, &curH, "ahk_id " mlsHwnd)
-        ; Check if already correct size
-        if (Abs(curW - MLS_WIDTH) < 20 && Abs(curH - MLS_HEIGHT) < 20) {
-            SetTimer ResizeMlsWindow, 0
-            mlsResizeAttempts := 0
-            return
-        }
-        posX := (A_ScreenWidth - MLS_WIDTH) // 2
-        posY := (A_ScreenHeight - MLS_HEIGHT) // 2
-        WinMove posX, posY, MLS_WIDTH, MLS_HEIGHT, "ahk_id " mlsHwnd
-    }
-
-    if (mlsResizeAttempts > 20) {
-        SetTimer ResizeMlsWindow, 0
-        mlsResizeAttempts := 0
-    }
-}
-
-; ============================================
 ; SCRIPT RUNNER (title-watching timer)
 ; ============================================
-; Remarks modal size
-MLS_REMARKS_WIDTH := 1500
-MLS_REMARKS_HEIGHT := 1200
 
 CheckForScriptRun() {
-    global mlsHwnd, collectorHwnd, collectorLists, activeListName
+    global collectorHwnd, collectorLists, activeListName
 
     ; Handle COLLECTOR:: signals from viewer
     try {
@@ -303,50 +192,6 @@ CheckForScriptRun() {
         }
     }
 
-    ; Handle SIZE:: signals from MLS Notes
-    try {
-        if WinExist("SIZE::") {
-            title := WinGetTitle("SIZE::")
-            hwnd := WinGetID("SIZE::")
-            try WinSetTitle("MLS Notes", "ahk_id " hwnd)
-
-            ; Get the monitor the window is currently on
-            try {
-                WinGetPos(&wx, &wy, , , "ahk_id " hwnd)
-            } catch {
-                wx := 0, wy := 0
-            }
-            monNum := 0
-            Loop MonitorGetCount() {
-                MonitorGetWorkArea(A_Index, &mL, &mT, &mR, &mB)
-                if (wx >= mL && wx < mR && wy >= mT && wy < mB) {
-                    monNum := A_Index
-                    break
-                }
-            }
-            if (monNum = 0) {
-                monNum := MonitorGetPrimary()
-                MonitorGetWorkArea(monNum, &mL, &mT, &mR, &mB)
-            }
-            monW := mR - mL
-            monH := mB - mT
-
-            if InStr(title, "SIZE::REMARKS") {
-                rw := Min(MLS_REMARKS_WIDTH, monW - 20)
-                rh := Min(MLS_REMARKS_HEIGHT, monH - 40)
-                rx := mL + (monW - rw) // 2
-                ry := mT + (monH - rh) // 2
-                WinMove rx, ry, rw, rh, "ahk_id " hwnd
-            } else if InStr(title, "SIZE::COMPACT") {
-                pw := Min(MLS_WIDTH, monW - 20)
-                ph := Min(MLS_HEIGHT, monH - 40)
-                px := mL + (monW - pw) // 2
-                py := mT + (monH - ph) // 2
-                WinMove px, py, pw, ph, "ahk_id " hwnd
-            }
-        }
-    }
-
     ; Handle OPEN:: signals from popup
     try {
         if WinExist("OPEN::") {
@@ -366,12 +211,8 @@ CheckForScriptRun() {
 
             runPos := InStr(title, "RUN::")
             scriptPath := SubStr(title, runPos + 5)
-            ; Reset title (detect which window it came from)
-            if (hwnd = mlsHwnd) {
-                try WinSetTitle("MLS Notes", "ahk_id " hwnd)
-            } else {
-                try WinSetTitle("Shortcuts-Custom", "ahk_id " hwnd)
-            }
+            ; Reset title
+            try WinSetTitle("Shortcuts-Custom", "ahk_id " hwnd)
 
             ; Strip any surrounding quotes
             scriptPath := Trim(scriptPath, '" ')
@@ -575,11 +416,10 @@ WriteCollectorFile() {
 }
 
 StopTimerIfNoWindows() {
-    global popupHwnd, mlsHwnd, collectorHwnd
+    global popupHwnd, collectorHwnd
     popupAlive := (popupHwnd != 0 && WinExist("ahk_id " popupHwnd))
-    mlsAlive := (mlsHwnd != 0 && WinExist("ahk_id " mlsHwnd))
     collectorAlive := (collectorHwnd != 0 && WinExist("ahk_id " collectorHwnd))
-    if (!popupAlive && !mlsAlive && !collectorAlive)
+    if (!popupAlive && !collectorAlive)
         SetTimer CheckForScriptRun, 0
 }
 
@@ -597,7 +437,6 @@ EscapeJsonString(str) {
 ; ============================================
 A_TrayMenu.Delete()
 A_TrayMenu.Add("Show Popup", TogglePopup)
-A_TrayMenu.Add("MLS Notes", ToggleMlsNotes)
 A_TrayMenu.Add("Collector", ToggleCollector)
 A_TrayMenu.Add()
 A_TrayMenu.Add("Edit Hotkey", EditHotkey)
