@@ -9,23 +9,29 @@
 DllCall("SetThreadDpiAwarenessContext", "ptr", -3, "ptr")  ; Per-Monitor V2
 
 ; ============================================
-; CONFIGURATION
+; HOTKEY CONFIGURATION
 ; ============================================
-; Change this hotkey if needed. Common alternatives:
-;   CapsLock & /     (CapsLock + /)
-;   ^!s              (Ctrl + Alt + S)
-;   ^+/              (Ctrl + Shift + /)
-;   F12              (F12 key)
-;   #/               (Win + /)
+; Change any hotkey below to avoid conflicts or match your preferences.
+; AutoHotkey syntax reference:
+;   CapsLock & /     CapsLock + /          ^   = Ctrl
+;   ^!s              Ctrl + Alt + S        !   = Alt
+;   ^+/              Ctrl + Shift + /      +   = Shift
+;   F12              F12 key               #   = Win
+;   #/               Win + /               & = combines two keys
 
-TRIGGER_KEY := "CapsLock & /"
+KEY_POPUP       := "CapsLock & /"    ; Open/close the shortcuts popup
+KEY_COLLECT     := "CapsLock & `;"    ; Collect selected text into active list
+KEY_NEW_LIST    := "CapsLock & `;"    ; (with Shift held) Create new list from clipboard
+KEY_PASTE       := "CapsLock & ]"    ; Paste all collected items
+KEY_VIEWER      := "CapsLock & BS"   ; Open/close the Collector viewer
+KEY_KB_FIX      := "CapsLock & '"    ; Keyboard fix utility (optional — delete if not needed)
 
-; Popup settings
+; POPUP WINDOW
 POPUP_WIDTH := 700
 POPUP_HEIGHT := 600
 HTML_FILE := A_ScriptDir "\popup.html"
 
-; Collector settings
+; COLLECTOR WINDOW
 COLLECTOR_WIDTH := 450
 COLLECTOR_HEIGHT := 520
 COLLECTOR_HTML_FILE := A_ScriptDir "\collector.html"
@@ -43,16 +49,15 @@ global activeListName := ""
 ; ============================================
 ; HOTKEY REGISTRATION
 ; ============================================
-; Register the hotkeys dynamically for consistent behavior
-Hotkey TRIGGER_KEY, TogglePopup
-Hotkey "CapsLock & '", KeyboardFixHotkey
-; Shift+CapsLock+; = new list from clipboard (must register before the plain version)
+Hotkey KEY_POPUP, TogglePopup
+Hotkey KEY_KB_FIX, KeyboardFixHotkey
+; Shift variant of collect key = new list from clipboard (must register before plain version)
 HotIf (*) => GetKeyState("Shift", "P")
-Hotkey "CapsLock & `;", NewListFromClipboardHotkey
+Hotkey KEY_NEW_LIST, NewListFromClipboardHotkey
 HotIf
-Hotkey "CapsLock & `;", CollectSelection
-Hotkey "CapsLock & ]", PasteCollected
-Hotkey "CapsLock & BS", ToggleCollector
+Hotkey KEY_COLLECT, CollectSelection
+Hotkey KEY_PASTE, PasteCollected
+Hotkey KEY_VIEWER, ToggleCollector
 
 ; Keyboard fix function
 KeyboardFixHotkey(*) {
@@ -461,5 +466,5 @@ ExitScript(*) {
 ; STARTUP
 ; ============================================
 ; Show a tooltip on startup
-ToolTip "Shortcuts Popup ready!`nPress " TRIGGER_KEY " to toggle`nCapsLock+; collect | Shift+CapsLock+; new list | CapsLock+] paste | CapsLock+BS viewer"
+ToolTip "Shortcuts Popup ready!`nPress " KEY_POPUP " to toggle`n" KEY_COLLECT " collect | Shift+" KEY_NEW_LIST " new list | " KEY_PASTE " paste | " KEY_VIEWER " viewer"
 SetTimer () => ToolTip(), -3000

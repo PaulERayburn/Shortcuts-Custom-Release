@@ -60,18 +60,23 @@ Highlight text anywhere and press `CapsLock + ;` to collect it. Items are stored
 ### Collector Viewer
 A visual interface to see your collected items, add/remove entries, switch between lists, rename or delete lists, and copy the full list to clipboard.
 
-## Changing the Hotkey
+## Customizing Hotkeys
 
-Edit `popup.ahk` and change the `TRIGGER_KEY` variable near the top:
+All hotkeys are configurable at the top of `popup.ahk`. Open the file and edit the `KEY_*` variables:
 
 ```ahk
-TRIGGER_KEY := "CapsLock & /"   ; Default
-TRIGGER_KEY := "^!s"            ; Ctrl + Alt + S
-TRIGGER_KEY := "F12"            ; F12
-TRIGGER_KEY := "#/"             ; Win + /
+KEY_POPUP       := "CapsLock & /"    ; Open/close the shortcuts popup
+KEY_COLLECT     := "CapsLock & ;"    ; Collect selected text
+KEY_NEW_LIST    := "CapsLock & ;"    ; (with Shift held) New list from clipboard
+KEY_PASTE       := "CapsLock & ]"    ; Paste collected items
+KEY_VIEWER      := "CapsLock & BS"   ; Open/close Collector viewer
 ```
 
-Save and reload the script (right-click tray icon > Reload Script).
+Common alternatives: `^!s` (Ctrl+Alt+S), `F12`, `#/` (Win+/), `^+c` (Ctrl+Shift+C)
+
+After editing, save the file and reload the script (right-click tray icon > **Reload Script**).
+
+> **Tip:** This project was built with [Claude Code](https://claude.ai/claude-code). You can use it to customize hotkeys, add features, or tweak the UI — just open a terminal in the project folder and ask.
 
 ## Start on Login
 
