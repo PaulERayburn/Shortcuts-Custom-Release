@@ -62,7 +62,7 @@ A visual interface to see your collected items, add/remove entries, switch betwe
 
 ## Customizing Hotkeys
 
-All hotkeys are configurable at the top of `popup.ahk`. Open the file and edit the `KEY_*` variables:
+All hotkeys are configurable at the top of `popup.ahk`. To edit it, right-click the file → **Open with** → **Notepad** (or any text editor). Then change the `KEY_*` variables:
 
 ```ahk
 KEY_POPUP       := "CapsLock & /"    ; Open/close the shortcuts popup
