@@ -15,7 +15,7 @@
 #define MyAppName "Shortcuts-Custom"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "PaulR"
-#define MyAppURL "https://github.com/PaulERayburn/Shortcuts-Custom"
+#define MyAppURL "https://github.com/PaulERayburn/Shortcuts-Custom-Release"
 #define MyAppExeName "popup.exe"
 
 [Setup]

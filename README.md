@@ -36,7 +36,7 @@ Built with AutoHotkey v2 and Microsoft Edge (app mode). No internet required —
 
 2. **Clone the repo**
    ```
-   git clone https://github.com/PaulERayburn/Shortcuts-Custom.git
+   git clone https://github.com/PaulERayburn/Shortcuts-Custom-Release.git
    ```
 
 3. **Run the script**
