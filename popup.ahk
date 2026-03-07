@@ -451,7 +451,7 @@ A_TrayMenu.Add("Exit", ExitScript)
 A_TrayMenu.Default := "Show Popup"
 
 EditHotkey(*) {
-    MsgBox "To change the hotkey:`n`n1. Open: " A_ScriptDir "\popup.ahk`n2. Find the line: TRIGGER_KEY := `"" TRIGGER_KEY "`"`n3. Change it to your preferred hotkey`n4. Save and reload the script`n`nCommon options:`n  CapsLock & /`n  ^!s (Ctrl+Alt+S)`n  ^+/ (Ctrl+Shift+/)`n  F12", "Edit Hotkey"
+    MsgBox "To change hotkeys:`n`n1. Open: " A_ScriptDir "\popup.ahk`n2. Edit the KEY_* variables near the top`n3. Save and reload the script`n`nCurrent keys:`n  Popup: " KEY_POPUP "`n  Collect: " KEY_COLLECT "`n  Paste: " KEY_PASTE "`n  Viewer: " KEY_VIEWER, "Edit Hotkeys"
 }
 
 ReloadScript(*) {
