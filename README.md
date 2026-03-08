@@ -8,6 +8,8 @@ Built with AutoHotkey v2 and Microsoft Edge (app mode). No internet required —
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078d4.svg)
 ![AHK](https://img.shields.io/badge/AutoHotkey-v2.0-green.svg)
 
+A short video presentation on use and install. https://www.youtube.com/watch?v=R7VdV_cqGSY
+
 ## Features
 
 - **Shortcut Popup** (CapsLock + /) — searchable, categorized shortcut reference with copy-to-clipboard
