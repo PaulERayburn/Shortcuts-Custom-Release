@@ -81,7 +81,7 @@
 
     .tab {
       padding: 6px 12px;
-      border: none;
+      border: 4px solid transparent;
       border-radius: 4px;
       cursor: pointer;
       font-size: 12px;
@@ -95,6 +95,9 @@
     .tab.active {
       color: #fff;
       font-weight: 600;
+      border-color: #fff;
+      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.45);
+      transform: scale(1.12);
     }
 
     .search-box {
@@ -606,7 +609,11 @@
         { "id": 83, "category": "claude-powershell", "keys": "/doctor", "description": "Diagnose installation issues", "notes": "Run when things aren't working" },
         { "id": 84, "category": "claude-powershell", "keys": "/init", "description": "Create CLAUDE.md for project", "notes": "Initialize project memory file" },
         { "id": 85, "category": "claude-powershell", "keys": "/clear", "description": "Clear conversation history", "notes": "Start fresh" },
-        { "id": 86, "category": "claude-powershell", "keys": "/exit", "description": "Exit Claude Code", "notes": "Back to terminal" }
+        { "id": 86, "category": "claude-powershell", "keys": "/exit", "description": "Exit Claude Code", "notes": "Back to terminal" },
+        { "id": 100, "category": "scripts", "keys": "C:\\Users\\pryac\\Documents\\Scripts_PR_Shortcuts\\BackupScripts\\backup_git_daily.bat", "action": "run", "description": "GitRepos Daily Backup", "notes": "Backs up C:\\GitRepos to Dropbox with change detection" },
+        { "id": 101, "category": "scripts", "keys": "C:\\Users\\pryac\\Documents\\Scripts_PR_Shortcuts\\BackupScripts\\backup_git_weekly.bat", "action": "run", "description": "GitRepos Weekly Backup", "notes": "Full mirror of C:\\GitRepos to Dropbox weekly folder" },
+        { "id": 102, "category": "scripts", "keys": "C:\\Users\\pryac\\Documents\\Scripts_PR_Shortcuts\\BackupScripts\\backup_pr_repo_daily.bat", "action": "run", "description": "PR-Repo Daily Backup", "notes": "Backs up C:\\Users\\pryac\\PR-Repo to Dropbox with change detection" },
+        { "id": 103, "category": "scripts", "keys": "C:\\Users\\pryac\\Documents\\Scripts_PR_Shortcuts\\BackupScripts\\backup_pr_repo_weekly.bat", "action": "run", "description": "PR-Repo Weekly Backup", "notes": "Full mirror of C:\\Users\\pryac\\PR-Repo to Dropbox weekly folder" }
       ]
     };
 
@@ -698,6 +705,15 @@
     // RENDERING
     // ============================================
 
+    function contrastTextColor(hex) {
+      const c = hex.replace('#', '');
+      const r = parseInt(c.substring(0, 2), 16);
+      const g = parseInt(c.substring(2, 4), 16);
+      const b = parseInt(c.substring(4, 6), 16);
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.5 ? '#000' : '#fff';
+    }
+
     function renderTabs() {
       const tabs = document.getElementById('tabs');
       const favCount = data.shortcuts.filter(s => s.favorite).length;
@@ -706,7 +722,8 @@
 
       data.categories.forEach(cat => {
         const isActive = !showFavoritesOnly && activeCategory === cat.id ? 'active' : '';
-        html += `<button class="tab ${isActive}" style="background: ${isActive ? cat.color : '#333'}" onclick="setCategory('${cat.id}')">${cat.name}</button>`;
+        const textColor = contrastTextColor(cat.color);
+        html += `<button class="tab ${isActive}" style="background: ${cat.color}; color: ${textColor}" onclick="setCategory('${cat.id}')">${cat.name}</button>`;
       });
 
       tabs.innerHTML = html;
