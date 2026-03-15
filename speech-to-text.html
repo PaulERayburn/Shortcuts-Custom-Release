@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech to Text</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #121212;
+            color: #d4d4d4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
+        .header h1 { font-size: 1.1rem; color: #e0e0e0; }
+        .header-buttons { margin-left: auto; display: flex; gap: 6px; }
+
+        /* Buttons */
+        .btn {
+            padding: 5px 12px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+        .btn:hover { border-color: #666; }
+        .btn-primary { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: #22c55e; color: #fff; border-color: #22c55e; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-purple { background: #8b5cf6; color: #fff; border-color: #8b5cf6; }
+        .btn-purple:hover { background: #7c3aed; }
+        .btn:disabled { opacity: 0.4; cursor: default; }
+
+        /* Mic button */
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+        }
+        .btn-mic {
+            padding: 10px 20px;
+            border: 2px solid #444;
+            border-radius: 50px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.2s;
+        }
+        .btn-mic:hover { border-color: #666; background: #2a2a2a; }
+        .btn-mic.recording {
+            background: #ef4444;
+            color: #fff;
+            border-color: #ef4444;
+            animation: pulse-red 1.2s infinite;
+        }
+        .btn-pause {
+            padding: 8px 16px;
+            border: 1px solid #444;
+            border-radius: 50px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        .btn-pause:hover { border-color: #666; }
+        .btn-pause.paused { background: #f97316; color: #fff; border-color: #f97316; }
+
+        /* Main layout */
+        .main { flex: 1; display: flex; flex-direction: column; padding: 12px; gap: 10px; overflow: hidden; }
+
+        /* Controls row */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        .mic-status {
+            font-size: 0.82rem;
+            color: #666;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        /* Transcript area */
+        .transcript-container { flex: 1; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
+        .transcript-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: #999;
+        }
+        .word-count { font-size: 0.78rem; color: #666; }
+        .transcript {
+            flex: 1;
+            width: 100%;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #d4d4d4;
+            padding: 12px;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            font-family: inherit;
+        }
+        .transcript:focus { outline: none; border-color: #3b82f6; }
+        .transcript::placeholder { color: #555; }
+
+        /* AI Panel */
+        .ai-panel {
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #1a1a1a;
+            overflow: hidden;
+            display: none;
+        }
+        .ai-panel.show { display: flex; flex-direction: column; max-height: 50vh; }
+        .ai-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
+        .ai-header h3 { font-size: 0.9rem; color: #8b5cf6; }
+        .ai-body { flex: 1; overflow-y: auto; padding: 10px 12px; }
+        .ai-result {
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            margin-bottom: 8px;
+        }
+        .ai-actions { display: flex; gap: 6px; margin-bottom: 10px; }
+        .ai-chat-messages {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 8px;
+        }
+        .ai-msg {
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        .ai-msg.user { background: #2a2a4a; color: #a5b4fc; text-align: right; }
+        .ai-msg.assistant { background: #1e2e1e; color: #86efac; }
+        .ai-chat-input {
+            display: flex;
+            gap: 6px;
+        }
+        .ai-chat-input input {
+            flex: 1;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #d4d4d4;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+        .ai-chat-input input:focus { outline: none; border-color: #8b5cf6; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #666; border-top-color: #8b5cf6; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
+
+        /* History */
+        .history-section {
+            max-height: 120px;
+            overflow-y: auto;
+            border-top: 1px solid #333;
+            padding-top: 6px;
+        }
+        .history-label { font-size: 0.78rem; color: #666; margin-bottom: 4px; }
+        .history-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            color: #999;
+            cursor: pointer;
+        }
+        .history-item:hover { background: #1e1e1e; }
+        .history-time { color: #555; white-space: nowrap; font-size: 0.72rem; margin-top: 2px; }
+        .history-text { flex: 1; }
+
+        /* Settings modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            width: 520px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal h2 { font-size: 1.1rem; margin-bottom: 16px; color: #e0e0e0; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.82rem; color: #999; margin-bottom: 4px; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #d4d4d4;
+            padding: 8px;
+            font-size: 0.88rem;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #3b82f6; }
+        .usage-panel {
+            margin-top: 16px;
+            padding: 10px 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+        }
+        .usage-title {
+            font-size: 0.78rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 4px;
+        }
+        .usage-grid { display: flex; flex-direction: column; gap: 4px; }
+        .usage-row {
+            display: grid;
+            grid-template-columns: 90px 1fr 1fr;
+            font-size: 0.8rem;
+            padding: 2px 0;
+        }
+        .usage-label { color: #999; }
+        .usage-value { color: #d4d4d4; }
+        .usage-total { border-top: 1px solid #333; padding-top: 6px; margin-top: 4px; }
+        .usage-total .usage-label { color: #3b82f6; font-weight: 600; }
+        .usage-total .usage-value { color: #3b82f6; font-weight: 600; }
+        .replacement-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 0;
+            font-size: 0.82rem;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .r-pattern { color: #f97316; }
+        .r-arrow { color: #666; }
+        .r-replacement { color: #22c55e; flex: 1; }
+        .settings-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid #444; }
+        .settings-tab {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            color: #999;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            background: none;
+            border-top: none; border-left: none; border-right: none;
+        }
+        .settings-tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+        .settings-tab:hover { color: #d4d4d4; }
+        .settings-tab-content { display: none; }
+        .settings-tab-content.active { display: block; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .toast.show { opacity: 1; }
+
+        kbd {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-size: 0.72rem;
+            color: #999;
+        }
+
+        /* Teach button */
+        .teach-btn {
+            position: absolute;
+            display: none;
+            padding: 4px 10px;
+            background: #f97316;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            z-index: 50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            white-space: nowrap;
+        }
+        .teach-btn:hover { background: #ea580c; }
+
+        /* Teach popup */
+        .teach-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+            justify-content: center;
+            align-items: center;
+        }
+        .teach-overlay.show { display: flex; }
+        .teach-popup {
+            background: #1e1e1e;
+            border: 1px solid #f97316;
+            border-radius: 8px;
+            padding: 16px;
+            width: 360px;
+            max-width: 90vw;
+        }
+        .teach-popup h3 { font-size: 0.95rem; color: #f97316; margin-bottom: 12px; }
+        .teach-popup .teach-wrong {
+            background: #2a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 6px 10px;
+            color: #ef4444;
+            font-size: 0.88rem;
+            margin-bottom: 8px;
+        }
+        .teach-popup input {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #d4d4d4;
+            padding: 8px;
+            font-size: 0.88rem;
+            font-family: inherit;
+        }
+        .teach-popup input:focus { outline: none; border-color: #f97316; }
+
+        /* Mode toggle */
+        .mode-toggle {
+            display: flex;
+            border: 1px solid #444;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .mode-btn {
+            padding: 5px 14px;
+            background: #1e1e1e;
+            color: #999;
+            border: none;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .mode-btn:hover { color: #d4d4d4; }
+        .mode-btn.active { background: #3b82f6; color: #fff; }
+        .mode-btn + .mode-btn { border-left: 1px solid #444; }
+
+        /* Whisper recording */
+        .btn-mic.whisper-recording {
+            background: #ef4444;
+            color: #fff;
+            border-color: #ef4444;
+            animation: pulse-red 1.2s infinite;
+        }
+        .whisper-status {
+            font-size: 0.78rem;
+            color: #f97316;
+            font-style: italic;
+        }
+
+        /* Terminology list in settings */
+        .term-list { max-height: 150px; overflow-y: auto; margin-bottom: 8px; }
+        .term-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 0;
+            font-size: 0.82rem;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .term-wrong { color: #ef4444; }
+        .term-arrow { color: #666; }
+        .term-correct { color: #22c55e; flex: 1; }
+        .term-actions { display: flex; gap: 4px; margin-top: 8px; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Speech to Text</h1>
+    <span style="font-size:0.72rem;color:#555">
+        <kbd>Ctrl+M</kbd> mic &nbsp; <kbd>Ctrl+Space</kbd> pause &nbsp; <kbd>Ctrl+Shift+C</kbd> copy
+    </span>
+    <div class="header-buttons">
+        <button class="btn btn-purple" onclick="aiCleanup()" id="btnAI" title="AI cleanup (Ctrl+Enter)">AI Clean Up</button>
+        <button class="btn" onclick="whisperRedoUI()" id="btnWhisperRedo" title="Re-transcribe last audio with Whisper" style="display:none;background:#f97316;color:#fff;border-color:#f97316">Whisper Redo</button>
+        <button class="btn" onclick="recallLastAudio()" id="btnRecallAudio" title="Recall last saved audio recording" style="display:none;background:#333;color:#aaa;border-color:#555;font-size:0.72rem">Recall Last</button>
+        <button class="btn" onclick="copyTranscript()" title="Copy to clipboard">Copy</button>
+        <button class="btn" onclick="clearTranscript()" title="Clear text">Clear</button>
+        <button class="btn" onclick="openSettings()">Settings</button>
+    </div>
+</div>
+
+<div class="main">
+    <!-- Mic controls -->
+    <div class="controls">
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="modeLive" onclick="setMode('live')">Live</button>
+            <button class="mode-btn" id="modeWhisper" onclick="setMode('whisper')">Whisper</button>
+        </div>
+        <button class="btn-mic" id="btnMic" onclick="toggleMic()" title="Start/stop recording (Ctrl+M)">&#127908;</button>
+        <button class="btn-pause" id="btnPause" onclick="togglePause()" title="Pause/resume (Ctrl+Space)" style="display:none">&#9208;</button>
+        <button class="btn btn-success" onclick="autoPaste()" title="Stop recording, copy text, and paste into your app" style="padding:6px 14px;font-size:0.85rem">Auto Paste</button>
+        <div class="mic-status" id="micStatus">Press CapsLock+, to launch &bull; Ctrl+M to record</div>
+    </div>
+
+    <!-- Transcript -->
+    <div class="transcript-container">
+        <div class="transcript-label">
+            <span>Transcript</span>
+            <span class="word-count" id="wordCount">0 words</span>
+        </div>
+        <textarea class="transcript" id="transcript" placeholder="Your speech will appear here...&#10;&#10;You can also type or edit text directly.&#10;&#10;Quick dictate: Shift+CapsLock+M from any app &#8212; dictate &#8212; press again to paste."></textarea>
+    </div>
+
+    <!-- AI Panel -->
+    <div class="ai-panel" id="aiPanel">
+        <div class="ai-header">
+            <h3 id="aiTitle">AI Cleanup</h3>
+            <div style="display:flex;gap:6px">
+                <button class="btn btn-success" onclick="acceptAI()" title="Replace transcript with AI version">Accept</button>
+                <button class="btn" onclick="closeAI()">Dismiss</button>
+            </div>
+        </div>
+        <div class="ai-body">
+            <div class="ai-result" id="aiResult"></div>
+            <div class="ai-chat-messages" id="aiChatMessages"></div>
+            <div class="ai-chat-input">
+                <input type="text" id="aiChatInput" placeholder="Refine: &quot;make it formal&quot;, &quot;add paragraphs&quot;, &quot;summarize&quot;..." onkeydown="if(event.key==='Enter')sendChat()">
+                <button class="btn btn-purple" onclick="sendChat()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History -->
+    <div class="history-section" id="historySection" style="display:none">
+        <div class="history-label">Session history (click to restore)</div>
+        <div id="historyList"></div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+        <h2>Settings</h2>
+        <div class="settings-tabs">
+            <button class="settings-tab active" onclick="switchSettingsTab('ai')">AI</button>
+            <button class="settings-tab" onclick="switchSettingsTab('language')">Language</button>
+            <button class="settings-tab" onclick="switchSettingsTab('speech')">Speech</button>
+            <button class="settings-tab" onclick="switchSettingsTab('mic')">Mic Test</button>
+        </div>
+
+        <!-- AI Tab -->
+        <div class="settings-tab-content active" id="settingsTab-ai">
+            <div class="form-group">
+                <label>OpenAI API Key</label>
+                <input type="password" id="settingsOpenaiKey" placeholder="sk-...">
+                <p style="font-size:0.72rem;color:#555;margin-top:4px">Used for AI cleanup and Whisper transcription</p>
+            </div>
+            <div class="form-group">
+                <label>Model (for AI cleanup)</label>
+                <select id="settingsModel">
+                    <option value="gpt-4o-mini">GPT-4o Mini (fast, cheap)</option>
+                    <option value="gpt-4o">GPT-4o (best quality)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cleanup Instructions (optional)</label>
+                <textarea id="settingsSystemPrompt" style="min-height:60px" placeholder="e.g. 'I write appraisal reports. Keep technical real estate terminology.'"></textarea>
+            </div>
+            <div class="usage-panel" id="usagePanel">
+                <div class="usage-title">API Usage</div>
+                <div class="usage-grid">
+                    <div class="usage-row">
+                        <span class="usage-label">AI Cleanup</span>
+                        <span class="usage-value" id="usageCleanupCalls">0 calls</span>
+                        <span class="usage-value" id="usageCleanupTokens">0 tokens</span>
+                    </div>
+                    <div class="usage-row">
+                        <span class="usage-label">Whisper</span>
+                        <span class="usage-value" id="usageWhisperCalls">0 calls</span>
+                        <span class="usage-value" id="usageWhisperSeconds">0s audio</span>
+                    </div>
+                    <div class="usage-row usage-total">
+                        <span class="usage-label">Est. cost</span>
+                        <span class="usage-value" id="usageEstCost">$0.00</span>
+                        <span class="usage-value"></span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <a href="https://platform.openai.com/usage" target="_blank" class="btn" style="font-size:0.72rem;text-decoration:none;text-align:center;flex:1">OpenAI Dashboard</a>
+                    <button class="btn" style="font-size:0.72rem;flex:1" onclick="resetUsage()">Reset Counts</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Language Tab -->
+        <div class="settings-tab-content" id="settingsTab-language">
+            <div class="form-group">
+                <label>Filler Words to Remove (comma-separated)</label>
+                <textarea id="settingsFillers" style="min-height:60px"></textarea>
+            </div>
+            <div class="form-group" style="margin-top:12px">
+                <label>Learned Terms (from Teach corrections)</label>
+                <div class="term-list" id="termList"></div>
+                <div style="display:flex;gap:6px;margin-top:6px">
+                    <input type="text" id="newTermWrong" placeholder="misheard as...">
+                    <input type="text" id="newTermCorrect" placeholder="should be...">
+                    <button class="btn btn-primary" onclick="addTerm()" style="white-space:nowrap">Add</button>
+                </div>
+                <div class="term-actions">
+                    <button class="btn" onclick="exportTerms()" style="font-size:0.72rem;padding:3px 8px">Export JSON</button>
+                    <button class="btn" onclick="document.getElementById('termImport').click()" style="font-size:0.72rem;padding:3px 8px">Import JSON</button>
+                    <input type="file" id="termImport" accept=".json" style="display:none" onchange="importTerms(event)">
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:12px">
+                <label>Replacements</label>
+                <div id="replacementsList"></div>
+                <div style="display:flex;gap:6px;margin-top:8px">
+                    <input type="text" id="newPattern" placeholder="spoken phrase...">
+                    <input type="text" id="newReplacement" placeholder="replace with...">
+                    <button class="btn btn-primary" onclick="addReplacement()" style="white-space:nowrap">Add</button>
+                </div>
+                <p style="font-size:0.72rem;color:#555;margin-top:4px">e.g. "period" &rarr; "." or "new line" &rarr; "\n"</p>
+            </div>
+        </div>
+
+        <!-- Speech Tab -->
+        <div class="settings-tab-content" id="settingsTab-speech">
+            <div class="form-group">
+                <label>Recognition Language</label>
+                <select id="settingsLang">
+                    <option value="en-US">English (US)</option>
+                    <option value="en-GB">English (UK)</option>
+                    <option value="en-CA">English (Canada)</option>
+                    <option value="en-AU">English (Australia)</option>
+                    <option value="fr-FR">French</option>
+                    <option value="fr-CA">French (Canada)</option>
+                    <option value="es-ES">Spanish</option>
+                    <option value="de-DE">German</option>
+                    <option value="it-IT">Italian</option>
+                    <option value="pt-BR">Portuguese (Brazil)</option>
+                    <option value="ja-JP">Japanese</option>
+                    <option value="zh-CN">Chinese (Simplified)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Mic Test Tab -->
+        <div class="settings-tab-content" id="settingsTab-mic">
+            <div>
+                <label style="font-size:0.82rem;color:#999;display:block;margin-bottom:4px">Microphone Test</label>
+                <button class="btn btn-primary" onclick="testMic()">Test Mic</button>
+                <span id="testMicStatus" style="font-size:0.82rem;color:#666;margin-left:8px"></span>
+                <p id="testMicResult" style="font-size:0.88rem;color:#d4d4d4;margin-top:6px;min-height:20px"></p>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+            <button class="btn" onclick="closeSettings()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Teach floating button -->
+<button class="teach-btn" id="teachBtn" onclick="openTeach()">Teach</button>
+
+<!-- Teach popup -->
+<div class="teach-overlay" id="teachOverlay">
+    <div class="teach-popup">
+        <h3>Teach Correction</h3>
+        <label style="font-size:0.78rem;color:#999;display:block;margin-bottom:4px">Misheard as:</label>
+        <div class="teach-wrong" id="teachWrong"></div>
+        <label style="font-size:0.78rem;color:#999;display:block;margin-bottom:4px;margin-top:8px">Should be:</label>
+        <input type="text" id="teachCorrect" placeholder="Type the correct text..." onkeydown="if(event.key==='Enter')saveTeach()">
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+            <button class="btn" onclick="closeTeach()">Cancel</button>
+            <button class="btn" style="background:#f97316;color:#fff;border-color:#f97316" onclick="saveTeach()">Learn</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // ============================================
+    // STATE
+    // ============================================
+    let recognition = null;
+    let isRecording = false;
+    let isPaused = false;
+    let sessionHistory = [];
+    let aiChatHistory = [];
+    let currentAIText = '';
+
+    // Background audio recording (for Whisper redo)
+    let bgMediaRecorder = null;
+    let bgAudioChunks = [];
+    let lastRecordingBlob = null;
+
+    // ============================================
+    // LANGUAGE DB (same approach as MLS Notes)
+    // ============================================
+    function getLanguageDB() {
+        const raw = localStorage.getItem('stt-language-db');
+        if (raw) try { return JSON.parse(raw); } catch(e) {}
+        const defaults = {
+            fillers: ['um', 'uh', 'you know', 'basically', 'I mean'],
+            replacements: [
+                { pattern: 'period', replacement: '.' },
+                { pattern: 'comma', replacement: ',' },
+                { pattern: 'question mark', replacement: '?' },
+                { pattern: 'exclamation mark', replacement: '!' },
+                { pattern: 'new line', replacement: '\n' },
+                { pattern: 'new paragraph', replacement: '\n\n' }
+            ]
+        };
+        localStorage.setItem('stt-language-db', JSON.stringify(defaults));
+        return defaults;
+    }
+
+    function saveLanguageDB(db) {
+        localStorage.setItem('stt-language-db', JSON.stringify(db));
+    }
+
+    function getLang() {
+        return localStorage.getItem('stt-lang') || 'en-US';
+    }
+
+    // ============================================
+    // AI CONFIG
+    // ============================================
+    function getAIConfig() {
+        return {
+            openaiKey: (localStorage.getItem('stt-openai-key') || '').replace(/[^\x20-\x7E]/g, ''),
+            model: localStorage.getItem('stt-ai-model') || 'gpt-4o-mini',
+            systemPrompt: localStorage.getItem('stt-system-prompt') || ''
+        };
+    }
+
+    function getActiveKey() {
+        const cfg = getAIConfig();
+        // Try STT key first, then MLS Notes key as fallback
+        return cfg.openaiKey || (localStorage.getItem('mls-notes-openai-key') || '').replace(/[^\x20-\x7E]/g, '');
+    }
+
+    function getActiveModel() {
+        return getAIConfig().model;
+    }
+
+    // ============================================
+    // API USAGE TRACKING
+    // ============================================
+    function getUsage() {
+        try {
+            return JSON.parse(localStorage.getItem('stt-api-usage') || '{}');
+        } catch { return {}; }
+    }
+
+    function saveUsage(u) {
+        localStorage.setItem('stt-api-usage', JSON.stringify(u));
+        renderUsage();
+    }
+
+    function trackCleanup(model, promptTokens, completionTokens) {
+        const u = getUsage();
+        u.cleanupCalls = (u.cleanupCalls || 0) + 1;
+        u.cleanupPromptTokens = (u.cleanupPromptTokens || 0) + promptTokens;
+        u.cleanupCompletionTokens = (u.cleanupCompletionTokens || 0) + completionTokens;
+        u.lastModel = model;
+        saveUsage(u);
+    }
+
+    function trackWhisper(audioDurationSec) {
+        const u = getUsage();
+        u.whisperCalls = (u.whisperCalls || 0) + 1;
+        u.whisperSeconds = (u.whisperSeconds || 0) + audioDurationSec;
+        saveUsage(u);
+    }
+
+    function estimateCost(u) {
+        // Pricing per 1M tokens (as of 2025)
+        const prices = {
+            'gpt-4o-mini': { input: 0.15, output: 0.60 },
+            'gpt-4o':      { input: 2.50, output: 10.00 }
+        };
+        const model = u.lastModel || 'gpt-4o-mini';
+        const p = prices[model] || prices['gpt-4o-mini'];
+        const cleanupCost = ((u.cleanupPromptTokens || 0) * p.input + (u.cleanupCompletionTokens || 0) * p.output) / 1_000_000;
+        // Whisper: $0.006 per minute
+        const whisperCost = ((u.whisperSeconds || 0) / 60) * 0.006;
+        return cleanupCost + whisperCost;
+    }
+
+    function renderUsage() {
+        const u = getUsage();
+        const el = (id) => document.getElementById(id);
+        if (!el('usageCleanupCalls')) return;
+
+        const totalTokens = (u.cleanupPromptTokens || 0) + (u.cleanupCompletionTokens || 0);
+        el('usageCleanupCalls').textContent = (u.cleanupCalls || 0) + ' calls';
+        el('usageCleanupTokens').textContent = totalTokens >= 1000 ? (totalTokens / 1000).toFixed(1) + 'k tokens' : totalTokens + ' tokens';
+        el('usageWhisperCalls').textContent = (u.whisperCalls || 0) + ' calls';
+        const secs = u.whisperSeconds || 0;
+        el('usageWhisperSeconds').textContent = secs >= 60 ? (secs / 60).toFixed(1) + 'm audio' : Math.round(secs) + 's audio';
+        const cost = estimateCost(u);
+        el('usageEstCost').textContent = cost < 0.01 ? '<$0.01' : '$' + cost.toFixed(2);
+    }
+
+    function resetUsage() {
+        localStorage.removeItem('stt-api-usage');
+        renderUsage();
+        showToast('Usage counts reset');
+    }
+
+    // ============================================
+    // DICTATION (Web Speech API)
+    // ============================================
+    function toggleMic() {
+        if (sttMode === 'whisper') {
+            toggleMicWhisper();
+            return;
+        }
+        if (isRecording) {
+            stopDictation();
+        } else {
+            startDictation();
+        }
+    }
+
+    function startDictation() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            showToast('Speech recognition not supported in this browser');
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = getLang();
+
+        recognition.onresult = (event) => {
+            if (isPaused) return;
+            const ta = document.getElementById('transcript');
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    let text = event.results[i][0].transcript.trim();
+                    text = cleanDictation(text);
+                    if (text) {
+                        if (/^[.,?!;:]/.test(text)) {
+                            ta.value = ta.value.replace(/\s*$/, '') + text;
+                        } else {
+                            ta.value = ta.value ? ta.value + ' ' + text : text;
+                        }
+                        updateWordCount();
+                        setStatus('Listening... (heard: "' + text.substring(0, 50) + '")', '#22c55e');
+                    }
+                }
+            }
+        };
+
+        recognition.onend = () => {
+            if (isRecording) {
+                try { recognition.start(); } catch(e) {
+                    isRecording = false;
+                    isPaused = false;
+                    updateMicUI();
+                    setStatus('Session ended. Click mic to restart.', '#f97316');
+                }
+            }
+        };
+
+        recognition.onerror = (e) => {
+            if (e.error === 'no-speech') {
+                setStatus('No speech detected — still listening...', '#f97316');
+                return;
+            }
+            if (e.error === 'aborted') return;
+            setStatus('Error: ' + e.error, '#ef4444');
+        };
+
+        try {
+            recognition.start();
+            isRecording = true;
+            isPaused = false;
+            updateMicUI();
+            setStatus('Listening...', '#22c55e');
+            startBackgroundRecording();
+        } catch(e) {
+            setStatus('Could not start: ' + e.message, '#ef4444');
+        }
+    }
+
+    // Background audio recording — runs alongside Live mode for Whisper redo
+    async function startBackgroundRecording() {
+        // Clear previous recording so Whisper Redo always uses current session
+        lastRecordingBlob = null;
+        document.getElementById('btnWhisperRedo').style.display = 'none';
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            bgAudioChunks = [];
+            bgMediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+            bgMediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) bgAudioChunks.push(e.data);
+            };
+            bgMediaRecorder.start(250);
+        } catch(e) { /* Whisper redo just won't be available */ }
+    }
+
+    function stopBackgroundRecording() {
+        return new Promise((resolve) => {
+            if (bgMediaRecorder && bgMediaRecorder.state !== 'inactive') {
+                bgMediaRecorder.onstop = () => {
+                    bgMediaRecorder.stream.getTracks().forEach(t => t.stop());
+                    if (bgAudioChunks.length > 0) {
+                        lastRecordingBlob = new Blob(bgAudioChunks, { type: 'audio/webm' });
+                        document.getElementById('btnWhisperRedo').style.display = '';
+                        persistAudioBlob(lastRecordingBlob);
+                    }
+                    resolve();
+                };
+                bgMediaRecorder.stop();
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    function openAudioDB() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open('stt-audio-db', 1);
+            req.onupgradeneeded = () => req.result.createObjectStore('audio');
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    async function persistAudioBlob(blob) {
+        try {
+            const db = await openAudioDB();
+            const tx = db.transaction('audio', 'readwrite');
+            tx.objectStore('audio').put(blob, 'lastRecording');
+        } catch(e) { /* IndexedDB unavailable */ }
+    }
+
+    function restoreAudioBlob() {
+        // Show Recall button if no blob in memory — actual check happens on click
+        openAudioDB().then(db => {
+            const tx = db.transaction('audio', 'readonly');
+            const req = tx.objectStore('audio').get('lastRecording');
+            req.onsuccess = () => {
+                const btn = document.getElementById('btnRecallAudio');
+                if (btn) btn.style.display = (req.result && !lastRecordingBlob) ? '' : 'none';
+            };
+        }).catch(() => {});
+    }
+
+    async function recallLastAudio() {
+        try {
+            const db = await openAudioDB();
+            const tx = db.transaction('audio', 'readonly');
+            const req = tx.objectStore('audio').get('lastRecording');
+            req.onsuccess = () => {
+                if (!req.result) { showToast('No saved audio found'); return; }
+                lastRecordingBlob = req.result;
+                document.getElementById('btnWhisperRedo').style.display = '';
+                document.getElementById('btnRecallAudio').style.display = 'none';
+                showToast('Audio recalled — click Whisper Redo to transcribe');
+            };
+        } catch(e) {
+            showToast('Could not recall audio');
+        }
+    }
+
+    // Whisper Redo — re-transcribe saved audio through Whisper API
+    async function whisperRedoUI() {
+        const btn = document.getElementById('btnWhisperRedo');
+        btn.disabled = true;
+        btn.textContent = 'Transcribing...';
+
+        // Stop live mic + background recording and wait for blob to be created
+        if (isRecording) {
+            isRecording = false;
+            isPaused = false;
+            if (recognition) {
+                try { recognition.abort(); } catch(e) {}
+                recognition = null;
+            }
+            updateMicUI();
+            setStatus('Stopped for Whisper redo', '#f97316');
+            await stopBackgroundRecording();
+        }
+
+        if (!lastRecordingBlob) {
+            showToast('No audio saved — record with Live mode first');
+            btn.disabled = false;
+            btn.textContent = 'Whisper Redo';
+            return;
+        }
+
+        try {
+            const result = await callWhisperAPI(lastRecordingBlob);
+            if (result) {
+                const ta = document.getElementById('transcript');
+                if (ta.value.trim()) saveToHistory(ta.value.trim());
+                ta.value = result;
+                updateWordCount();
+                showToast('Whisper transcription applied');
+            }
+        } catch(e) {
+            showToast('Whisper error: ' + e.message);
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Whisper Redo';
+    }
+
+    function stopDictation() {
+        isRecording = false;
+        isPaused = false;
+        if (recognition) {
+            try { recognition.abort(); } catch(e) {}
+            recognition = null;
+        }
+        stopBackgroundRecording();
+        updateMicUI();
+        setStatus('Stopped. Click mic to start.', '#666');
+
+        const text = document.getElementById('transcript').value.trim();
+        if (text) saveToHistory(text);
+    }
+
+    function togglePause() {
+        if (!isRecording) return;
+        isPaused = !isPaused;
+        const btn = document.getElementById('btnPause');
+        if (isPaused) {
+            btn.classList.add('paused');
+            btn.innerHTML = '&#9654;';
+            btn.title = 'Resume dictation (Ctrl+P)';
+            setStatus('Paused (mic still active, input ignored)', '#f97316');
+        } else {
+            btn.classList.remove('paused');
+            btn.innerHTML = '&#9208;';
+            btn.title = 'Pause dictation (Ctrl+P)';
+            setStatus('Listening...', '#22c55e');
+        }
+    }
+
+    function updateMicUI() {
+        const mic = document.getElementById('btnMic');
+        const pause = document.getElementById('btnPause');
+        if (isRecording) {
+            mic.classList.add('recording');
+            pause.style.display = '';
+        } else {
+            mic.classList.remove('recording');
+            pause.style.display = 'none';
+            pause.classList.remove('paused');
+            pause.innerHTML = '&#9208;';
+        }
+    }
+
+    function setStatus(msg, color) {
+        const el = document.getElementById('micStatus');
+        el.textContent = msg;
+        el.style.color = color || '#666';
+    }
+
+    // ============================================
+    // TEXT CLEANUP
+    // ============================================
+    function cleanDictation(text) {
+        const db = getLanguageDB();
+        db.replacements.forEach(r => {
+            const escaped = r.pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const re = new RegExp('\\b' + escaped + '\\b', 'gi');
+            text = text.replace(re, r.replacement);
+        });
+        db.fillers.forEach(filler => {
+            const escaped = filler.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const re = new RegExp('\\b' + escaped + '\\b', 'gi');
+            text = text.replace(re, '');
+        });
+        return text.replace(/\s{2,}/g, ' ').trim();
+    }
+
+    // ============================================
+    // TERMINOLOGY / KNOWLEDGE BASE (Phase 4b)
+    // ============================================
+    function getTerminology() {
+        const raw = localStorage.getItem('stt-terminology');
+        if (raw) try { return JSON.parse(raw); } catch(e) {}
+        return [];
+    }
+
+    function saveTerminology(terms) {
+        localStorage.setItem('stt-terminology', JSON.stringify(terms));
+    }
+
+    function addTermEntry(wrong, correct) {
+        const terms = getTerminology();
+        // Avoid duplicates
+        if (terms.some(t => t.wrong === wrong && t.correct === correct)) return false;
+        terms.push({ wrong, correct });
+        saveTerminology(terms);
+        // Also add to replacements so the speech engine fixes it in real-time
+        const db = getLanguageDB();
+        if (!db.replacements.some(r => r.pattern === wrong && r.replacement === correct)) {
+            db.replacements.push({ pattern: wrong, replacement: correct });
+            saveLanguageDB(db);
+        }
+        return true;
+    }
+
+    function deleteTerm(index) {
+        const terms = getTerminology();
+        terms.splice(index, 1);
+        saveTerminology(terms);
+        renderTermList();
+    }
+
+    function renderTermList() {
+        const container = document.getElementById('termList');
+        if (!container) return;
+        const terms = getTerminology();
+        if (!terms.length) {
+            container.innerHTML = '<div style="color:#555;font-size:0.82rem;padding:4px 0">No learned terms yet. Select text in the transcript and click "Teach" to add corrections.</div>';
+            return;
+        }
+        container.innerHTML = terms.map((t, i) =>
+            `<div class="term-row">
+                <span class="term-wrong">${esc(t.wrong)}</span>
+                <span class="term-arrow">&rarr;</span>
+                <span class="term-correct">${esc(t.correct)}</span>
+                <button class="btn btn-danger" onclick="deleteTerm(${i})" style="padding:2px 8px;font-size:0.72rem">Del</button>
+            </div>`
+        ).join('');
+    }
+
+    function addTerm() {
+        const wrong = document.getElementById('newTermWrong').value.trim();
+        const correct = document.getElementById('newTermCorrect').value.trim();
+        if (!wrong || !correct) { showToast('Enter both fields'); return; }
+        if (addTermEntry(wrong, correct)) {
+            document.getElementById('newTermWrong').value = '';
+            document.getElementById('newTermCorrect').value = '';
+            renderTermList();
+            showToast('Learned: ' + wrong + ' \u2192 ' + correct);
+        } else {
+            showToast('Already exists');
+        }
+    }
+
+    function exportTerms() {
+        const terms = getTerminology();
+        if (!terms.length) { showToast('No terms to export'); return; }
+        const blob = new Blob([JSON.stringify(terms, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'stt-terminology.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('Exported ' + terms.length + ' terms');
+    }
+
+    function importTerms(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (!Array.isArray(imported)) throw new Error('Expected array');
+                const existing = getTerminology();
+                let added = 0;
+                imported.forEach(t => {
+                    if (t.wrong && t.correct && !existing.some(e => e.wrong === t.wrong && e.correct === t.correct)) {
+                        existing.push({ wrong: t.wrong, correct: t.correct });
+                        added++;
+                    }
+                });
+                saveTerminology(existing);
+                renderTermList();
+                showToast('Imported ' + added + ' new terms');
+            } catch(err) {
+                showToast('Invalid JSON file');
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    // ============================================
+    // TEACH UI (Phase 4a)
+    // ============================================
+    let teachSelection = '';
+
+    function setupTeachButton() {
+        const ta = document.getElementById('transcript');
+        const btn = document.getElementById('teachBtn');
+
+        ta.addEventListener('mouseup', positionTeachBtn);
+        ta.addEventListener('keyup', positionTeachBtn);
+
+        function positionTeachBtn() {
+            const sel = ta.value.substring(ta.selectionStart, ta.selectionEnd).trim();
+            if (sel && sel.length > 0 && sel.length < 200) {
+                teachSelection = sel;
+                // Position near the textarea
+                const rect = ta.getBoundingClientRect();
+                btn.style.top = (rect.top - 30) + 'px';
+                btn.style.left = (rect.left + rect.width / 2 - 30) + 'px';
+                btn.style.display = 'block';
+            } else {
+                btn.style.display = 'none';
+                teachSelection = '';
+            }
+        }
+
+        // Hide teach button when clicking elsewhere
+        document.addEventListener('mousedown', (e) => {
+            if (e.target !== btn && e.target !== ta) {
+                btn.style.display = 'none';
+            }
+        });
+    }
+
+    function openTeach() {
+        if (!teachSelection) return;
+        document.getElementById('teachWrong').textContent = teachSelection;
+        document.getElementById('teachCorrect').value = '';
+        document.getElementById('teachOverlay').classList.add('show');
+        setTimeout(() => document.getElementById('teachCorrect').focus(), 50);
+        document.getElementById('teachBtn').style.display = 'none';
+    }
+
+    function closeTeach() {
+        document.getElementById('teachOverlay').classList.remove('show');
+    }
+
+    function saveTeach() {
+        const wrong = document.getElementById('teachWrong').textContent.trim();
+        const correct = document.getElementById('teachCorrect').value.trim();
+        if (!correct) { showToast('Enter the correct text'); return; }
+        if (wrong === correct) { showToast('Correction is the same as original'); return; }
+
+        addTermEntry(wrong, correct);
+
+        // Also fix the current transcript
+        const ta = document.getElementById('transcript');
+        ta.value = ta.value.split(wrong).join(correct);
+        updateWordCount();
+
+        closeTeach();
+        showToast('Learned: ' + wrong + ' \u2192 ' + correct);
+    }
+
+    // ============================================
+    // WHISPER MODE (Phase 5)
+    // ============================================
+    let sttMode = 'live'; // 'live' or 'whisper'
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let whisperRecording = false;
+    let whisperStartTime = 0;
+
+    function setMode(mode) {
+        // Stop any active recording first
+        if (isRecording) stopDictation();
+        if (whisperRecording) stopWhisperRecording(true);
+
+        sttMode = mode;
+        document.getElementById('modeLive').classList.toggle('active', mode === 'live');
+        document.getElementById('modeWhisper').classList.toggle('active', mode === 'whisper');
+
+        const pauseBtn = document.getElementById('btnPause');
+
+        if (mode === 'live') {
+            pauseBtn.style.display = isRecording ? '' : 'none';
+            setStatus('Live mode \u2014 Press Ctrl+M to record', '#666');
+        } else {
+            pauseBtn.style.display = 'none';
+            setStatus('Whisper mode \u2014 Click mic to record, click again to transcribe', '#666');
+        }
+    }
+
+    function toggleMicWhisper() {
+        if (whisperRecording) {
+            stopWhisperRecording(false);
+        } else {
+            startWhisperRecording();
+        }
+    }
+
+    async function startWhisperRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioChunks = [];
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                stream.getTracks().forEach(t => t.stop());
+            };
+
+            mediaRecorder.start(250); // collect in 250ms chunks
+            whisperRecording = true;
+            whisperStartTime = Date.now();
+
+            const mic = document.getElementById('btnMic');
+            mic.classList.add('whisper-recording');
+            setStatus('Recording for Whisper... Click mic to stop', '#ef4444');
+        } catch(e) {
+            setStatus('Mic error: ' + e.message, '#ef4444');
+        }
+    }
+
+    async function stopWhisperRecording(cancelled) {
+        if (!mediaRecorder) return;
+
+        whisperRecording = false;
+        const mic = document.getElementById('btnMic');
+        mic.classList.remove('whisper-recording');
+
+        return new Promise((resolve) => {
+            mediaRecorder.onstop = async () => {
+                mediaRecorder.stream.getTracks().forEach(t => t.stop());
+
+                if (cancelled || audioChunks.length === 0) {
+                    setStatus('Whisper mode \u2014 Click mic to record', '#666');
+                    resolve();
+                    return;
+                }
+
+                setStatus('Transcribing with Whisper...', '#f97316');
+
+                try {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    lastRecordingBlob = audioBlob;
+                    persistAudioBlob(audioBlob);
+                    document.getElementById('btnWhisperRedo').style.display = '';
+                    const result = await callWhisperAPI(audioBlob);
+                    if (result) {
+                        const ta = document.getElementById('transcript');
+                        ta.value = ta.value ? ta.value + ' ' + result : result;
+                        updateWordCount();
+                        setStatus('Whisper transcription complete', '#22c55e');
+                    }
+                } catch(e) {
+                    setStatus('Whisper error: ' + e.message, '#ef4444');
+                    showToast('Whisper error: ' + e.message);
+                }
+                resolve();
+            };
+
+            mediaRecorder.stop();
+        });
+    }
+
+    async function callWhisperAPI(audioBlob) {
+        const cfg = getAIConfig();
+        const key = cfg.openaiKey || (localStorage.getItem('mls-notes-openai-key') || '').replace(/[^\x20-\x7E]/g, '');
+
+        if (!key) {
+            showToast('Whisper requires an OpenAI API key \u2014 set it in Settings > AI');
+            return null;
+        }
+
+        // Build prompt from terminology for better recognition
+        const terms = getTerminology();
+        let prompt = '';
+        if (terms.length > 0) {
+            prompt = terms.map(t => t.correct).join(', ');
+        }
+
+        const formData = new FormData();
+        formData.append('file', audioBlob, 'recording.webm');
+        formData.append('model', 'whisper-1');
+        formData.append('language', getLang().substring(0, 2));
+        if (prompt) {
+            formData.append('prompt', prompt);
+        }
+
+        const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + key },
+            body: formData
+        });
+
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error('Whisper API ' + resp.status + ': ' + err);
+        }
+
+        const data = await resp.json();
+        const duration = whisperStartTime ? (Date.now() - whisperStartTime) / 1000 : 0;
+        trackWhisper(duration);
+        return data.text;
+    }
+
+    // ============================================
+    // AI CLEANUP + CHAT
+    // ============================================
+    async function callAI(messages) {
+        const key = getActiveKey();
+        const model = getActiveModel();
+
+        if (!key) {
+            showToast('No API key — open Settings > AI');
+            return null;
+        }
+
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + key
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: messages,
+                temperature: 0.3
+            })
+        });
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error('OpenAI API error: ' + resp.status + ' ' + err);
+        }
+        const data = await resp.json();
+        if (data.usage) {
+            trackCleanup(model, data.usage.prompt_tokens || 0, data.usage.completion_tokens || 0);
+        }
+        return data.choices[0].message.content;
+    }
+
+    async function aiCleanup() {
+        const text = document.getElementById('transcript').value.trim();
+        if (!text) { showToast('Nothing to clean up'); return; }
+
+        const btn = document.getElementById('btnAI');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Cleaning...';
+
+        const cfg = getAIConfig();
+        let systemPrompt = 'You are a transcript polishing assistant. You will receive raw, unpunctuated text from a speech recognition system. Your job is to:\n- Add correct punctuation and capitalization\n- Fix obvious speech recognition errors based on context\n- Paragraph the text naturally\n- Remove filler words (um, uh, like, you know)\n- Return ONLY the corrected text with no commentary or explanation';
+
+        if (cfg.systemPrompt) {
+            systemPrompt += '\n\nAdditional instructions: ' + cfg.systemPrompt;
+        }
+
+        const terms = getTerminology();
+        if (terms.length > 0) {
+            systemPrompt += '\n\nDomain terminology (always use these exact forms):';
+            terms.forEach(t => {
+                systemPrompt += '\n- ' + t.correct + (t.wrong ? ' (not "' + t.wrong + '")' : '');
+            });
+        }
+
+        aiChatHistory = [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: 'Please clean up this dictated text:\n\n' + text }
+        ];
+
+        try {
+            const result = await callAI(aiChatHistory);
+            if (!result) { btn.disabled = false; btn.textContent = 'AI Clean Up'; return; }
+
+            currentAIText = result;
+            aiChatHistory.push({ role: 'assistant', content: result });
+
+            document.getElementById('aiResult').textContent = result;
+            document.getElementById('aiChatMessages').innerHTML = '';
+            document.getElementById('aiPanel').classList.add('show');
+            document.getElementById('aiTitle').textContent = 'AI Cleanup (' + getActiveModel() + ')';
+        } catch(e) {
+            showToast('AI error: ' + e.message);
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'AI Clean Up';
+    }
+
+    async function sendChat() {
+        const input = document.getElementById('aiChatInput');
+        const msg = input.value.trim();
+        if (!msg) return;
+
+        input.value = '';
+        const msgContainer = document.getElementById('aiChatMessages');
+        msgContainer.innerHTML += `<div class="ai-msg user">${esc(msg)}</div>`;
+        msgContainer.innerHTML += `<div class="ai-msg assistant" id="aiPending"><span class="spinner"></span>Thinking...</div>`;
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+
+        aiChatHistory.push({ role: 'user', content: msg });
+
+        try {
+            const result = await callAI(aiChatHistory);
+            document.getElementById('aiPending').remove();
+
+            if (result) {
+                currentAIText = result;
+                aiChatHistory.push({ role: 'assistant', content: result });
+                document.getElementById('aiResult').textContent = result;
+                msgContainer.innerHTML += `<div class="ai-msg assistant">${esc(result.substring(0, 200))}${result.length > 200 ? '...' : ''}</div>`;
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+            }
+        } catch(e) {
+            document.getElementById('aiPending').remove();
+            msgContainer.innerHTML += `<div class="ai-msg assistant" style="color:#ef4444">Error: ${esc(e.message)}</div>`;
+        }
+    }
+
+    function acceptAI() {
+        if (currentAIText) {
+            // Stop mic so it doesn't keep appending words after the cleaned text
+            if (isRecording) stopDictation();
+            const ta = document.getElementById('transcript');
+            saveToHistory(ta.value.trim());
+            ta.value = currentAIText;
+            updateWordCount();
+            showToast('AI version accepted');
+        }
+        closeAI();
+    }
+
+    function closeAI() {
+        document.getElementById('aiPanel').classList.remove('show');
+        aiChatHistory = [];
+        currentAIText = '';
+    }
+
+    // ============================================
+    // TRANSCRIPT ACTIONS
+    // ============================================
+    // Robust clipboard copy — fallback for when navigator.clipboard fails (unfocused window)
+    async function copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch(e) {
+            // Fallback: use a hidden textarea + execCommand
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            return true;
+        }
+    }
+
+    // Auto Paste — stop recording, copy text, signal AHK to paste into return app
+    async function autoPaste() {
+        const wasRecording = isRecording || whisperRecording;
+        // Stop recording if active
+        if (isRecording) stopDictation();
+        if (whisperRecording) await stopWhisperRecording(false);
+        // Only wait for final words if mic was active
+        if (wasRecording) await new Promise(r => setTimeout(r, 750));
+
+        const text = document.getElementById('transcript').value.trim();
+        if (!text) { showToast('Nothing to paste'); return; }
+
+        await copyToClipboard(text);
+        saveToHistory(text);
+        document.getElementById('transcript').value = '';
+        updateWordCount();
+
+        // Reset title first, then set signal (ensures change is detected on repeat)
+        document.title = 'Speech to Text';
+        setTimeout(() => { document.title = 'STT::PASTE'; }, 50);
+    }
+
+    function copyTranscript() {
+        const text = document.getElementById('transcript').value;
+        if (!text) { showToast('Nothing to copy'); return; }
+        copyToClipboard(text).then(() => showToast('Copied to clipboard'));
+    }
+
+    function clearTranscript() {
+        const ta = document.getElementById('transcript');
+        if (ta.value.trim()) saveToHistory(ta.value.trim());
+        ta.value = '';
+        updateWordCount();
+        closeAI();
+        showToast('Cleared');
+    }
+
+    function updateWordCount() {
+        const text = document.getElementById('transcript').value.trim();
+        const count = text ? text.split(/\s+/).length : 0;
+        document.getElementById('wordCount').textContent = count + ' word' + (count !== 1 ? 's' : '');
+    }
+
+    // ============================================
+    // SESSION HISTORY
+    // ============================================
+    function saveToHistory(text) {
+        if (!text) return;
+        sessionHistory.unshift({
+            text: text,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            words: text.split(/\s+/).length
+        });
+        if (sessionHistory.length > 10) sessionHistory.pop();
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const section = document.getElementById('historySection');
+        const list = document.getElementById('historyList');
+        if (!sessionHistory.length) { section.style.display = 'none'; return; }
+        section.style.display = '';
+        list.innerHTML = sessionHistory.map((h, i) =>
+            `<div class="history-item" onclick="restoreHistory(${i})" title="Click to restore">
+                <span class="history-time">${h.time} (${h.words} words)</span>
+                <span class="history-text">${esc(h.text.substring(0, 120))}${h.text.length > 120 ? '...' : ''}</span>
+            </div>`
+        ).join('');
+    }
+
+    function restoreHistory(index) {
+        document.getElementById('transcript').value = sessionHistory[index].text;
+        updateWordCount();
+        showToast('Restored from history');
+    }
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    // ============================================
+    // SETTINGS
+    // ============================================
+    function switchSettingsTab(tab) {
+        document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.settings-tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.settings-tab[onclick*="${tab}"]`).classList.add('active');
+        document.getElementById('settingsTab-' + tab).classList.add('active');
+    }
+
+    function openSettings() {
+        document.getElementById('settingsModal').classList.add('show');
+        // AI tab
+        const cfg = getAIConfig();
+        document.getElementById('settingsOpenaiKey').value = cfg.openaiKey;
+        document.getElementById('settingsModel').value = cfg.model;
+        document.getElementById('settingsSystemPrompt').value = cfg.systemPrompt;
+        // Language tab
+        const db = getLanguageDB();
+        document.getElementById('settingsFillers').value = db.fillers.join(', ');
+        renderTermList();
+        renderReplacementsList(db);
+        // Speech tab
+        document.getElementById('settingsLang').value = getLang();
+        switchSettingsTab('ai');
+    }
+
+    function closeSettings() {
+        document.getElementById('settingsModal').classList.remove('show');
+    }
+
+    function saveSettings() {
+        // AI
+        localStorage.setItem('stt-openai-key', document.getElementById('settingsOpenaiKey').value.trim());
+        localStorage.setItem('stt-ai-model', document.getElementById('settingsModel').value);
+        localStorage.setItem('stt-system-prompt', document.getElementById('settingsSystemPrompt').value);
+        // Language
+        const db = getLanguageDB();
+        db.fillers = document.getElementById('settingsFillers').value.split(',').map(s => s.trim()).filter(Boolean);
+        saveLanguageDB(db);
+        // Speech
+        localStorage.setItem('stt-lang', document.getElementById('settingsLang').value);
+        closeSettings();
+        showToast('Settings saved');
+    }
+
+    function renderReplacementsList(db) {
+        const container = document.getElementById('replacementsList');
+        if (!db.replacements.length) {
+            container.innerHTML = '<div style="color:#555;font-size:0.82rem;padding:4px 0">No replacements yet.</div>';
+            return;
+        }
+        container.innerHTML = db.replacements.map((r, i) =>
+            `<div class="replacement-row">
+                <span class="r-pattern">${esc(r.pattern)}</span>
+                <span class="r-arrow">&rarr;</span>
+                <span class="r-replacement">${esc(r.replacement)}</span>
+                <button class="btn btn-danger" onclick="deleteReplacement(${i})" style="padding:2px 8px;font-size:0.72rem">Del</button>
+            </div>`
+        ).join('');
+    }
+
+    function addReplacement() {
+        const pattern = document.getElementById('newPattern').value.trim();
+        const replacement = document.getElementById('newReplacement').value.trim();
+        if (!pattern || !replacement) { showToast('Enter both fields'); return; }
+        const db = getLanguageDB();
+        if (db.replacements.some(r => r.pattern === pattern)) { showToast('Already exists'); return; }
+        db.replacements.push({ pattern, replacement });
+        saveLanguageDB(db);
+        document.getElementById('newPattern').value = '';
+        document.getElementById('newReplacement').value = '';
+        renderReplacementsList(db);
+        showToast('Replacement added');
+    }
+
+    function deleteReplacement(index) {
+        const db = getLanguageDB();
+        db.replacements.splice(index, 1);
+        saveLanguageDB(db);
+        renderReplacementsList(db);
+    }
+
+    // ============================================
+    // MIC TEST
+    // ============================================
+    function testMic() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const statusEl = document.getElementById('testMicStatus');
+        const resultEl = document.getElementById('testMicResult');
+        if (!SpeechRecognition) { statusEl.textContent = 'Not supported'; statusEl.style.color = '#ef4444'; return; }
+        statusEl.textContent = 'Listening for 5 seconds...'; statusEl.style.color = '#f97316';
+        resultEl.textContent = '';
+        const rec = new SpeechRecognition();
+        rec.continuous = false;
+        rec.interimResults = true;
+        rec.lang = getLang();
+        rec.onresult = (e) => { resultEl.textContent = 'Heard: "' + e.results[0][0].transcript + '"'; };
+        rec.onerror = (e) => {
+            statusEl.textContent = 'Error: ' + e.error; statusEl.style.color = '#ef4444';
+            if (e.error === 'not-allowed') resultEl.textContent = 'Mic permission denied. Check browser settings.';
+        };
+        rec.onend = () => {
+            if (!resultEl.textContent) { statusEl.textContent = 'No speech detected'; statusEl.style.color = '#f97316'; }
+            else { statusEl.textContent = 'Mic working!'; statusEl.style.color = '#22c55e'; }
+        };
+        try { rec.start(); setTimeout(() => { try { rec.stop(); } catch(e){} }, 5000); }
+        catch(e) { statusEl.textContent = 'Failed: ' + e.message; statusEl.style.color = '#ef4444'; }
+    }
+
+    // ============================================
+    // TOAST
+    // ============================================
+    let toastTimer = null;
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    // ============================================
+    // IPC — Keyboard signals from AHK
+    // ============================================
+    // AHK sends F8-F11 for IPC:
+    // F8 = start recording, F9 = grab transcript, F10 = AI cleanup clipboard, F11 = Whisper redo
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F8') {
+            e.preventDefault();
+            if (sttMode === 'live') {
+                if (isRecording) stopDictation();
+                else startDictation();
+            }
+        } else if (e.key === 'F9') {
+            e.preventDefault();
+            const text = document.getElementById('transcript').value.trim();
+            if (text) {
+                copyToClipboard(text).then(() => {
+                    saveToHistory(text);
+                    document.getElementById('transcript').value = '';
+                    updateWordCount();
+                });
+            }
+            if (isRecording) stopDictation();
+            if (whisperRecording) stopWhisperRecording(true);
+        } else if (e.key === 'F10') {
+            e.preventDefault();
+            aiFixFromClipboard();
+        } else if (e.key === 'F11') {
+            e.preventDefault();
+            whisperRedoLastRecording();
+        }
+    });
+
+    // CapsLock + - : AI cleanup text from clipboard, write result back to clipboard
+    async function aiFixFromClipboard() {
+        let text = '';
+        try {
+            text = await navigator.clipboard.readText();
+        } catch(e) {
+            showToast('Could not read clipboard');
+            return;
+        }
+        if (!text || text.length < 2) {
+            showToast('Nothing to clean up');
+            return;
+        }
+
+        showToast('AI cleanup in progress...');
+
+        const cfg = getAIConfig();
+        let systemPrompt = 'You are a transcript polishing assistant. You will receive raw, unpunctuated text from a speech recognition system. Your job is to:\n- Add correct punctuation and capitalization\n- Fix obvious speech recognition errors based on context\n- Paragraph the text naturally\n- Remove filler words (um, uh, like, you know)\n- Return ONLY the corrected text with no commentary or explanation';
+
+        if (cfg.systemPrompt) {
+            systemPrompt += '\n\nAdditional instructions: ' + cfg.systemPrompt;
+        }
+
+        const terms = getTerminology();
+        if (terms.length > 0) {
+            systemPrompt += '\n\nDomain terminology (always use these exact forms):';
+            terms.forEach(t => {
+                systemPrompt += '\n- ' + t.correct + (t.wrong ? ' (not "' + t.wrong + '")' : '');
+            });
+        }
+
+        try {
+            const result = await callAI([
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: 'Please clean up this dictated text:\n\n' + text }
+            ]);
+            if (result) {
+                await copyToClipboard(result);
+                showToast('AI cleanup done');
+            }
+        } catch(e) {
+            showToast('AI error: ' + e.message);
+        }
+    }
+
+    // CapsLock + = : Re-transcribe last audio recording with Whisper
+    async function whisperRedoLastRecording() {
+        if (!lastRecordingBlob) {
+            showToast('No audio saved — dictate with Live mode first');
+            return;
+        }
+
+        showToast('Re-transcribing with Whisper...');
+
+        try {
+            const result = await callWhisperAPI(lastRecordingBlob);
+            if (result) {
+                await copyToClipboard(result);
+                showToast('Whisper transcription done');
+            }
+        } catch(e) {
+            showToast('Whisper error: ' + e.message);
+        }
+    }
+
+    // ============================================
+    // KEYBOARD SHORTCUTS
+    // ============================================
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && !e.shiftKey && e.key === 'm') {
+            e.preventDefault();
+            toggleMic();
+        }
+        if (e.ctrlKey && !e.shiftKey && e.key === ' ') {
+            e.preventDefault();
+            if (isRecording) togglePause();
+        }
+        if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+            e.preventDefault();
+            copyTranscript();
+        }
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            aiCleanup();
+        }
+        if (e.key === 'Escape') {
+            if (document.getElementById('teachOverlay').classList.contains('show')) {
+                closeTeach();
+            } else if (document.getElementById('settingsModal').classList.contains('show')) {
+                closeSettings();
+            } else if (document.getElementById('aiPanel').classList.contains('show')) {
+                closeAI();
+            } else if (whisperRecording) {
+                stopWhisperRecording(true);
+            } else if (isRecording) {
+                stopDictation();
+            }
+        }
+    });
+
+    // Update word count on typing
+    document.getElementById('transcript').addEventListener('input', updateWordCount);
+
+    // Init
+    updateWordCount();
+    setupTeachButton();
+    renderUsage();
+    restoreAudioBlob();
+</script>
+
+</body>
+</html>

@@ -1,19 +1,23 @@
 # Shortcuts-Custom
 
-A lightweight keyboard shortcut manager for Windows. Press a hotkey to open a searchable popup where you can view, copy, organize, and run your shortcuts. Includes a **Clipboard Collector** for gathering text snippets.
+A lightweight keyboard shortcut manager for Windows. Press a hotkey to open a searchable popup where you can view, copy, organize, and run your shortcuts. Includes a **Clipboard Collector** for gathering text snippets and **Speech to Text** for live dictation.
 
-Built with AutoHotkey v2 and Microsoft Edge (app mode). No internet required — everything runs locally.
+Built with AutoHotkey v2 and Microsoft Edge (app mode). No internet required — everything runs locally (STT features optionally use the OpenAI API).
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078d4.svg)
 ![AHK](https://img.shields.io/badge/AutoHotkey-v2.0-green.svg)
 
-A short video presentation on use and install. https://www.youtube.com/watch?v=R7VdV_cqGSY
-
 ## Features
 
 - **Shortcut Popup** (CapsLock + /) — searchable, categorized shortcut reference with copy-to-clipboard
 - **Clipboard Collector** (CapsLock + ;) — collect text selections into named lists, paste them all at once
+- **Speech to Text** (CapsLock + ,) — live browser-based dictation with real-time transcript
+  - Whisper mode — OpenAI Whisper API for higher-accuracy transcription
+  - AI Cleanup — GPT-powered grammar, punctuation, and terminology correction
+  - Teachable Terminology — teach the AI your domain-specific words and phrases
+  - Quick Dictate hotkeys — start/stop recording and paste from any app
+  - API Usage tracking — monitor call counts, tokens, and estimated cost
 - **Runnable Scripts** — launch .bat, .ps1, or .exe files directly from the popup
 - **Categories & Favorites** — organize shortcuts with color-coded categories and star your most-used ones
 - **Inline Notes** — attach notes to any shortcut for extra context
@@ -47,6 +51,9 @@ You'll see a tooltip: "Shortcuts Popup ready!" and a green **H** icon in your sy
 | `Shift + CapsLock + ;` | Create a new collector list from clipboard |
 | `CapsLock + ]` | Paste collected items (space-separated) |
 | `CapsLock + Backspace` | Toggle the Collector viewer |
+| `CapsLock + ,` | Toggle Speech to Text |
+| `Shift + CapsLock + M` | Quick Dictate — start/stop recording from any app |
+| `Shift + CapsLock + N` | Quick Paste — paste dictation into the app you were using |
 | `Esc` | Close any open popup |
 
 ## How It Works
@@ -62,6 +69,13 @@ Highlight text anywhere and press `CapsLock + ;` to collect it. Items are stored
 ### Collector Viewer
 A visual interface to see your collected items, add/remove entries, switch between lists, rename or delete lists, and copy the full list to clipboard.
 
+### Speech to Text
+Press `CapsLock + ,` to open the Speech to Text window. Click the microphone button (or press F8) to start live dictation using your browser's built-in speech recognition. Your transcript appears in real time.
+
+For higher accuracy, enable **Whisper mode** to send recordings to the OpenAI Whisper API. Use **AI Cleanup** to automatically fix grammar, punctuation, and domain-specific terminology. You can teach the AI your own terminology via the Teachable Terminology panel.
+
+**Quick Dictate** (`Shift+CapsLock+M`) lets you start/stop recording without leaving your current app. **Quick Paste** (`Shift+CapsLock+N`) grabs the transcribed text and pastes it back into the app you were working in.
+
 ## Customizing Hotkeys
 
 All hotkeys are configurable at the top of `popup.ahk`. To edit it, right-click the file → **Open with** → **Notepad** (or any text editor). Then change the `KEY_*` variables:
@@ -72,6 +86,9 @@ KEY_COLLECT     := "CapsLock & ;"    ; Collect selected text
 KEY_NEW_LIST    := "CapsLock & ;"    ; (with Shift held) New list from clipboard
 KEY_PASTE       := "CapsLock & ]"    ; Paste collected items
 KEY_VIEWER      := "CapsLock & BS"   ; Open/close Collector viewer
+KEY_STT         := "CapsLock & ,"    ; Open/close Speech to Text
+KEY_QUICK_DICT  := "CapsLock & m"    ; (with Shift held) Quick dictate
+KEY_QUICK_PASTE := "CapsLock & n"    ; (with Shift held) Quick paste
 ```
 
 Common alternatives: `^!s` (Ctrl+Alt+S), `F12`, `#/` (Win+/), `^+c` (Ctrl+Shift+C)
@@ -100,6 +117,7 @@ To compile `popup.ahk` into a standalone `.exe`:
 | `popup.ahk` | Main script — hotkeys, window management, collector logic |
 | `popup.html` | Shortcuts popup UI |
 | `collector.html` | Collector viewer UI |
+| `speech-to-text.html` | Speech to Text UI — dictation, Whisper, AI cleanup |
 | `collector-data.js` | Collector data bridge (auto-generated, do not edit) |
 | `shortcuts.json` | Default shortcuts data |
 | `config.json` | Configuration file |
@@ -109,6 +127,7 @@ To compile `popup.ahk` into a standalone `.exe`:
 - **Windows 10 or 11**
 - **Microsoft Edge** (pre-installed on Windows 10/11)
 - **AutoHotkey v2** (only needed if running from source, not for compiled .exe)
+- **OpenAI API key** (optional — only needed for Whisper transcription and AI Cleanup features in Speech to Text)
 
 ## License
 

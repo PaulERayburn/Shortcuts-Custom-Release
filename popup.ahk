@@ -27,11 +27,19 @@ KEY_NEW_LIST    := "CapsLock & `;"    ; (with Shift held) New list from clipboar
 KEY_PASTE       := "CapsLock & ]"    ; Paste all collected items
 KEY_VIEWER      := "CapsLock & BS"   ; Open/close the Collector viewer
 KEY_KB_FIX      := "CapsLock & '"    ; Keyboard fix utility (optional — delete if not needed)
+KEY_STT         := "CapsLock & ,"    ; Open/close Speech to Text
+KEY_QUICK_DICT  := "CapsLock & m"    ; (with Shift held) Quick dictate (toggle record)
+KEY_QUICK_PASTE := "CapsLock & n"    ; (with Shift held) Grab STT text and paste
 
 ; POPUP WINDOW
 POPUP_WIDTH := 700
 POPUP_HEIGHT := 600
 HTML_FILE := A_ScriptDir "\popup.html"
+
+; SPEECH TO TEXT WINDOW
+STT_WIDTH := 600
+STT_HEIGHT := 700
+STT_HTML_FILE := A_ScriptDir "\speech-to-text.html"
 
 ; COLLECTOR WINDOW
 COLLECTOR_WIDTH := 450
@@ -43,10 +51,12 @@ COLLECTOR_DATA_FILE := A_ScriptDir "\collector-data.js"
 ; GLOBALS
 ; ============================================
 global popupHwnd := 0
+global sttHwnd := 0
 global collectorHwnd := 0
 global previousWindow := 0
 global collectorLists := Map()
 global activeListName := ""
+global quickDictateReturnWin := 0
 
 ; ============================================
 ; HOTKEY REGISTRATION
@@ -60,6 +70,12 @@ HotIf
 Hotkey KEY_COLLECT, CollectSelection
 Hotkey KEY_PASTE, PasteCollected
 Hotkey KEY_VIEWER, ToggleCollector
+Hotkey KEY_STT, ToggleSpeechToText
+; Shift variants of quick-dictate keys
+HotIf (*) => GetKeyState("Shift", "P")
+Hotkey KEY_QUICK_DICT, QuickDictateHotkey
+Hotkey KEY_QUICK_PASTE, QuickPasteHotkey
+HotIf
 
 ; Keyboard fix function
 KeyboardFixHotkey(*) {
@@ -137,7 +153,7 @@ ClosePopup(*) {
 ; ============================================
 
 CheckForScriptRun() {
-    global collectorHwnd, collectorLists, activeListName
+    global collectorHwnd, collectorLists, activeListName, quickDictateReturnWin, sttHwnd
 
     ; Handle COLLECTOR:: signals from viewer
     try {
@@ -199,6 +215,40 @@ CheckForScriptRun() {
         }
     }
 
+    ; Handle STT:: signals from Speech to Text
+    try {
+        if WinExist("STT::") {
+            title := WinGetTitle("STT::")
+            hwnd := WinGetID("STT::")
+            try WinSetTitle("Speech to Text", "ahk_id " hwnd)
+
+            if InStr(title, "STT::PASTE") {
+                ; Auto Paste: JS already copied text to clipboard, just switch back and paste
+                targetWin := quickDictateReturnWin
+                ; Fallback: if no return window saved, find the previously active non-STT window
+                if (targetWin = 0 || !WinExist("ahk_id " targetWin)) {
+                    try {
+                        for hwnd in WinGetList() {
+                            winTitle := WinGetTitle("ahk_id " hwnd)
+                            if (hwnd != sttHwnd && winTitle != "" && !InStr(winTitle, "Speech to Text")) {
+                                targetWin := hwnd
+                                break
+                            }
+                        }
+                    }
+                }
+                if (targetWin != 0 && WinExist("ahk_id " targetWin)) {
+                    Sleep 200
+                    WinActivate "ahk_id " targetWin
+                    Sleep 150
+                    Send "^v"
+                    ToolTip "Dictation pasted"
+                    SetTimer () => ToolTip(), -2000
+                }
+            }
+        }
+    }
+
     ; Handle OPEN:: signals from popup
     try {
         if WinExist("OPEN::") {
@@ -244,6 +294,151 @@ CheckForScriptRun() {
         }
     } catch {
         return
+    }
+}
+
+; ============================================
+; SPEECH TO TEXT FUNCTIONS
+; ============================================
+
+ToggleSpeechToText(*) {
+    global sttHwnd, previousWindow
+
+    if (sttHwnd != 0 && WinExist("ahk_id " sttHwnd)) {
+        CloseSpeechToText()
+        return
+    }
+
+    try {
+        previousWindow := WinGetID("A")
+    } catch {
+        previousWindow := 0
+    }
+
+    posX := (A_ScreenWidth - STT_WIDTH) // 2
+    posY := (A_ScreenHeight - STT_HEIGHT) // 2
+
+    edgePath := "msedge.exe"
+    edgeArgs := Format('--app="{1}" --window-size={2},{3} --window-position={4},{5} --auto-accept-camera-and-microphone-capture',
+        STT_HTML_FILE, STT_WIDTH, STT_HEIGHT, posX, posY)
+
+    Run edgePath " " edgeArgs
+
+    if WinWait("Speech to Text", , 3) {
+        sttHwnd := WinGetID("Speech to Text")
+        WinSetAlwaysOnTop true, "ahk_id " sttHwnd
+        WinActivate "ahk_id " sttHwnd
+        SetTimer CheckForScriptRun, 250
+    }
+}
+
+CloseSpeechToText(*) {
+    global sttHwnd, previousWindow
+
+    if (sttHwnd != 0 && WinExist("ahk_id " sttHwnd)) {
+        WinClose "ahk_id " sttHwnd
+        sttHwnd := 0
+        StopTimerIfNoWindows()
+
+        if (previousWindow != 0 && WinExist("ahk_id " previousWindow)) {
+            Sleep 50
+            WinActivate "ahk_id " previousWindow
+        }
+    }
+}
+
+; Quick dictate: Shift+CapsLock+M from any app
+; First press → open STT + start recording
+; Second press → grab text, switch back, paste
+; Shift+CapsLock+M — toggle recording (open STT if needed)
+QuickDictateHotkey(*) {
+    global sttHwnd, quickDictateReturnWin
+
+    KeyWait "CapsLock"
+    KeyWait "Shift"
+    KeyWait "m"
+    Sleep 50
+
+    ; Remember the window to return to (only when starting, not stopping)
+    if (sttHwnd = 0 || !WinExist("ahk_id " sttHwnd)) {
+        try quickDictateReturnWin := WinGetID("A")
+        catch
+            quickDictateReturnWin := 0
+
+        ToggleSpeechToText()
+        ; Wait for Edge to fully load
+        waited := 0
+        while (waited < 5000) {
+            Sleep 200
+            waited += 200
+            if (sttHwnd != 0 && WinExist("ahk_id " sttHwnd)) {
+                try {
+                    title := WinGetTitle("ahk_id " sttHwnd)
+                    if (title = "Speech to Text")
+                        break
+                }
+            }
+        }
+        ; Start recording
+        if (sttHwnd != 0 && WinExist("ahk_id " sttHwnd)) {
+            WinActivate "ahk_id " sttHwnd
+            Sleep 100
+            Send "{F8}"
+        }
+        ToolTip "Recording... Shift+CapsLock+M to stop, Shift+CapsLock+N to paste"
+        SetTimer () => ToolTip(), -5000
+    } else {
+        ; STT is already open — save return window and toggle mic
+        ; Only save if current window is NOT the STT window
+        try {
+            activeWin := WinGetID("A")
+            if (activeWin != sttHwnd)
+                quickDictateReturnWin := activeWin
+        }
+        WinActivate "ahk_id " sttHwnd
+        Sleep 100
+        Send "{F8}"
+        ToolTip "Mic toggled — Shift+CapsLock+N to paste"
+        SetTimer () => ToolTip(), -3000
+    }
+}
+
+; Shift+CapsLock+N — grab text from STT and paste into original app
+QuickPasteHotkey(*) {
+    global sttHwnd, quickDictateReturnWin
+
+    KeyWait "CapsLock"
+    KeyWait "Shift"
+    KeyWait "n"
+    Sleep 50
+
+    if (sttHwnd = 0 || !WinExist("ahk_id " sttHwnd)) {
+        ToolTip "STT not open — nothing to paste"
+        SetTimer () => ToolTip(), -2000
+        return
+    }
+
+    oldClip := A_Clipboard
+
+    ; Activate STT, brief pause, send F9 to grab
+    WinActivate "ahk_id " sttHwnd
+    Sleep 300
+    Send "{F9}"
+
+    ; Wait for clipboard to change
+    waited := 0
+    while (A_Clipboard == oldClip && waited < 3000) {
+        Sleep 50
+        waited += 50
+    }
+
+    ; Switch back and paste
+    if (quickDictateReturnWin != 0 && WinExist("ahk_id " quickDictateReturnWin)) {
+        WinActivate "ahk_id " quickDictateReturnWin
+        Sleep 150
+        Send "^v"
+        ToolTip "Dictation pasted"
+        SetTimer () => ToolTip(), -2000
     }
 }
 
@@ -423,10 +618,11 @@ WriteCollectorFile() {
 }
 
 StopTimerIfNoWindows() {
-    global popupHwnd, collectorHwnd
+    global popupHwnd, sttHwnd, collectorHwnd
     popupAlive := (popupHwnd != 0 && WinExist("ahk_id " popupHwnd))
+    sttAlive := (sttHwnd != 0 && WinExist("ahk_id " sttHwnd))
     collectorAlive := (collectorHwnd != 0 && WinExist("ahk_id " collectorHwnd))
-    if (!popupAlive && !collectorAlive)
+    if (!popupAlive && !sttAlive && !collectorAlive)
         SetTimer CheckForScriptRun, 0
 }
 
@@ -444,6 +640,7 @@ EscapeJsonString(str) {
 ; ============================================
 A_TrayMenu.Delete()
 A_TrayMenu.Add("Show Popup", TogglePopup)
+A_TrayMenu.Add("Speech to Text", ToggleSpeechToText)
 A_TrayMenu.Add("Collector", ToggleCollector)
 A_TrayMenu.Add()
 A_TrayMenu.Add("Edit Hotkey", EditHotkey)

@@ -13,7 +13,7 @@
 ;   - Create an uninstaller
 
 #define MyAppName "Shortcuts-Custom"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "PaulR"
 #define MyAppURL "https://github.com/PaulERayburn/Shortcuts-Custom-Release"
 #define MyAppExeName "popup.exe"
@@ -51,6 +51,7 @@ Source: "popup.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; HTML interfaces
 Source: "popup.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "collector.html"; DestDir: "{app}"; Flags: ignoreversion
+Source: "speech-to-text.html"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Data files
 Source: "collector-data.js"; DestDir: "{app}"; Flags: ignoreversion
