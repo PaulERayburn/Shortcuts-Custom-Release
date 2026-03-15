@@ -1,8 +1,12 @@
 # Shortcuts-Custom
 
-A lightweight keyboard shortcut manager for Windows. Press a hotkey to open a searchable popup where you can view, copy, organize, and run your shortcuts. Includes a **Clipboard Collector** for gathering text snippets and **Speech to Text** for live dictation.
+A lightweight keyboard shortcut manager for Windows. Press a hotkey to open a searchable popup where you can view, copy, organize, and run your shortcuts. Includes a **Clipboard Collector** for gathering text snippets and **Speech to Text** for live dictation. 
 
-Built with AutoHotkey v2 and Microsoft Edge (app mode). No internet required — everything runs locally (STT features optionally use the OpenAI API).
+Built with AutoHotkey v2 and Microsoft Edge (app mode). No internet required for the shortcuts and clipboard features, everything runs locally.  *Optional speech to text features do include OpenAI Whisper API requiring an internet connection.
+
+(STT features optionally use the OpenAI API).  
+https://developers.openai.com/api/docs/guides/speech-to-text/
+
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-0078d4.svg)
