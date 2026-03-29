@@ -89,7 +89,8 @@
         .controls {
             display: flex;
             align-items: center;
-            gap: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
             justify-content: center;
             padding: 10px;
             background: #1a1a1a;
@@ -99,7 +100,7 @@
         .mic-status {
             font-size: 0.82rem;
             color: #666;
-            min-width: 200px;
+            flex-basis: 100%;
             text-align: center;
         }
 
@@ -468,6 +469,7 @@
         <button class="btn-mic" id="btnMic" onclick="toggleMic()" title="Start/stop recording (Ctrl+M)">&#127908;</button>
         <button class="btn-pause" id="btnPause" onclick="togglePause()" title="Pause/resume (Ctrl+Space)" style="display:none">&#9208;</button>
         <button class="btn btn-success" onclick="autoPaste()" title="Stop recording, copy text, and paste into your app" style="padding:6px 14px;font-size:0.85rem">Auto Paste</button>
+        <button class="btn" onclick="switchMic()" title="Switch default microphone" style="padding:5px 10px;font-size:0.78rem">&#127908; Switch</button>
         <div class="mic-status" id="micStatus">Press CapsLock+, to launch &bull; Ctrl+M to record</div>
     </div>
 
@@ -621,6 +623,10 @@
                 <button class="btn btn-primary" onclick="testMic()">Test Mic</button>
                 <span id="testMicStatus" style="font-size:0.82rem;color:#666;margin-left:8px"></span>
                 <p id="testMicResult" style="font-size:0.88rem;color:#d4d4d4;margin-top:6px;min-height:20px"></p>
+            </div>
+            <div style="border-top:1px solid #333;margin-top:12px;padding-top:12px">
+                <button class="btn" onclick="switchMic()" style="padding:5px 10px;font-size:0.82rem">&#127908; Switch Mic</button>
+                <span style="font-size:0.78rem;color:#666;margin-left:8px">Opens system mic picker</span>
             </div>
         </div>
 
@@ -849,12 +855,17 @@
             setStatus('Error: ' + e.error, '#ef4444');
         };
 
+        recognition.onaudiostart = () => {
+            setStatus('Listening...', '#22c55e');
+            document.getElementById('btnMic').classList.add('recording');
+        };
+
         try {
             recognition.start();
             isRecording = true;
             isPaused = false;
-            updateMicUI();
-            setStatus('Listening...', '#22c55e');
+            document.getElementById('btnPause').style.display = '';
+            setStatus('Starting mic...', '#f97316');
             startBackgroundRecording();
         } catch(e) {
             setStatus('Could not start: ' + e.message, '#ef4444');
@@ -1229,10 +1240,11 @@
     // ============================================
     // WHISPER MODE (Phase 5)
     // ============================================
-    let sttMode = 'live'; // 'live' or 'whisper'
+    let sttMode = localStorage.getItem('stt-mode') || 'live';
     let mediaRecorder = null;
     let audioChunks = [];
     let whisperRecording = false;
+    let whisperTranscribing = false;
     let whisperStartTime = 0;
 
     function setMode(mode) {
@@ -1241,6 +1253,7 @@
         if (whisperRecording) stopWhisperRecording(true);
 
         sttMode = mode;
+        localStorage.setItem('stt-mode', mode);
         document.getElementById('modeLive').classList.toggle('active', mode === 'live');
         document.getElementById('modeWhisper').classList.toggle('active', mode === 'whisper');
 
@@ -1306,6 +1319,7 @@
                     return;
                 }
 
+                whisperTranscribing = true;
                 setStatus('Transcribing with Whisper...', '#f97316');
 
                 try {
@@ -1323,6 +1337,8 @@
                 } catch(e) {
                     setStatus('Whisper error: ' + e.message, '#ef4444');
                     showToast('Whisper error: ' + e.message);
+                } finally {
+                    whisperTranscribing = false;
                 }
                 resolve();
             };
@@ -1691,6 +1707,14 @@
     }
 
     // ============================================
+    // MIC SWITCH (via AHK RUN:: mechanism)
+    // ============================================
+    function switchMic() {
+        document.title = 'Speech to Text';
+        setTimeout(() => { document.title = 'RUN::switch-mic.ps1'; }, 50);
+    }
+
+    // ============================================
     // MIC TEST
     // ============================================
     function testMic() {
@@ -1734,25 +1758,27 @@
     // ============================================
     // AHK sends F8-F11 for IPC:
     // F8 = start recording, F9 = grab transcript, F10 = AI cleanup clipboard, F11 = Whisper redo
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', async (e) => {
         if (e.key === 'F8') {
             e.preventDefault();
-            if (sttMode === 'live') {
-                if (isRecording) stopDictation();
-                else startDictation();
-            }
+            toggleMic();
         } else if (e.key === 'F9') {
             e.preventDefault();
+            if (whisperRecording) await stopWhisperRecording(false);
+            if (isRecording) stopDictation();
+            if (whisperTranscribing) {
+                const start = Date.now();
+                while (whisperTranscribing && Date.now() - start < 30000) {
+                    await new Promise(r => setTimeout(r, 200));
+                }
+            }
             const text = document.getElementById('transcript').value.trim();
             if (text) {
-                copyToClipboard(text).then(() => {
-                    saveToHistory(text);
-                    document.getElementById('transcript').value = '';
-                    updateWordCount();
-                });
+                await copyToClipboard(text);
+                saveToHistory(text);
+                document.getElementById('transcript').value = '';
+                updateWordCount();
             }
-            if (isRecording) stopDictation();
-            if (whisperRecording) stopWhisperRecording(true);
         } else if (e.key === 'F10') {
             e.preventDefault();
             aiFixFromClipboard();
@@ -1870,6 +1896,7 @@
     setupTeachButton();
     renderUsage();
     restoreAudioBlob();
+    if (sttMode !== 'live') setMode(sttMode);
 </script>
 
 </body>

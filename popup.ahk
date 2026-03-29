@@ -269,13 +269,21 @@ CheckForScriptRun() {
             runPos := InStr(title, "RUN::")
             scriptPath := SubStr(title, runPos + 5)
             ; Reset title
-            try WinSetTitle("Shortcuts-Custom", "ahk_id " hwnd)
+            if (hwnd = sttHwnd) {
+                try WinSetTitle("Speech to Text", "ahk_id " hwnd)
+            } else {
+                try WinSetTitle("Shortcuts-Custom", "ahk_id " hwnd)
+            }
 
             ; Strip any surrounding quotes
             scriptPath := Trim(scriptPath, '" ')
 
             if (scriptPath = "")
                 return
+
+            ; Resolve relative paths against script directory
+            if (!InStr(scriptPath, "\") && !InStr(scriptPath, "/"))
+                scriptPath := A_ScriptDir "\" scriptPath
 
             ; Determine how to run based on extension
             SplitPath scriptPath, , , &ext
@@ -424,15 +432,17 @@ QuickPasteHotkey(*) {
     WinActivate "ahk_id " sttHwnd
     Sleep 300
     Send "{F9}"
+    ToolTip "Waiting for transcription..."
 
     ; Wait for clipboard to change
     waited := 0
-    while (A_Clipboard == oldClip && waited < 3000) {
+    while (A_Clipboard == oldClip && waited < 35000) {
         Sleep 50
         waited += 50
     }
 
-    ; Switch back and paste
+    WinMinimize "ahk_id " sttHwnd
+    ; Minimize STT window, switch back and paste
     if (quickDictateReturnWin != 0 && WinExist("ahk_id " quickDictateReturnWin)) {
         WinActivate "ahk_id " quickDictateReturnWin
         Sleep 150
