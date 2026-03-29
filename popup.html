@@ -463,7 +463,28 @@
       <button class="btn btn-edit" id="editModeBtn" onclick="toggleEditMode()">Edit</button>
       <button class="btn btn-edit" onclick="openCategoryModal()" title="Manage Categories" style="background:#8b5cf6">Categories</button>
       <button class="btn btn-edit" onclick="openCollector()" title="Open Collector Viewer" style="background:#10b981">Collector</button>
+      <button class="btn btn-edit" onclick="toggleHelp()" title="Help &amp; FAQ" style="background:#e91e8a">Help</button>
     </div>
+  </div>
+
+  <div id="helpPanel" style="display:none;background:#252525;border:1px solid #333;border-radius:6px;padding:12px 14px;margin-bottom:10px;font-size:0.82rem;color:#aaa;line-height:1.7">
+    <div style="font-weight:600;color:#ccc;margin-bottom:6px;font-size:12px">Keyboard Shortcuts</div>
+    <table style="width:100%;font-size:0.82rem;margin-bottom:10px;border-collapse:collapse">
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+/</td><td>Open/close this popup</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+;</td><td>Collect selected text into active list</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">Shift+CapsLock+;</td><td>Create a new collector list from clipboard</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+]</td><td>Paste collected items (space-separated)</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+Backspace</td><td>Open/close Collector viewer</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+,</td><td>Open/close Speech to Text</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">Esc</td><td>Close any open popup</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">Ctrl+F</td><td>Focus search box</td></tr>
+    </table>
+    <div style="font-weight:600;color:#ccc;margin-bottom:6px;font-size:12px">FAQ</div>
+    <div style="margin-bottom:8px"><span style="color:#f97316;font-weight:600">How do I add a shortcut?</span><br>Click <b>+ Add</b>, fill in the category, key combo, and description, then click Save.</div>
+    <div style="margin-bottom:8px"><span style="color:#f97316;font-weight:600">How do runnable scripts work?</span><br>Set the action to "Run" and paste the full path to a .bat, .ps1, or .exe file as the keys. A Run button will appear next to the shortcut.</div>
+    <div style="margin-bottom:8px"><span style="color:#f97316;font-weight:600">What are favorites?</span><br>Click the star on any shortcut to mark it as a favorite. Favorites appear at the top of every category view.</div>
+    <div style="margin-bottom:8px"><span style="color:#f97316;font-weight:600">Where is my data stored?</span><br>All shortcuts are stored in your browser's localStorage. Nothing is sent to the internet. Clearing Edge browser data will wipe your shortcuts.</div>
+    <div><span style="color:#f97316;font-weight:600">How do I change the hotkeys?</span><br>Edit the KEY_* variables at the top of popup.ahk and reload the script (right-click tray icon &gt; Reload Script).</div>
   </div>
 
   <input type="text" class="search-box" placeholder="Search shortcuts..." id="searchBox" onkeyup="filterShortcuts()">
@@ -906,6 +927,11 @@
       }
     }
 
+    function toggleHelp() {
+      const panel = document.getElementById('helpPanel');
+      panel.style.display = panel.style.display === 'none' || !panel.style.display ? 'block' : 'none';
+    }
+
     function openCollector() {
       document.title = 'Shortcuts-Custom';
       setTimeout(() => { document.title = 'OPEN::COLLECTOR'; }, 50);
@@ -1171,6 +1197,7 @@
     // INIT
     // ============================================
     loadData();
+
   </script>
 </body>
 </html>
