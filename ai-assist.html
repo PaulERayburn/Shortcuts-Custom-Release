@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assist</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #121212;
+            color: #d4d4d4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
+        .header h1 { font-size: 1.1rem; color: #e0e0e0; }
+        .header-buttons { margin-left: auto; display: flex; gap: 6px; }
+
+        /* Buttons */
+        .btn {
+            padding: 5px 12px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+        .btn:hover { border-color: #666; }
+        .btn-primary { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: #22c55e; color: #fff; border-color: #22c55e; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-purple { background: #8b5cf6; color: #fff; border-color: #8b5cf6; }
+        .btn-purple:hover { background: #7c3aed; }
+        .btn:disabled { opacity: 0.4; cursor: default; }
+
+        /* Main layout */
+        .main { flex: 1; display: flex; flex-direction: column; padding: 12px; gap: 10px; overflow: hidden; }
+
+        /* Help panel */
+        .help-panel {
+            display: none;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            color: #999;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .help-panel.show { display: block; }
+        .help-panel b { color: #d4d4d4; }
+        .help-panel kbd {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-size: 0.72rem;
+            color: #999;
+        }
+
+        /* Text areas */
+        .panel-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: #999;
+            margin-bottom: 4px;
+        }
+        .word-count { font-size: 0.78rem; color: #666; }
+        .text-area {
+            width: 100%;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #d4d4d4;
+            padding: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: none;
+            font-family: inherit;
+        }
+        .text-area:focus { outline: none; border-color: #3b82f6; }
+        .text-area::placeholder { color: #555; }
+
+        /* Action row */
+        .action-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .agent-select {
+            flex: 1;
+            min-width: 180px;
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #d4d4d4;
+            padding: 7px 10px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .agent-select:focus { outline: none; border-color: #3b82f6; }
+        .agent-select option { background: #1e1e1e; color: #d4d4d4; }
+        .agent-select optgroup { color: #999; font-style: normal; }
+
+        /* Output panel */
+        .output-panel {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #1a1a1a;
+            overflow: hidden;
+        }
+        .output-panel.show { display: flex; flex: 1; min-height: 0; }
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #333;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .output-header h3 { font-size: 0.9rem; color: #8b5cf6; }
+        .output-body { flex: 1; display: flex; flex-direction: column; padding: 10px 12px; gap: 8px; min-height: 0; overflow: hidden; }
+        .output-result {
+            flex: 1;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            min-height: 60px;
+        }
+        .output-meta { font-size: 0.72rem; color: #555; }
+
+        /* Refine chat */
+        .refine-row {
+            display: flex;
+            gap: 6px;
+        }
+        .refine-row input {
+            flex: 1;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #d4d4d4;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+        .refine-row input:focus { outline: none; border-color: #8b5cf6; }
+        .refine-history {
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .refine-msg {
+            padding: 5px 8px;
+            border-radius: 5px;
+            margin-bottom: 4px;
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+        .refine-msg.user { background: #2a2a4a; color: #a5b4fc; text-align: right; }
+        .refine-msg.assistant { background: #1e2e1e; color: #86efac; }
+
+        /* Web destinations bar */
+        .web-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 0;
+            flex-wrap: wrap;
+        }
+        .web-bar-label { font-size: 0.78rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 4px; }
+        .web-btn {
+            padding: 6px 14px;
+            border: 1px solid #555;
+            border-radius: 20px;
+            background: #2a2a2a;
+            color: #d4d4d4;
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: all 0.15s;
+        }
+        .web-btn:hover { background: #3a3a3a; border-color: #888; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            width: 560px;
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal h2 { font-size: 1.1rem; margin-bottom: 16px; color: #e0e0e0; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.82rem; color: #999; margin-bottom: 4px; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #d4d4d4;
+            padding: 8px;
+            font-size: 0.88rem;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #3b82f6; }
+        .form-group .hint { font-size: 0.72rem; color: #555; margin-top: 4px; }
+
+        /* Settings tabs */
+        .settings-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 1px solid #444; }
+        .settings-tab {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            color: #999;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            background: none;
+            border-top: none; border-left: none; border-right: none;
+        }
+        .settings-tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+        .settings-tab:hover { color: #d4d4d4; }
+        .settings-tab-content { display: none; }
+        .settings-tab-content.active { display: block; }
+
+        /* Agent/web list in settings */
+        .item-list { margin-bottom: 12px; }
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+        .item-row .item-name { flex: 1; font-size: 0.88rem; }
+        .item-row .item-meta { font-size: 0.72rem; color: #666; }
+        .item-row .btn { padding: 3px 8px; font-size: 0.72rem; }
+
+        /* Agent edit form */
+        .agent-form {
+            display: none;
+            border: 1px solid #3b82f6;
+            border-radius: 6px;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: #1a1a2a;
+        }
+        .agent-form.show { display: block; }
+        .agent-form h3 { font-size: 0.92rem; color: #3b82f6; margin-bottom: 12px; }
+
+        /* Usage panel */
+        .usage-panel {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+        }
+        .usage-title { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        .usage-row { display: grid; grid-template-columns: 100px 1fr 1fr; font-size: 0.8rem; padding: 2px 0; }
+        .usage-label { color: #999; }
+        .usage-value { color: #d4d4d4; }
+
+        /* Spinner */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #666; border-top-color: #8b5cf6; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .toast.show { opacity: 1; }
+
+        kbd {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 3px;
+            padding: 1px 5px;
+            font-size: 0.72rem;
+            color: #999;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e1e1e; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>AI Assist</h1>
+    <span style="font-size:0.72rem;color:#555">
+        <kbd>Ctrl+Enter</kbd> process &nbsp; <kbd>Ctrl+Shift+C</kbd> copy output
+    </span>
+    <div class="header-buttons">
+        <button class="btn" onclick="pasteFromClipboard()" title="Paste from clipboard">Paste</button>
+        <button class="btn" onclick="toggleHelp()">Help</button>
+        <button class="btn" onclick="openSettings()">Settings</button>
+    </div>
+</div>
+
+<div class="main">
+    <!-- Help panel -->
+    <div class="help-panel" id="helpPanel">
+        <b>How to use AI Assist</b><br>
+        1. Paste or type text in the input area<br>
+        2. Select an agent from the dropdown<br>
+        3. Click <b>Process</b> (or <kbd>Ctrl+Enter</kbd>) to send to the AI<br>
+        4. Review the output — type a follow-up to refine<br>
+        5. Click <b>Copy</b> or <b>Paste Back</b> to use the result<br><br>
+        <b>Web Destinations</b> — click any button at the bottom to copy your text to the clipboard and open that AI service in your browser. Paste your text into the conversation.<br><br>
+        <b>Agents</b> — configure different AI presets in Settings. Each agent has its own provider, model, and system prompt tuned for a specific task (grammar fixes, narrative editing, formal rewrite, etc.).<br><br>
+        <b>Keyboard shortcuts:</b><br>
+        <kbd>CapsLock+[</kbd> Open/close AI Assist &bull;
+        <kbd>Ctrl+Enter</kbd> Process &bull;
+        <kbd>Ctrl+Shift+C</kbd> Copy output
+    </div>
+
+    <!-- Input -->
+    <div style="display:flex;flex-direction:column;flex:1;min-height:0;" id="inputSection">
+        <div class="panel-label">
+            <span>Input</span>
+            <span class="word-count" id="inputWordCount">0 words</span>
+        </div>
+        <textarea class="text-area" id="inputText" style="flex:1;min-height:80px" placeholder="Paste or type your text here...&#10;&#10;Select an agent and click Process, or use a Web Destination below." oninput="updateInputWordCount()"></textarea>
+    </div>
+
+    <!-- Action row -->
+    <div class="action-row">
+        <select class="agent-select" id="agentSelect" onchange="onAgentChange()">
+        </select>
+        <button class="btn btn-purple" id="btnProcess" onclick="processText()" title="Send to AI (Ctrl+Enter)">Process</button>
+        <button class="btn" onclick="clearAll()" title="Clear input and output">Clear</button>
+    </div>
+
+    <!-- Output panel -->
+    <div class="output-panel" id="outputPanel">
+        <div class="output-header">
+            <h3 id="outputTitle">Output</h3>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                <span class="output-meta" id="outputMeta"></span>
+                <button class="btn btn-success" onclick="replaceInput()" title="Replace input with this output">Accept</button>
+                <button class="btn" onclick="copyOutput()" title="Copy output to clipboard">Copy</button>
+                <button class="btn btn-primary" onclick="pasteBack()" title="Copy output and paste into your previous app">Paste Back</button>
+                <button class="btn" onclick="closeOutput()">Dismiss</button>
+            </div>
+        </div>
+        <div class="output-body">
+            <div class="output-result" id="outputResult"></div>
+            <div class="refine-history" id="refineHistory"></div>
+            <div class="refine-row">
+                <input type="text" id="refineInput" placeholder='Refine: "make it formal", "shorter", "add paragraphs"...' onkeydown="if(event.key==='Enter')sendRefine()">
+                <button class="btn btn-purple" onclick="sendRefine()">Refine</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Web destinations -->
+    <div class="web-bar" id="webBar">
+        <span class="web-bar-label">Send to Web:</span>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+        <h2>Settings</h2>
+        <div class="settings-tabs">
+            <button class="settings-tab active" onclick="switchSettingsTab('keys')">API Keys</button>
+            <button class="settings-tab" onclick="switchSettingsTab('agents')">Agents</button>
+            <button class="settings-tab" onclick="switchSettingsTab('web')">Web</button>
+            <button class="settings-tab" onclick="switchSettingsTab('usage')">Usage</button>
+        </div>
+
+        <!-- API Keys tab -->
+        <div class="settings-tab-content active" id="settingsTab-keys">
+            <div class="form-group">
+                <label>OpenAI API Key</label>
+                <input type="password" id="settingsOpenaiKey" placeholder="sk-...">
+                <p class="hint">Shared with Speech to Text. Used for GPT models.</p>
+            </div>
+            <div class="form-group">
+                <label>Anthropic API Key</label>
+                <input type="password" id="settingsAnthropicKey" placeholder="sk-ant-...">
+                <p class="hint">Used for Claude models.</p>
+            </div>
+        </div>
+
+        <!-- Agents tab -->
+        <div class="settings-tab-content" id="settingsTab-agents">
+            <div class="item-list" id="agentList"></div>
+            <div class="agent-form" id="agentForm">
+                <h3 id="agentFormTitle">Add Agent</h3>
+                <input type="hidden" id="agentFormId">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="agentFormName" placeholder="e.g. Quick Grammar">
+                </div>
+                <div class="form-group">
+                    <label>Provider</label>
+                    <select id="agentFormProvider" onchange="onProviderChange()">
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Model</label>
+                    <input type="text" id="agentFormModel" placeholder="e.g. gpt-4o-mini">
+                    <p class="hint" id="modelHint">Common: gpt-4o-mini, gpt-4o, gpt-4.1, o4-mini</p>
+                </div>
+                <div class="form-group">
+                    <label>System Prompt</label>
+                    <textarea id="agentFormPrompt" style="min-height:80px" placeholder="Instructions for the AI..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Temperature (0.0 – 1.0)</label>
+                    <input type="number" id="agentFormTemp" min="0" max="1" step="0.1" value="0.3">
+                </div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+                    <button class="btn" onclick="cancelAgentForm()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveAgentForm()">Save Agent</button>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btnAddAgent" onclick="showAddAgent()">+ Add Agent</button>
+        </div>
+
+        <!-- Web tab -->
+        <div class="settings-tab-content" id="settingsTab-web">
+            <div class="item-list" id="webList"></div>
+            <div class="agent-form" id="webForm">
+                <h3 id="webFormTitle">Add Web Destination</h3>
+                <input type="hidden" id="webFormId">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="webFormName" placeholder="e.g. ChatGPT (My Style)">
+                </div>
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="text" id="webFormUrl" placeholder="https://chatgpt.com/g/g-xxxxx">
+                    <p class="hint">For Custom GPTs use the full URL: https://chatgpt.com/g/g-...</p>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+                    <button class="btn" onclick="cancelWebForm()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveWebForm()">Save</button>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btnAddWeb" onclick="showAddWeb()">+ Add Web Destination</button>
+        </div>
+
+        <!-- Usage tab -->
+        <div class="settings-tab-content" id="settingsTab-usage">
+            <div class="usage-panel">
+                <div class="usage-title">API Usage (AI Assist)</div>
+                <div id="usageGrid"></div>
+                <div style="display:flex;gap:8px;margin-top:10px">
+                    <button class="btn" style="font-size:0.72rem;flex:1" onclick="resetUsage()">Reset Counts</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+            <button class="btn" onclick="closeSettings()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    // ============================================
+    // STATE
+    // ============================================
+    let chatHistory = [];
+    let currentOutputText = '';
+
+    // ============================================
+    // DEFAULT AGENTS & WEB DESTINATIONS
+    // ============================================
+    const DEFAULT_AGENTS = [
+        {
+            id: 'grammar-quick',
+            name: 'Quick Grammar',
+            type: 'api',
+            provider: 'openai',
+            model: 'gpt-4o-mini',
+            systemPrompt: 'Fix grammar, spelling, and punctuation errors. Preserve the original tone, meaning, and style. Return ONLY the corrected text with no commentary or explanation.',
+            temperature: 0.3
+        },
+        {
+            id: 'deep-edit',
+            name: 'Deep Edit',
+            type: 'api',
+            provider: 'openai',
+            model: 'gpt-4o',
+            systemPrompt: 'You are a professional editor. Thoroughly edit this text for clarity, flow, grammar, and style. Restructure sentences and paragraphs where it improves readability. Fix all errors. Return ONLY the edited text with no commentary.',
+            temperature: 0.4
+        },
+        {
+            id: 'narrative-restructure',
+            name: 'Narrative Restructure',
+            type: 'api',
+            provider: 'openai',
+            model: 'gpt-4o',
+            systemPrompt: 'You are a narrative writing expert. Restructure this text to improve flow, coherence, and impact. Reorganize paragraphs logically, strengthen transitions, and tighten prose while preserving the author\'s voice and all factual content. Return ONLY the restructured text with no commentary.',
+            temperature: 0.5
+        },
+        {
+            id: 'formal-rewrite',
+            name: 'Formal Rewrite',
+            type: 'api',
+            provider: 'openai',
+            model: 'gpt-4o',
+            systemPrompt: 'Rewrite this text in a professional, formal tone suitable for official reports and documentation. Maintain all factual content and meaning. Improve clarity and structure. Return ONLY the rewritten text.',
+            temperature: 0.3
+        }
+    ];
+
+    const DEFAULT_WEB = [
+        { id: 'chatgpt-web', name: 'ChatGPT', url: 'https://chatgpt.com' },
+        { id: 'claude-web', name: 'Claude', url: 'https://claude.ai' }
+    ];
+
+    // ============================================
+    // STORAGE
+    // ============================================
+    function getAgents() {
+        const raw = localStorage.getItem('ai-assist-agents');
+        if (raw) try { return JSON.parse(raw); } catch(e) {}
+        localStorage.setItem('ai-assist-agents', JSON.stringify(DEFAULT_AGENTS));
+        return [...DEFAULT_AGENTS];
+    }
+
+    function saveAgents(agents) {
+        localStorage.setItem('ai-assist-agents', JSON.stringify(agents));
+    }
+
+    function getWebDestinations() {
+        const raw = localStorage.getItem('ai-assist-web');
+        if (raw) try { return JSON.parse(raw); } catch(e) {}
+        localStorage.setItem('ai-assist-web', JSON.stringify(DEFAULT_WEB));
+        return [...DEFAULT_WEB];
+    }
+
+    function saveWebDestinations(web) {
+        localStorage.setItem('ai-assist-web', JSON.stringify(web));
+    }
+
+    function getOpenAIKey() {
+        return (localStorage.getItem('ai-assist-openai-key') || localStorage.getItem('stt-openai-key') || localStorage.getItem('mls-notes-openai-key') || '').replace(/[^\x20-\x7E]/g, '');
+    }
+
+    function getAnthropicKey() {
+        return (localStorage.getItem('ai-assist-anthropic-key') || '').replace(/[^\x20-\x7E]/g, '');
+    }
+
+    function getSelectedAgentId() {
+        return localStorage.getItem('ai-assist-selected-agent') || '';
+    }
+
+    function setSelectedAgentId(id) {
+        localStorage.setItem('ai-assist-selected-agent', id);
+    }
+
+    // ============================================
+    // USAGE TRACKING
+    // ============================================
+    function getUsage() {
+        try { return JSON.parse(localStorage.getItem('ai-assist-usage') || '{}'); } catch { return {}; }
+    }
+
+    function saveUsageData(u) {
+        localStorage.setItem('ai-assist-usage', JSON.stringify(u));
+    }
+
+    function trackAPICall(provider, model, inputTokens, outputTokens) {
+        const u = getUsage();
+        const key = provider + ':' + model;
+        if (!u[key]) u[key] = { calls: 0, inputTokens: 0, outputTokens: 0 };
+        u[key].calls++;
+        u[key].inputTokens += inputTokens || 0;
+        u[key].outputTokens += outputTokens || 0;
+        saveUsageData(u);
+    }
+
+    function resetUsage() {
+        localStorage.removeItem('ai-assist-usage');
+        renderUsage();
+        showToast('Usage counts reset');
+    }
+
+    function renderUsage() {
+        const u = getUsage();
+        const grid = document.getElementById('usageGrid');
+        if (!grid) return;
+
+        const keys = Object.keys(u);
+        if (keys.length === 0) {
+            grid.innerHTML = '<div style="font-size:0.82rem;color:#666">No usage recorded yet.</div>';
+            return;
+        }
+
+        let html = '';
+        let totalCalls = 0;
+        keys.forEach(k => {
+            const d = u[k];
+            totalCalls += d.calls;
+            const total = (d.inputTokens || 0) + (d.outputTokens || 0);
+            const tokenStr = total >= 1000 ? (total / 1000).toFixed(1) + 'k' : total;
+            html += `<div class="usage-row">
+                <span class="usage-label">${esc(k)}</span>
+                <span class="usage-value">${d.calls} calls</span>
+                <span class="usage-value">${tokenStr} tokens</span>
+            </div>`;
+        });
+        html += `<div class="usage-row" style="border-top:1px solid #333;padding-top:6px;margin-top:4px">
+            <span class="usage-label" style="color:#3b82f6;font-weight:600">Total</span>
+            <span class="usage-value" style="color:#3b82f6;font-weight:600">${totalCalls} calls</span>
+            <span class="usage-value"></span>
+        </div>`;
+        grid.innerHTML = html;
+    }
+
+    // ============================================
+    // API CALLS
+    // ============================================
+    async function callOpenAI(messages, model, temperature) {
+        const key = getOpenAIKey();
+        if (!key) throw new Error('No OpenAI API key — set it in Settings > API Keys');
+
+        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + key
+            },
+            body: JSON.stringify({ model, messages, temperature })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error('OpenAI ' + resp.status + ': ' + err);
+        }
+
+        const data = await resp.json();
+        const inputTokens = data.usage?.prompt_tokens || 0;
+        const outputTokens = data.usage?.completion_tokens || 0;
+        trackAPICall('openai', model, inputTokens, outputTokens);
+        return data.choices[0].message.content;
+    }
+
+    async function callAnthropic(systemPrompt, messages, model, temperature) {
+        const key = getAnthropicKey();
+        if (!key) throw new Error('No Anthropic API key — set it in Settings > API Keys');
+
+        // Convert from OpenAI message format (filter out system messages)
+        const apiMessages = messages.filter(m => m.role !== 'system').map(m => ({
+            role: m.role,
+            content: m.content
+        }));
+
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': key,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model,
+                max_tokens: 4096,
+                system: systemPrompt,
+                messages: apiMessages,
+                temperature
+            })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error('Anthropic ' + resp.status + ': ' + err);
+        }
+
+        const data = await resp.json();
+        const inputTokens = data.usage?.input_tokens || 0;
+        const outputTokens = data.usage?.output_tokens || 0;
+        trackAPICall('anthropic', model, inputTokens, outputTokens);
+
+        // Anthropic returns content as array of blocks
+        return data.content.map(b => b.text).join('');
+    }
+
+    async function callAgent(agent, messages) {
+        if (agent.provider === 'anthropic') {
+            const systemPrompt = messages.find(m => m.role === 'system')?.content || '';
+            return await callAnthropic(systemPrompt, messages, agent.model, agent.temperature || 0.3);
+        }
+        return await callOpenAI(messages, agent.model, agent.temperature || 0.3);
+    }
+
+    // ============================================
+    // PROCESS TEXT
+    // ============================================
+    async function processText() {
+        const input = document.getElementById('inputText').value.trim();
+        if (!input) { showToast('Nothing to process — paste or type some text'); return; }
+
+        const agentId = document.getElementById('agentSelect').value;
+        const agents = getAgents();
+        const agent = agents.find(a => a.id === agentId);
+        if (!agent) { showToast('Select an agent first'); return; }
+
+        const btn = document.getElementById('btnProcess');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>Processing...';
+
+        chatHistory = [
+            { role: 'system', content: agent.systemPrompt },
+            { role: 'user', content: input }
+        ];
+
+        try {
+            const result = await callAgent(agent, chatHistory);
+            if (!result) { btn.disabled = false; btn.textContent = 'Process'; return; }
+
+            currentOutputText = result;
+            chatHistory.push({ role: 'assistant', content: result });
+
+            document.getElementById('outputResult').textContent = result;
+            document.getElementById('refineHistory').innerHTML = '';
+            document.getElementById('outputTitle').textContent = 'Output (' + agent.name + ' — ' + agent.model + ')';
+            document.getElementById('outputMeta').textContent = '';
+            document.getElementById('outputPanel').classList.add('show');
+
+            // Shrink input section when output is shown
+            document.getElementById('inputSection').style.flex = '0 0 auto';
+            document.getElementById('inputText').style.minHeight = '60px';
+            document.getElementById('inputText').style.maxHeight = '120px';
+        } catch(e) {
+            showToast('Error: ' + e.message);
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Process';
+    }
+
+    // ============================================
+    // REFINE CHAT
+    // ============================================
+    async function sendRefine() {
+        const input = document.getElementById('refineInput');
+        const msg = input.value.trim();
+        if (!msg || chatHistory.length === 0) return;
+
+        input.value = '';
+        const container = document.getElementById('refineHistory');
+        container.innerHTML += `<div class="refine-msg user">${esc(msg)}</div>`;
+        container.innerHTML += `<div class="refine-msg assistant" id="refinePending"><span class="spinner"></span>Refining...</div>`;
+        container.scrollTop = container.scrollHeight;
+
+        chatHistory.push({ role: 'user', content: msg });
+
+        const agentId = document.getElementById('agentSelect').value;
+        const agents = getAgents();
+        const agent = agents.find(a => a.id === agentId) || agents[0];
+
+        try {
+            const result = await callAgent(agent, chatHistory);
+            const pending = document.getElementById('refinePending');
+            if (pending) pending.remove();
+
+            if (result) {
+                currentOutputText = result;
+                chatHistory.push({ role: 'assistant', content: result });
+                document.getElementById('outputResult').textContent = result;
+                const preview = result.length > 150 ? result.substring(0, 150) + '...' : result;
+                container.innerHTML += `<div class="refine-msg assistant">${esc(preview)}</div>`;
+                container.scrollTop = container.scrollHeight;
+            }
+        } catch(e) {
+            const pending = document.getElementById('refinePending');
+            if (pending) pending.remove();
+            container.innerHTML += `<div class="refine-msg assistant" style="color:#ef4444">Error: ${esc(e.message)}</div>`;
+        }
+    }
+
+    // ============================================
+    // OUTPUT ACTIONS
+    // ============================================
+    function replaceInput() {
+        if (currentOutputText) {
+            document.getElementById('inputText').value = currentOutputText;
+            updateInputWordCount();
+            closeOutput();
+            showToast('Input replaced with AI output');
+        }
+    }
+
+    async function copyOutput() {
+        if (!currentOutputText) { showToast('Nothing to copy'); return; }
+        await copyToClipboard(currentOutputText);
+        showToast('Output copied to clipboard');
+    }
+
+    async function pasteBack() {
+        if (!currentOutputText) { showToast('Nothing to paste'); return; }
+        await copyToClipboard(currentOutputText);
+        // Signal AHK to switch to previous window and paste
+        document.title = 'AI Assist';
+        setTimeout(() => { document.title = 'AI_ASSIST::PASTE'; }, 50);
+    }
+
+    function closeOutput() {
+        document.getElementById('outputPanel').classList.remove('show');
+        chatHistory = [];
+        currentOutputText = '';
+        // Restore input section
+        document.getElementById('inputSection').style.flex = '1';
+        document.getElementById('inputText').style.minHeight = '80px';
+        document.getElementById('inputText').style.maxHeight = '';
+    }
+
+    // ============================================
+    // WEB DESTINATIONS
+    // ============================================
+    function renderWebBar() {
+        const bar = document.getElementById('webBar');
+        const dests = getWebDestinations();
+        let html = '<span class="web-bar-label">Send to Web:</span>';
+        dests.forEach(d => {
+            html += `<button class="web-btn" onclick="sendToWeb('${esc(d.id)}')" title="Copy text and open ${esc(d.name)}">${esc(d.name)}</button>`;
+        });
+        bar.innerHTML = html;
+    }
+
+    async function sendToWeb(id) {
+        const text = document.getElementById('inputText').value.trim();
+        // If output exists, prefer sending that
+        const textToSend = currentOutputText || text;
+        if (!textToSend) { showToast('Nothing to send — paste or type some text first'); return; }
+
+        const dests = getWebDestinations();
+        const dest = dests.find(d => d.id === id);
+        if (!dest) return;
+
+        await copyToClipboard(textToSend);
+        showToast('Copied to clipboard — opening ' + dest.name + '...');
+
+        setTimeout(() => {
+            window.open(dest.url, '_blank');
+        }, 300);
+    }
+
+    // ============================================
+    // AGENT SELECT RENDERING
+    // ============================================
+    function renderAgentSelect() {
+        const select = document.getElementById('agentSelect');
+        const agents = getAgents();
+        const selectedId = getSelectedAgentId();
+
+        let html = '';
+        if (agents.length === 0) {
+            html = '<option value="">No agents configured — open Settings</option>';
+        } else {
+            // Group by provider
+            const providers = {};
+            agents.forEach(a => {
+                const p = a.provider || 'other';
+                if (!providers[p]) providers[p] = [];
+                providers[p].push(a);
+            });
+
+            for (const [provider, list] of Object.entries(providers)) {
+                const label = provider.charAt(0).toUpperCase() + provider.slice(1);
+                html += `<optgroup label="${label}">`;
+                list.forEach(a => {
+                    const sel = a.id === selectedId ? ' selected' : '';
+                    html += `<option value="${esc(a.id)}"${sel}>${esc(a.name)} (${esc(a.model)})</option>`;
+                });
+                html += '</optgroup>';
+            }
+        }
+        select.innerHTML = html;
+
+        // If nothing selected, select first
+        if (!selectedId && agents.length > 0) {
+            select.selectedIndex = 0;
+            setSelectedAgentId(agents[0].id);
+        }
+    }
+
+    function onAgentChange() {
+        setSelectedAgentId(document.getElementById('agentSelect').value);
+    }
+
+    // ============================================
+    // SETTINGS
+    // ============================================
+    function openSettings() {
+        // Populate keys
+        document.getElementById('settingsOpenaiKey').value = getOpenAIKey();
+        document.getElementById('settingsAnthropicKey').value = getAnthropicKey();
+        // Render lists
+        renderAgentList();
+        renderWebList();
+        renderUsage();
+        document.getElementById('settingsModal').classList.add('show');
+    }
+
+    function closeSettings() {
+        document.getElementById('settingsModal').classList.remove('show');
+        cancelAgentForm();
+        cancelWebForm();
+    }
+
+    function saveSettings() {
+        const openaiKey = document.getElementById('settingsOpenaiKey').value.trim();
+        const anthropicKey = document.getElementById('settingsAnthropicKey').value.trim();
+
+        if (openaiKey) {
+            localStorage.setItem('ai-assist-openai-key', openaiKey);
+            // Also update shared STT key if not already set
+            if (!localStorage.getItem('stt-openai-key')) {
+                localStorage.setItem('stt-openai-key', openaiKey);
+            }
+        } else {
+            localStorage.removeItem('ai-assist-openai-key');
+        }
+
+        if (anthropicKey) {
+            localStorage.setItem('ai-assist-anthropic-key', anthropicKey);
+        } else {
+            localStorage.removeItem('ai-assist-anthropic-key');
+        }
+
+        closeSettings();
+        showToast('Settings saved');
+    }
+
+    function switchSettingsTab(tab) {
+        document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.settings-tab-content').forEach(t => t.classList.remove('active'));
+        // Find tab button by text
+        document.querySelectorAll('.settings-tab').forEach(t => {
+            if (t.textContent.trim().toLowerCase().replace(' ', '') === tab.toLowerCase().replace(' ', '')) t.classList.add('active');
+        });
+        const content = document.getElementById('settingsTab-' + tab);
+        if (content) content.classList.add('active');
+
+        if (tab === 'usage') renderUsage();
+    }
+
+    // ============================================
+    // AGENT CRUD (Settings)
+    // ============================================
+    function renderAgentList() {
+        const agents = getAgents();
+        const container = document.getElementById('agentList');
+        if (agents.length === 0) {
+            container.innerHTML = '<div style="font-size:0.82rem;color:#666;padding:8px">No agents. Click + Add Agent to create one.</div>';
+            return;
+        }
+
+        container.innerHTML = agents.map((a, i) => `
+            <div class="item-row">
+                <span class="item-name">${esc(a.name)}</span>
+                <span class="item-meta">${esc(a.provider)} / ${esc(a.model)}</span>
+                <button class="btn" onclick="editAgent(${i})">Edit</button>
+                <button class="btn btn-danger" onclick="deleteAgent(${i})">×</button>
+                ${i > 0 ? `<button class="btn" onclick="moveAgent(${i},-1)" title="Move up">↑</button>` : ''}
+                ${i < agents.length - 1 ? `<button class="btn" onclick="moveAgent(${i},1)" title="Move down">↓</button>` : ''}
+            </div>
+        `).join('');
+    }
+
+    function showAddAgent() {
+        document.getElementById('agentFormId').value = '';
+        document.getElementById('agentFormName').value = '';
+        document.getElementById('agentFormProvider').value = 'openai';
+        document.getElementById('agentFormModel').value = '';
+        document.getElementById('agentFormPrompt').value = '';
+        document.getElementById('agentFormTemp').value = '0.3';
+        document.getElementById('agentFormTitle').textContent = 'Add Agent';
+        document.getElementById('agentForm').classList.add('show');
+        document.getElementById('btnAddAgent').style.display = 'none';
+        onProviderChange();
+    }
+
+    function editAgent(index) {
+        const agents = getAgents();
+        const a = agents[index];
+        document.getElementById('agentFormId').value = a.id;
+        document.getElementById('agentFormName').value = a.name;
+        document.getElementById('agentFormProvider').value = a.provider;
+        document.getElementById('agentFormModel').value = a.model;
+        document.getElementById('agentFormPrompt').value = a.systemPrompt;
+        document.getElementById('agentFormTemp').value = a.temperature || 0.3;
+        document.getElementById('agentFormTitle').textContent = 'Edit Agent';
+        document.getElementById('agentForm').classList.add('show');
+        document.getElementById('btnAddAgent').style.display = 'none';
+        onProviderChange();
+    }
+
+    function cancelAgentForm() {
+        document.getElementById('agentForm').classList.remove('show');
+        document.getElementById('btnAddAgent').style.display = '';
+    }
+
+    function saveAgentForm() {
+        const id = document.getElementById('agentFormId').value;
+        const name = document.getElementById('agentFormName').value.trim();
+        const provider = document.getElementById('agentFormProvider').value;
+        const model = document.getElementById('agentFormModel').value.trim();
+        const systemPrompt = document.getElementById('agentFormPrompt').value.trim();
+        const temperature = parseFloat(document.getElementById('agentFormTemp').value) || 0.3;
+
+        if (!name) { showToast('Agent name is required'); return; }
+        if (!model) { showToast('Model name is required'); return; }
+        if (!systemPrompt) { showToast('System prompt is required'); return; }
+
+        const agents = getAgents();
+
+        if (id) {
+            // Edit existing
+            const idx = agents.findIndex(a => a.id === id);
+            if (idx >= 0) {
+                agents[idx] = { ...agents[idx], name, provider, model, systemPrompt, temperature };
+            }
+        } else {
+            // Add new
+            const newId = 'agent-' + Date.now();
+            agents.push({ id: newId, name, type: 'api', provider, model, systemPrompt, temperature });
+        }
+
+        saveAgents(agents);
+        renderAgentList();
+        renderAgentSelect();
+        cancelAgentForm();
+        showToast('Agent saved');
+    }
+
+    function deleteAgent(index) {
+        const agents = getAgents();
+        agents.splice(index, 1);
+        saveAgents(agents);
+        renderAgentList();
+        renderAgentSelect();
+    }
+
+    function moveAgent(index, dir) {
+        const agents = getAgents();
+        const newIdx = index + dir;
+        if (newIdx < 0 || newIdx >= agents.length) return;
+        [agents[index], agents[newIdx]] = [agents[newIdx], agents[index]];
+        saveAgents(agents);
+        renderAgentList();
+        renderAgentSelect();
+    }
+
+    function onProviderChange() {
+        const provider = document.getElementById('agentFormProvider').value;
+        const hint = document.getElementById('modelHint');
+        if (provider === 'anthropic') {
+            hint.textContent = 'Common: claude-sonnet-4-6-20250514, claude-haiku-4-5-20251001';
+        } else {
+            hint.textContent = 'Common: gpt-4o-mini, gpt-4o, gpt-4.1, o4-mini';
+        }
+    }
+
+    // ============================================
+    // WEB DESTINATION CRUD (Settings)
+    // ============================================
+    function renderWebList() {
+        const dests = getWebDestinations();
+        const container = document.getElementById('webList');
+        if (dests.length === 0) {
+            container.innerHTML = '<div style="font-size:0.82rem;color:#666;padding:8px">No web destinations. Click + Add to create one.</div>';
+            return;
+        }
+
+        container.innerHTML = dests.map((d, i) => `
+            <div class="item-row">
+                <span class="item-name">${esc(d.name)}</span>
+                <span class="item-meta" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.url)}</span>
+                <button class="btn" onclick="editWeb(${i})">Edit</button>
+                <button class="btn btn-danger" onclick="deleteWeb(${i})">×</button>
+            </div>
+        `).join('');
+    }
+
+    function showAddWeb() {
+        document.getElementById('webFormId').value = '';
+        document.getElementById('webFormName').value = '';
+        document.getElementById('webFormUrl').value = '';
+        document.getElementById('webFormTitle').textContent = 'Add Web Destination';
+        document.getElementById('webForm').classList.add('show');
+        document.getElementById('btnAddWeb').style.display = 'none';
+    }
+
+    function editWeb(index) {
+        const dests = getWebDestinations();
+        const d = dests[index];
+        document.getElementById('webFormId').value = d.id;
+        document.getElementById('webFormName').value = d.name;
+        document.getElementById('webFormUrl').value = d.url;
+        document.getElementById('webFormTitle').textContent = 'Edit Web Destination';
+        document.getElementById('webForm').classList.add('show');
+        document.getElementById('btnAddWeb').style.display = 'none';
+    }
+
+    function cancelWebForm() {
+        document.getElementById('webForm').classList.remove('show');
+        document.getElementById('btnAddWeb').style.display = '';
+    }
+
+    function saveWebForm() {
+        const id = document.getElementById('webFormId').value;
+        const name = document.getElementById('webFormName').value.trim();
+        const url = document.getElementById('webFormUrl').value.trim();
+
+        if (!name) { showToast('Name is required'); return; }
+        if (!url) { showToast('URL is required'); return; }
+
+        const dests = getWebDestinations();
+
+        if (id) {
+            const idx = dests.findIndex(d => d.id === id);
+            if (idx >= 0) {
+                dests[idx] = { ...dests[idx], name, url };
+            }
+        } else {
+            dests.push({ id: 'web-' + Date.now(), name, url });
+        }
+
+        saveWebDestinations(dests);
+        renderWebList();
+        renderWebBar();
+        cancelWebForm();
+        showToast('Web destination saved');
+    }
+
+    function deleteWeb(index) {
+        const dests = getWebDestinations();
+        dests.splice(index, 1);
+        saveWebDestinations(dests);
+        renderWebList();
+        renderWebBar();
+    }
+
+    // ============================================
+    // CLIPBOARD HELPERS
+    // ============================================
+    async function copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch(e) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            return true;
+        }
+    }
+
+    async function pasteFromClipboard() {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text) {
+                document.getElementById('inputText').value = text;
+                updateInputWordCount();
+                showToast('Pasted from clipboard');
+            } else {
+                showToast('Clipboard is empty');
+            }
+        } catch(e) {
+            showToast('Cannot access clipboard — paste manually with Ctrl+V');
+        }
+    }
+
+    // ============================================
+    // UI HELPERS
+    // ============================================
+    function updateInputWordCount() {
+        const text = document.getElementById('inputText').value.trim();
+        const count = text ? text.split(/\s+/).length : 0;
+        document.getElementById('inputWordCount').textContent = count + ' word' + (count !== 1 ? 's' : '');
+    }
+
+    function clearAll() {
+        document.getElementById('inputText').value = '';
+        updateInputWordCount();
+        closeOutput();
+        showToast('Cleared');
+    }
+
+    function toggleHelp() {
+        document.getElementById('helpPanel').classList.toggle('show');
+    }
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    let toastTimer;
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    // ============================================
+    // KEYBOARD SHORTCUTS
+    // ============================================
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+Enter → Process
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            processText();
+        }
+        // Ctrl+Shift+C → Copy output
+        if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+            e.preventDefault();
+            copyOutput();
+        }
+        // Escape → close settings modal if open
+        if (e.key === 'Escape') {
+            if (document.getElementById('settingsModal').classList.contains('show')) {
+                closeSettings();
+            }
+        }
+    });
+
+    // ============================================
+    // INIT
+    // ============================================
+    renderAgentSelect();
+    renderWebBar();
+    updateInputWordCount();
+</script>
+</body>
+</html>

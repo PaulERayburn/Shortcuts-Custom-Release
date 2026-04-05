@@ -17,6 +17,7 @@ No server, no build step, no dependencies — everything is local.
 | `popup.html` | Shortcuts popup UI (runs in Edge app mode) |
 | `collector.html` | Clipboard Collector viewer UI |
 | `collector-data.js` | Auto-generated data bridge between AHK and the collector UI — do not edit manually |
+| `ai-assist.html` | AI Assist UI — multi-provider text processing + web destinations |
 | `shortcuts.json` | Shortcut data store |
 | `config.json` | User configuration (hotkey, paths, etc.) |
 | `installer.iss` | Inno Setup script for building the installer |
