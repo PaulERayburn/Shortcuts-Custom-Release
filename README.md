@@ -58,6 +58,12 @@ You'll see a tooltip: "Shortcuts Popup ready!" and a green **H** icon in your sy
 | `CapsLock + ,` | Toggle Speech to Text |
 | `Shift + CapsLock + M` | Quick Dictate — start/stop recording from any app |
 | `Shift + CapsLock + N` | Quick Paste — paste dictation into the app you were using |
+| `CapsLock + r` | Read selected text aloud (raw SAPI — press again to stop) |
+| `Shift + CapsLock + r` | AI-prep then read aloud (tap = clean rewrite, double-tap = summarize) |
+| `CapsLock + p` | Explain a selected permission / tool request in plain English (double-tap = full breakdown) |
+| `CapsLock + Esc` | Hard stop — kill all speech immediately |
+| `CapsLock + h` | Re-read the last AI output aloud |
+| `Shift + CapsLock + h` | Open the AI History viewer |
 | `Esc` | Close any open popup |
 
 ## How It Works
@@ -79,6 +85,27 @@ Press `CapsLock + ,` to open the Speech to Text window. Click the microphone but
 For higher accuracy, enable **Whisper mode** to send recordings to the OpenAI Whisper API. Use **AI Cleanup** to automatically fix grammar, punctuation, and domain-specific terminology. You can teach the AI your own terminology via the Teachable Terminology panel.
 
 **Quick Dictate** (`Shift+CapsLock+M`) lets you start/stop recording without leaving your current app. **Quick Paste** (`Shift+CapsLock+N`) grabs the transcribed text and pastes it back into the app you were working in.
+
+### Read Aloud
+Select text anywhere and press `CapsLock + r` to have it read aloud through the built-in Windows voice (SAPI) — no setup or internet required. Press the same keys again to stop.
+
+`Shift + CapsLock + r` runs the selection through an AI agent first, which rewrites it to sound natural when spoken and can insert short inline asides. A single tap produces a faithful "clean" read; a double-tap (within 500 ms) produces a shorter summary. This requires an API key (see below).
+
+### Explain Permission
+`CapsLock + p` reads a selected developer-style permission or tool request (for example, a CLI tool prompt or install confirmation) aloud in plain English — a quick "what it does, what it touches, allow or skip" triage. Double-tap for a longer breakdown. Requires an API key.
+
+### AI History
+The most recent AI output is saved locally after each Read Aloud or Explain call.
+- `CapsLock + h` re-reads that last output aloud (no new API call).
+- `Shift + CapsLock + h` opens the **AI History viewer**, showing the last output as text with Copy buttons and a re-read button.
+
+### Enabling the AI features
+Read Aloud (raw) and the History re-read work with no setup. The AI-assisted modes (`Shift+CapsLock+r`, `CapsLock+p`) need an API key:
+
+1. **Tray icon → Set AI Keys…** — paste your Anthropic or OpenAI key.
+2. **Tray icon → AI Read Provider…** — choose the provider and model.
+
+Keys are written to a local `ai-keys.json` next to `popup.ahk` (gitignored) and are never sent anywhere except the AI provider you choose.
 
 ## Customizing Hotkeys
 

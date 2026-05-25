@@ -21,3 +21,9 @@ nul
 
 # MLS project data (real property info)
 data/
+
+# API keys for AI Read Aloud / Explain (user-local; copy ai-keys.json.example)
+ai-keys.json
+
+# Last AI output, written at runtime (user-local)
+ai-last.json

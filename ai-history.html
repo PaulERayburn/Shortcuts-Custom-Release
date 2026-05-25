@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>AI History</title>
+  <style>
+    /* All font sizes multiply by --scale. A−/A+ buttons step it. */
+    :root { --scale: 1; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-size: calc(15px * var(--scale));
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      line-height: 1.5;
+    }
+    h1 {
+      font-size: calc(15px * var(--scale));
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+      margin-bottom: 12px;
+    }
+    .meta {
+      color: #888;
+      font-size: calc(11px * var(--scale));
+      margin-bottom: 12px;
+    }
+    .meta .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: #2a2a2a;
+      margin-right: 6px;
+      color: #aaa;
+    }
+    .source {
+      color: #c8c8c8;
+      background: #252525;
+      padding: 10px 12px;
+      border-left: 3px solid #3b82f6;
+      border-radius: 3px;
+      margin-bottom: 14px;
+      font-size: calc(14px * var(--scale));
+      height: 220px;
+      min-height: 80px;
+      overflow: auto;
+      resize: vertical;
+      white-space: pre-wrap;
+      font-family: 'Cascadia Mono', Consolas, monospace;
+    }
+    .section-label {
+      color: #888;
+      font-size: calc(11px * var(--scale));
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 12px 0 4px;
+    }
+    .output {
+      white-space: pre-wrap;
+      background: #252525;
+      padding: 14px;
+      border-radius: 4px;
+      font-size: calc(16px * var(--scale));
+      line-height: 1.6;
+      height: 360px;
+      min-height: 120px;
+      overflow: auto;
+      resize: vertical;
+    }
+    .output .note {
+      display: block;
+      color: #ffd166;
+      background: rgba(255, 209, 102, 0.08);
+      border-left: 3px solid #ffd166;
+      padding: 4px 8px;
+      margin: 6px 0;
+      font-size: calc(12px * var(--scale));
+    }
+    .actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: calc(12px * var(--scale));
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.85; }
+    button.secondary { background: #444; }
+    button.danger { background: #6b2c2c; }
+    .empty {
+      color: #666;
+      text-align: center;
+      padding: 60px 20px;
+      font-style: italic;
+    }
+    .hint {
+      color: #666;
+      font-size: calc(11px * var(--scale));
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Last AI Output</h1>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="secondary" onclick="fontDown()" title="Smaller text">A−</button>
+      <button class="secondary" onclick="fontUp()" title="Larger text">A+</button>
+      <button class="secondary" onclick="window.close()">Close</button>
+    </div>
+  </div>
+  <div id="content"></div>
+  <script>
+    // ---- Font size control (single --scale multiplier on every font) ---
+    const SCALES = [0.8, 0.9, 1.0, 1.15, 1.3, 1.5, 1.75];
+    let scaleIdx = 2;  // 1.0 default
+    function applyScale() {
+      document.documentElement.style.setProperty('--scale', SCALES[scaleIdx]);
+      try { localStorage.setItem('ai-history-scale', scaleIdx); } catch {}
+    }
+    function fontUp()   { if (scaleIdx < SCALES.length - 1) { scaleIdx++; applyScale(); } }
+    function fontDown() { if (scaleIdx > 0)                  { scaleIdx--; applyScale(); } }
+    try {
+      const saved = parseInt(localStorage.getItem('ai-history-scale'));
+      if (!isNaN(saved) && saved >= 0 && saved < SCALES.length) scaleIdx = saved;
+    } catch {}
+    applyScale();
+
+    // ---- Content rendering ----------------------------------------------
+    const MODE_LABELS = {
+      clean: 'Clean read',
+      summarize: 'Summary',
+      permission_triage: 'Quick triage',
+      permission_full: 'Full breakdown'
+    };
+
+    function esc(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function renderOutput(text) {
+      return esc(text).replace(/\[\[NOTE:\s*([^\]]+)\]\]/g,
+        (_, body) => `<span class="note">→ ${body.trim()}</span>`);
+    }
+
+    function render() {
+      const data = window._aiHistoryData;
+      const c = document.getElementById('content');
+      if (!data) {
+        c.innerHTML = `
+          <div class="empty">
+            No AI output recorded yet.<br><br>
+            Use <b>Shift+CapsLock+R</b> (read aloud) or <b>CapsLock+P</b> (explain permission) first.
+          </div>`;
+        return;
+      }
+      const modeLabel = MODE_LABELS[data.mode] || data.mode;
+      c.innerHTML = `
+        <div class="meta">
+          <span class="pill">${esc(modeLabel)}</span>
+          <span class="pill">${esc(data.model)}</span>
+          <span>${esc(data.timestamp)}</span>
+        </div>
+        <div class="section-label">Source — what you highlighted</div>
+        <div class="source">${esc(data.input)}</div>
+        <div class="section-label">AI response</div>
+        <div class="output">${renderOutput(data.output)}</div>
+        <div class="actions">
+          <button onclick="copyOutput()" id="btnCopy">Copy output</button>
+          <button onclick="copySource()" class="secondary">Copy source</button>
+          <button onclick="readAloud()" class="secondary">Read aloud (browser TTS)</button>
+          <button onclick="stopRead()" class="danger" id="btnStop" style="display:none">Stop</button>
+        </div>
+        <div class="hint">Tip: press <b>CapsLock+H</b> from anywhere to re-read via SAPI (same voice as the original).</div>
+      `;
+    }
+
+    // Cache-bust the data file so Edge's app-mode cache doesn't serve a stale copy
+    const s = document.createElement('script');
+    s.src = 'ai-history-data.js?_=' + Date.now();
+    s.onload = render;
+    s.onerror = () => {
+      document.getElementById('content').innerHTML =
+        '<div class="empty">Failed to load ai-history-data.js — has AHK created it yet?</div>';
+    };
+    document.head.appendChild(s);
+
+    function copyOutput() {
+      navigator.clipboard.writeText(window._aiHistoryData.output).then(() => {
+        const b = document.getElementById('btnCopy');
+        const orig = b.textContent;
+        b.textContent = 'Copied!';
+        setTimeout(() => b.textContent = orig, 1500);
+      });
+    }
+    function copySource() {
+      navigator.clipboard.writeText(window._aiHistoryData.input);
+    }
+    function readAloud() {
+      window.speechSynthesis.cancel();
+      // Strip [[NOTE: ...]] markers — they're visual-only for browser TTS
+      const clean = window._aiHistoryData.output.replace(/\[\[NOTE:[^\]]*\]\]/g, '');
+      const u = new SpeechSynthesisUtterance(clean);
+      u.onend = () => { document.getElementById('btnStop').style.display = 'none'; };
+      window.speechSynthesis.speak(u);
+      document.getElementById('btnStop').style.display = 'inline-block';
+    }
+    function stopRead() {
+      window.speechSynthesis.cancel();
+      document.getElementById('btnStop').style.display = 'none';
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { window.speechSynthesis.cancel(); window.close(); }
+      else if (e.ctrlKey && (e.key === '=' || e.key === '+')) { e.preventDefault(); fontUp(); }
+      else if (e.ctrlKey && (e.key === '-' || e.key === '_')) { e.preventDefault(); fontDown(); }
+    });
+  </script>
+</body>
+</html>

@@ -476,6 +476,12 @@
       <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+]</td><td>Paste collected items (space-separated)</td></tr>
       <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+Backspace</td><td>Open/close Collector viewer</td></tr>
       <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+,</td><td>Open/close Speech to Text</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+r</td><td>Read selected text aloud (raw — press again to stop)</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">Shift+CapsLock+r</td><td>AI-prep + read aloud (tap once = clean, tap twice = summarize)</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+p</td><td>Explain selected permission request in plain English (tap twice = full breakdown)</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+Esc</td><td>Hard stop — kills all speech immediately</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">CapsLock+h</td><td>Re-read last AI output via SAPI</td></tr>
+      <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">Shift+CapsLock+h</td><td>Open AI History viewer (last output + Copy / re-read)</td></tr>
       <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">Esc</td><td>Close any open popup</td></tr>
       <tr><td style="color:#3b82f6;padding:2px 8px 2px 0;white-space:nowrap">Ctrl+F</td><td>Focus search box</td></tr>
     </table>
@@ -571,10 +577,10 @@
         { "id": "scripts", "name": "Scripts", "color": "#10b981" }
       ],
       "shortcuts": [
-        { "id": 1, "category": "claude-wsl", "keys": "cvalr4", "description": "Start/attach CValR 4.0 session", "notes": "Smart alias - attaches if exists, creates if not" },
-        { "id": 2, "category": "claude-wsl", "keys": "cvalh", "description": "Start/attach CVal Harmonizer session", "notes": "" },
-        { "id": 3, "category": "claude-wsl", "keys": "qcad", "description": "Start/attach QCAD session", "notes": "" },
-        { "id": 4, "category": "claude-wsl", "keys": "reso-harmonizer", "description": "Start/attach RESO Harmonizer session", "notes": "" },
+        { "id": 1, "category": "claude-wsl", "keys": "myproj-a", "description": "Start/attach project A session", "notes": "Example smart alias - attaches if exists, creates if not" },
+        { "id": 2, "category": "claude-wsl", "keys": "myproj-b", "description": "Start/attach project B session", "notes": "" },
+        { "id": 3, "category": "claude-wsl", "keys": "myproj-c", "description": "Start/attach project C session", "notes": "" },
+        { "id": 4, "category": "claude-wsl", "keys": "myproj-d", "description": "Start/attach project D session", "notes": "" },
         { "id": 5, "category": "claude-wsl", "keys": "tc", "description": "Start/attach generic Claude session", "notes": "" },
         { "id": 6, "category": "claude-wsl", "keys": "tl", "description": "List all tmux sessions", "notes": "tmux ls" },
         { "id": 7, "category": "claude-wsl", "keys": "tk", "description": "Kill claude session", "notes": "" },
@@ -631,10 +637,8 @@
         { "id": 84, "category": "claude-powershell", "keys": "/init", "description": "Create CLAUDE.md for project", "notes": "Initialize project memory file" },
         { "id": 85, "category": "claude-powershell", "keys": "/clear", "description": "Clear conversation history", "notes": "Start fresh" },
         { "id": 86, "category": "claude-powershell", "keys": "/exit", "description": "Exit Claude Code", "notes": "Back to terminal" },
-        { "id": 100, "category": "scripts", "keys": "C:\\Users\\pryac\\Documents\\Scripts_PR_Shortcuts\\BackupScripts\\backup_git_daily.bat", "action": "run", "description": "GitRepos Daily Backup", "notes": "Backs up C:\\GitRepos to Dropbox with change detection" },
-        { "id": 101, "category": "scripts", "keys": "C:\\Users\\pryac\\Documents\\Scripts_PR_Shortcuts\\BackupScripts\\backup_git_weekly.bat", "action": "run", "description": "GitRepos Weekly Backup", "notes": "Full mirror of C:\\GitRepos to Dropbox weekly folder" },
-        { "id": 102, "category": "scripts", "keys": "C:\\Users\\pryac\\Documents\\Scripts_PR_Shortcuts\\BackupScripts\\backup_pr_repo_daily.bat", "action": "run", "description": "PR-Repo Daily Backup", "notes": "Backs up C:\\Users\\pryac\\PR-Repo to Dropbox with change detection" },
-        { "id": 103, "category": "scripts", "keys": "C:\\Users\\pryac\\Documents\\Scripts_PR_Shortcuts\\BackupScripts\\backup_pr_repo_weekly.bat", "action": "run", "description": "PR-Repo Weekly Backup", "notes": "Full mirror of C:\\Users\\pryac\\PR-Repo to Dropbox weekly folder" }
+        { "id": 100, "category": "scripts", "keys": "C:\\Scripts\\backup_daily.bat", "action": "run", "description": "Daily Backup (example)", "notes": "Example: run a .bat or .ps1 script from the popup" },
+        { "id": 101, "category": "scripts", "keys": "C:\\Scripts\\backup_weekly.bat", "action": "run", "description": "Weekly Backup (example)", "notes": "Example: run a .bat or .ps1 script from the popup" }
       ]
     };
 
@@ -911,6 +915,7 @@
       const name = shortcut.keys.split('\\').pop();
       if (!confirm('Run "' + name + '"?')) return;
       document.title = 'RUN::' + shortcut.keys;
+      setTimeout(() => { document.title = 'Shortcuts-Custom'; }, 1000);
       showToast('Launching: ' + name);
     }
 
